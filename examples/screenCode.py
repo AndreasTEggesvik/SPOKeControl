@@ -4,7 +4,7 @@ import kivy
 kivy.require('1.11.0') # replace with your current kivy version !
 
 import pymonarco_hat as plc
-lib_path = '../monarco-c/libmonarco.so'
+lib_path = '../../pymonarco-hat/monarco-c/libmonarco.so'
 plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_VERB | plc.MONARCO_DPF_ERROR | plc.MONARCO_DPF_WARNING)
 
 

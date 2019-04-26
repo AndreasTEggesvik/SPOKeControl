@@ -23,10 +23,12 @@ def press_callback(obj):
 	print("Button pressed,", obj.text)
 	if obj.text == 'BEEP!':
 		# turn on the beeper:
-		GPIO.output(beepPin, plc_handler.set_digital_out(plc.DOUT1, plc.HIGH))
+		plc_handler.set_digital_out(plc.DOUT1, plc.HIGH)
 		# schedule it to turn off:
 		Clock.schedule_once(buzzer_off, .1)
 
+def buzzer_off(dt):
+	plc_handler.set_digital_out(plc.DOUT1, plc.LOW)
 
 
 # Modify the Button Class to update according to GPIO input:

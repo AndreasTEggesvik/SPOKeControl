@@ -81,8 +81,6 @@ class MyApp(App):
 		layout.add_widget(speedSlider)
 
 
-		# Start flashing the LED
-		Clock.schedule_once(flash, 1.0/speed)
 		return layout
 
 MyApp().run()

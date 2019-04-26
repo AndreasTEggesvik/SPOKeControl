@@ -18,6 +18,7 @@ from kivy.uix.slider import Slider
 from kivy.clock import Clock
 from kivy.graphics import Color, Rectangle
 
+speed = 1
 def press_callback(obj):
 	print("Button pressed,", obj.text)
 	if obj.text == 'BEEP!':

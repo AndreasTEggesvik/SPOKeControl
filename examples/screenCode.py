@@ -69,13 +69,13 @@ class MyApp(App):
 
 	def build(self):
 		# Set up the layout:
-		layout = GridLayout(cols=5, spacing=30, padding=30, row_default_height=150)
+		#layout = GridLayout(cols=5, spacing=30, padding=30, row_default_height=150)
 
 
 		# Make the background gray:
-		with layout.canvas.before:
-			Color(.2,.2,.2,1)
-			self.rect = Rectangle(size=(800,600), pos=layout.pos)
+		#with layout.canvas.before:
+		#	Color(.2,.2,.2,1)
+		#	self.rect = Rectangle(size=(800,600), pos=layout.pos)
 
 
 		# Instantiate the first UI object (the GPIO input indicator):
@@ -101,16 +101,27 @@ class MyApp(App):
 		speedSlider.bind(on_touch_move=update_speed)
 		# on_touch_down=update_speed,
 		
+		superBox = BoxLayout(orientation='horizontal')
+
+		verticalTextBox = BoxLayout(orientation='vertical')
+		verticalTextBox.add_widget(inputDisplay)
+		verticalTextBox.add_widget(beepButton)
+		verticalTextBox.add_widget(wimg)
+		
+		superBox.add_widget(FigureCanvasKivyAgg(plt.gcf))
+		superBox.add_widget(verticalTextBox)
+		superBox.add_widget(startButton)
+		superBox.add_widget(speedSlider)
+
+		return superBox
 
 		# Add the UI elements to the layout:
-		layout.add_widget(wimg)
-		layout.add_widget(inputDisplay)
-		layout.add_widget(beepButton)
-		layout.add_widget(startButton)
-		layout.add_widget(speedSlider)
-
-
-		return layout
+		#layout.add_widget(wimg)
+		#layout.add_widget(inputDisplay)
+		#layout.add_widget(beepButton)
+		#layout.add_widget(startButton)
+		#layout.add_widget(speedSlider)
+		#return layout
 
 class MyPlot(App):
 	
@@ -118,5 +129,20 @@ class MyPlot(App):
         box = BoxLayout()
         box.add_widget(FigureCanvasKivyAgg(plt.gcf()))
         return box
-#MyApp().run()
-MyPlot().run()
+
+class BoxLayout(App):
+	def build(self):
+		superBox = BoxLayout(orientation='horizontal')
+
+		verticalTextBox = BoxLayout(orientation='vertical')
+		verticalTextBox.add_widget(inputDisplay)
+		verticalTextBox.add_widget(beepButton)
+		verticalTextBox.add_widget(wimg)
+		
+		superBox.add_widget(FigureCanvasKivyAgg(plt.gcf))
+		superBox.add_widget(verticalTextBox)
+		superBox.add_widget(startButton)
+		superBox.add_widget(speedSlider)
+
+MyApp().run()
+#MyPlot().run()

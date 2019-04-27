@@ -18,7 +18,15 @@ from kivy.uix.slider import Slider
 from kivy.clock import Clock
 from kivy.graphics import Color, Rectangle, Ellipse
 
-from kivy.properties import StringProperty, ListProperty
+# Graph:
+from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
+from kivy.uix.boxlayout import BoxLayout
+import matplotlib.pyplot as plt
+
+plt.plot([1, 23, 2, 4])
+plt.ylabel('some numbers')
+
+
 
 
 speed = 1
@@ -104,7 +112,11 @@ class MyApp(App):
 
 		return layout
 
-MyApp().run()
-
-if __name__ == '__main__':
-	MyApp().run()
+class MyPlot(App):
+	
+    def build(self):
+        box = BoxLayout()
+        box.add_widget(FigureCanvasKivyAgg(plt.gcf()))
+        return box
+#MyApp().run()
+MyPlot().run()

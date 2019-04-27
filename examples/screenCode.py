@@ -40,7 +40,6 @@ def buzzer_off(dt):
 def update_speed(obj, value):
 	global speed
 	print("Updating speed to:" + str(obj.value))
-	plc_handler.set_pwm_out(plc.DOUT2, value)
 	speed = obj.value
 
 # Modify the Button Class to update according to GPIO input:
@@ -88,6 +87,8 @@ class MyApp(App):
 		wimg = Image(source='Prototype1.png')
 		speedSlider = Slider(orientation='vertical', min=0, max=1, value=speed)
 		speedSlider.bind(on_touch_down=update_speed, on_touch_move=update_speed)
+		global speed
+		plc_handler.set_pwm_out(plc.DOUT2, speed)
 
 		# Add the UI elements to the layout:
 		layout.add_widget(wimg)

@@ -78,6 +78,7 @@ class MyApp(App):
 
 		startButton = Button(text = "START")
 		startButton.background_normal = ''
+		#startButton.bind(on_press=press_callback)
 		#startButton.background_color = ListProperty([0.7, 0.5, 0, 1])
 
 		wimg = Image(source='Prototype1.png')
@@ -88,6 +89,7 @@ class MyApp(App):
 		layout.add_widget(wimg)
 		layout.add_widget(inputDisplay)
 		layout.add_widget(beepButton)
+		layout.add_widget(startButton)
 		layout.add_widget(speedSlider)
 
 

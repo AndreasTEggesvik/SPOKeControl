@@ -101,12 +101,7 @@ class MyApp(App):
 		speedSlider.bind(on_touch_move=update_speed)
 		# on_touch_down=update_speed,
 		
-<<<<<<< HEAD
-		superBox = BoxLayout(orientation='horizontal')
-		
-=======
 		superBox = BoxLayout()
->>>>>>> refs/remotes/origin/master
 
 		verticalTextBox = BoxLayout()
 		verticalTextBox.orientation = 'vertical'
@@ -131,10 +126,10 @@ class MyApp(App):
 
 class MyPlot(App):
 	
-    def build(self):
-	box = BoxLayout()
-	box.add_widget(FigureCanvasKivyAgg(plt.gcf()))
-	return box
+	def build(self):
+		box = BoxLayout()
+		box.add_widget(FigureCanvasKivyAgg(plt.gcf()))
+		return box
 
 class BoxLayout(App):
 	def build(self):
@@ -149,6 +144,7 @@ class BoxLayout(App):
 		superBox.add_widget(verticalTextBox)
 		superBox.add_widget(startButton)
 		superBox.add_widget(speedSlider)
+		return superBox
 
 #MyApp().run()
 MyPlot().run()

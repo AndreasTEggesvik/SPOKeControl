@@ -77,7 +77,8 @@ class MyApp(App):
 		beepButton.bind(on_press=press_callback)
 
 		startButton = Button(text = "START")
-		startButton.background_color = ListProperty([0.7, 0.5, 0, 1])
+		startButton.background_normal = ''
+		#startButton.background_color = ListProperty([0.7, 0.5, 0, 1])
 
 		wimg = Image(source='Prototype1.png')
 		speedSlider = Slider(orientation='vertical', min=1, max=30, value=speed)

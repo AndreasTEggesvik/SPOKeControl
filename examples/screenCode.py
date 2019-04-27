@@ -102,6 +102,7 @@ class MyApp(App):
 		# on_touch_down=update_speed,
 		
 		superBox = BoxLayout(orientation='horizontal')
+		
 
 		verticalTextBox = BoxLayout(orientation='vertical')
 		verticalTextBox.add_widget(inputDisplay)

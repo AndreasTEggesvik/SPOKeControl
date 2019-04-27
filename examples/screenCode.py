@@ -6,7 +6,7 @@ kivy.require('1.11.0') # replace with your current kivy version !
 import pymonarco_hat as plc
 lib_path = '../../pymonarco-hat/monarco-c/libmonarco.so'
 plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_VERB | plc.MONARCO_DPF_ERROR | plc.MONARCO_DPF_WARNING)
-
+plc_handler.set_pwm_frequency(plc.PWM_CHANNEL1, 1000)
 
 
 from kivy.app import App
@@ -27,12 +27,21 @@ def press_callback(obj):
 	if obj.text == 'BEEP!':
 		# turn on the beeper:
 		plc_handler.set_digital_out(plc.DOUT1, plc.HIGH)
+		print('Digital 3 input: ', plc_handler.get_digital_in(plc.DIN4))
+		print('Digital 4 input: ', plc_handler.get_digital_in(plc.DIN4))
 		# schedule it to turn off:
 		Clock.schedule_once(buzzer_off, .1)
 
 def buzzer_off(dt):
 	plc_handler.set_digital_out(plc.DOUT1, plc.LOW)
 
+# This is called when the slider is updated:
+
+def update_speed(obj, value):
+	global speed
+	print("Updating speed to:" + str(obj.value))
+	plc_handler.set_pwm_out(plc.DOUT2, value)
+	speed = obj.value
 
 # Modify the Button Class to update according to GPIO input:
 class InputButton(Button):
@@ -42,12 +51,7 @@ class InputButton(Button):
 		else:
 			self.state = 'down'
 
-# This is called when the slider is updated:
 
-def update_speed(obj, value):
-	global speed
-	print("Updating speed to:" + str(obj.value))
-	speed = obj.value
 
 
 class MyApp(App):
@@ -79,14 +83,10 @@ class MyApp(App):
 		startButton = Button(text = "START")
 		startButton.background_normal = ''
 		#startButton.bind(on_press=press_callback)
-<<<<<<< HEAD
-		startButton.background_color = ListProperty([0.7, 0, 0, 1])
-=======
 		startButton.background_color = [0.7, 0, 0, 1]
->>>>>>> refs/remotes/origin/master
 
 		wimg = Image(source='Prototype1.png')
-		speedSlider = Slider(orientation='vertical', min=1, max=30, value=speed)
+		speedSlider = Slider(orientation='vertical', min=0, max=1, value=speed)
 		speedSlider.bind(on_touch_down=update_speed, on_touch_move=update_speed)
 
 		# Add the UI elements to the layout:

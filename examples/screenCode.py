@@ -27,10 +27,14 @@ def press_callback(obj):
 	if obj.text == 'BEEP!':
 		# turn on the beeper:
 		plc_handler.set_digital_out(plc.DOUT1, plc.HIGH)
-		print('Digital 3 input: ', plc_handler.get_digital_in(plc.DIN4))
+		print('Digital 3 input: ', plc_handler.get_digital_in(plc.DIN3))
 		print('Digital 4 input: ', plc_handler.get_digital_in(plc.DIN4))
 		# schedule it to turn off:
 		Clock.schedule_once(buzzer_off, .1)
+
+		global speed
+		plc_handler.set_pwm_out(plc.DOUT2, speed)
+		print('PWM signal: ', speed)
 
 def buzzer_off(dt):
 	plc_handler.set_digital_out(plc.DOUT1, plc.LOW)
@@ -45,7 +49,7 @@ def update_speed(obj, value):
 # Modify the Button Class to update according to GPIO input:
 class InputButton(Button):
 	def update(self, dt):
-		if plc_handler.get_digital_in(plc.DIN4) == True:
+		if plc_handler.get_digital_in(plc.DIN4) > 0:
 			self.state = 'normal'
 		else:
 			self.state = 'down'
@@ -86,9 +90,9 @@ class MyApp(App):
 
 		wimg = Image(source='Prototype1.png')
 		speedSlider = Slider(orientation='vertical', min=0, max=1, value=speed)
-		speedSlider.bind(on_touch_down=update_speed, on_touch_move=update_speed)
-		global speed
-		plc_handler.set_pwm_out(plc.DOUT2, speed)
+		speedSlider.bind(on_touch_move=update_speed)
+		# on_touch_down=update_speed,
+		
 
 		# Add the UI elements to the layout:
 		layout.add_widget(wimg)

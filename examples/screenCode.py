@@ -16,7 +16,10 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.image import Image
 from kivy.uix.slider import Slider
 from kivy.clock import Clock
-from kivy.graphics import Color, Rectangle
+from kivy.graphics import Color, Rectangle, Ellipse
+
+from kivy.properties import StringProperty, ListProperty
+
 
 speed = 1
 def press_callback(obj):
@@ -72,7 +75,11 @@ class MyApp(App):
 		
 		beepButton = Button(text="BEEP!")
 		beepButton.bind(on_press=press_callback)
-		wimg = Image(source='Prototype1.PNG')
+
+		startButton = Button(text = "START")
+		startButton.background_color = ListProperty([0.7, 0.5, 0, 1])
+
+		wimg = Image(source='Prototype1.png')
 		speedSlider = Slider(orientation='vertical', min=1, max=30, value=speed)
 		speedSlider.bind(on_touch_down=update_speed, on_touch_move=update_speed)
 

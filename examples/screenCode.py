@@ -93,7 +93,7 @@ class StateLabel(Label):
 		self.text = textInput
 
 
-def UpdateGraph(time_list, data_list):
+def UpdateGraph(dt, time_list, data_list):
 	plt.plot(time_list, data_list, 'r')
 
 class MyApp(App):

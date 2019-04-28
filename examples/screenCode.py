@@ -91,9 +91,9 @@ class StateLabel(Label):
 		textInput += 'Digital input 4: ' + str(plc_handler.get_digital_in(plc.DIN4))
 		self.text = textInput
 
-class graph_plotter():
-	def update(self, time_list, data_list):
-		plt.plot(time_list, data_list, 'r')
+
+def UpdateGraph(time_list, data_list):
+	plt.plot(time_list, data_list, 'r')
 
 class MyApp(App):
 
@@ -107,7 +107,7 @@ class MyApp(App):
 		stateLabel = StateLabel(text = 'Digital input 3 \nDigital input 4')
 		Clock.schedule_interval(stateLabel.update, 1.0/10.0)
 		global time_list, measurement_list
-		Clock.schedule_interval(graph_plotter.update(time_list, measurement_list), 1)
+		Clock.schedule_interval(UpdateGraph(time_list, measurement_list), 1)
 
 		startButton = Button(text = "INIT")
 		startButton.background_normal = ''

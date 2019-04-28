@@ -24,6 +24,7 @@ from kivy.graphics import Color, Rectangle, Ellipse
 # Graph:
 from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 from kivy.uix.boxlayout import BoxLayout
+from kivy.lang import Builder
 import matplotlib.pyplot as plt
 from kivy.app import App
 plt.plot([1, 23, 2, 4])
@@ -49,6 +50,15 @@ def press_callback(obj):
 		global speed
 		plc_handler.set_pwm_out(plc.DOUT2, speed)
 		print('PWM signal: ', speed)
+	elif obj.text == 'INIT':
+		obj.text = 'START'
+		obj.background_color = [0, 0.7, 0, 1]
+	elif obj.text == 'START':
+		obj.text = 'STOP'
+		obj.background_color = [0.7, 0, 0, 1]
+	elif obj.text == 'STOP':
+		obj.text = 'INIT'
+		obj.background_color = [0, 0.7, 0, 1]
 
 def buzzer_off(dt):
 	plc_handler.set_digital_out(plc.DOUT1, plc.LOW)
@@ -68,6 +78,12 @@ class InputButton(Button):
 		else:
 			self.state = 'down'
 
+class StartButton(Button):
+	__init__(self):
+		self.background_normal = ''
+		self.background_color = [0, 0.7, 0, 1]
+		self.text = "INIT" 
+			
 
 
 
@@ -96,10 +112,14 @@ class MyApp(App):
 		beepButton = Button(text="BEEP!")
 		beepButton.bind(on_press=press_callback)
 
-		startButton = Button(text = "START")
-		startButton.background_normal = ''
-		#startButton.bind(on_press=press_callback)
-		startButton.background_color = [0.7, 0, 0, 1]
+		startButton = StartButton()
+		startButton.bind(on_press=press_callback)
+
+		#startButton = Button(text = "START")
+		#startButton.background_normal = ''
+		#startButton.background_color = [0.7, 0, 0, 1]
+
+		
 
 		wimg = Image(source='Prototype1.png')
 		speedSlider = Slider(orientation='vertical', min=0, max=1, value=speed)
@@ -153,20 +173,7 @@ class BoxLayoutTest(App):
 		return superBox
 
 
-<MyBoxLayout>
 
-
-
-# https://github.com/kivy/kivy/wiki/Working-with-Python-threads-inside-a-Kivy-application
-class ThreadedApp(App):
-	def on_stop(self):
-		# Set the stop parameter to terminate the thread
-		self.root.stop.set()
-
-
-	def build(self):
-		return 
-
-#MyApp().run()
+MyApp().run()
 #MyPlot().run()
 

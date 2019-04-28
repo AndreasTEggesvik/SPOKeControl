@@ -94,7 +94,8 @@ class StateLabel(Label):
 
 
 def UpdateGraph(time_list, data_list):
-	plt.plot(time_list, data_list, 'r')
+	plt.plot([0.1, 0.2, 0.3, 0.4, 0.5, 0.6], [0, 0.1, 0.2, 0.1, 0.15, 0.4], 'r')
+	#plt.plot(time_list, data_list, 'r')
 
 class MyApp(App):
 

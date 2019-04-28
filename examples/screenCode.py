@@ -95,21 +95,10 @@ class MyApp(App):
 
 	def build(self):
 	
-
-		# Instantiate the first UI object (the GPIO input indicator):
-		#inputDisplay = InputButton(text="Input")
-		# Schedule the update of the state of the GPIO input button:
-		#Clock.schedule_interval(inputDisplay.update, 1.0/10.0)
-		
-
-
 		# Create the rest of the UI objects (and bind them to callbacks, if necessary):
 		
 		beepButton = Button(text="BEEP!")
 		beepButton.bind(on_press=press_callback)
-
-		#startButton = StartButton()
-		#startButton.bind(on_press=press_callback)
 
 		stateLabel = StateLabel(text = 'Digital input 3 \nDigital input 4')
 		Clock.schedule_interval(stateLabel.update, 1.0/10.0)
@@ -123,13 +112,13 @@ class MyApp(App):
 		wimg = Image(source='Prototype1.png')
 		speedSlider = Slider(orientation='vertical', min=0, max=1, value=speed)
 		speedSlider.bind(on_touch_move=update_speed)
+		speedSlider.size_hint_x=(0.1)
 		# on_touch_down=update_speed,
 		
 		superBox = BoxLayout()
 
 		verticalTextBox = BoxLayout()
 		verticalTextBox.orientation = 'vertical'
-		#verticalTextBox.add_widget(inputDisplay)
 		verticalTextBox.add_widget(stateLabel)
 		
 		verticalTextBox.add_widget(beepButton)
@@ -142,13 +131,6 @@ class MyApp(App):
 
 		return superBox
 
-		# Add the UI elements to the layout:
-		#layout.add_widget(wimg)
-		#layout.add_widget(inputDisplay)
-		#layout.add_widget(beepButton)
-		#layout.add_widget(startButton)
-		#layout.add_widget(speedSlider)
-		#return layout
 
 class MyPlot(App):
 	
@@ -156,7 +138,6 @@ class MyPlot(App):
 		box = BoxLayout()
 		box.add_widget(FigureCanvasKivyAgg(plt.gcf()))
 		return box
-	# don't need to define run(), as it is a part of App
 
 class BoxLayoutTest(App):
 	def build(self):

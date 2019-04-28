@@ -26,6 +26,9 @@ import matplotlib.pyplot as plt
 plt.plot([1, 23, 2, 4])
 plt.ylabel('some numbers')
 
+# Thread: 
+import threading
+
 
 
 
@@ -70,7 +73,6 @@ class MyApp(App):
 	def build(self):
 		# Set up the layout:
 		#layout = GridLayout(cols=5, spacing=30, padding=30, row_default_height=150)
-
 
 		# Make the background gray:
 		#with layout.canvas.before:
@@ -130,6 +132,7 @@ class MyPlot(App):
 		box = BoxLayout()
 		box.add_widget(FigureCanvasKivyAgg(plt.gcf()))
 		return box
+	# don't need to define run(), as it is a part of App
 
 class BoxLayout(App):
 	def build(self):
@@ -146,5 +149,21 @@ class BoxLayout(App):
 		superBox.add_widget(speedSlider)
 		return superBox
 
+
+<MyBoxLayout>
+
+
+
+# https://github.com/kivy/kivy/wiki/Working-with-Python-threads-inside-a-Kivy-application
+class ThreadedApp(App):
+	def on_stop(self):
+		# Set the stop parameter to terminate the thread
+		self.root.stop.set()
+
+
+	def build(self):
+		return 
+
 #MyApp().run()
-MyPlot().run()
+#MyPlot().run()
+

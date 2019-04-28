@@ -3,13 +3,16 @@
 import kivy 
 kivy.require('1.11.0') # replace with your current kivy version !
 
+import os
+os.environ['KIVY_GL_BACKEND'] = 'gl'
+
 import pymonarco_hat as plc
 lib_path = '../../pymonarco-hat/monarco-c/libmonarco.so'
 plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_VERB | plc.MONARCO_DPF_ERROR | plc.MONARCO_DPF_WARNING)
 plc_handler.set_pwm_frequency(plc.PWM_CHANNEL1, 1000)
 
 
-from kivy.app import App
+
 from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.gridlayout import GridLayout
@@ -22,7 +25,7 @@ from kivy.graphics import Color, Rectangle, Ellipse
 from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 from kivy.uix.boxlayout import BoxLayout
 import matplotlib.pyplot as plt
-
+from kivy.app import App
 plt.plot([1, 23, 2, 4])
 plt.ylabel('some numbers')
 
@@ -111,7 +114,7 @@ class MyApp(App):
 		verticalTextBox.add_widget(beepButton)
 		verticalTextBox.add_widget(wimg)
 
-		superBox.add_widget(FigureCanvasKivyAgg(plt.gcf))
+		superBox.add_widget(FigureCanvasKivyAgg(plt.gcf()))
 		superBox.add_widget(verticalTextBox)
 		superBox.add_widget(startButton)
 		superBox.add_widget(speedSlider)
@@ -134,7 +137,7 @@ class MyPlot(App):
 		return box
 	# don't need to define run(), as it is a part of App
 
-class BoxLayout(App):
+class BoxLayoutTest(App):
 	def build(self):
 		superBox = BoxLayout(orientation='horizontal')
 

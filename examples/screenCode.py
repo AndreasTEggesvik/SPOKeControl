@@ -32,8 +32,8 @@ from functools import partial
 import time
 
 tstart = round(time.time(),2)
-time_list = []
-measurement_list = []  
+time_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+measurement_list = [0, 0.1, 0.2, 0.1, 0.15, 0.4]  
 
 #plt.plot([1, 23, 2, 4])
 #plt.ylabel('some numbers')

@@ -28,6 +28,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.lang import Builder
 import matplotlib.pyplot as plt
 from kivy.app import App
+from functools import partial
 import time
 
 tstart = round(time.time(),2)
@@ -107,7 +108,7 @@ class MyApp(App):
 		stateLabel = StateLabel(text = 'Digital input 3 \nDigital input 4')
 		Clock.schedule_interval(stateLabel.update, 1.0/10.0)
 		global time_list, measurement_list
-		Clock.schedule_interval(UpdateGraph(time_list, measurement_list), 1)
+		Clock.schedule_interval(partial(UpdateGraph, time_list, measurement_list), 1)
 
 		startButton = Button(text = "INIT")
 		startButton.background_normal = ''

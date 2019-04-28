@@ -79,7 +79,7 @@ class InputButton(Button):
 			self.state = 'down'
 
 class StartButton(Button):
-	__init__(self):
+	def __init__(self):
 		self.background_normal = ''
 		self.background_color = [0, 0.7, 0, 1]
 		self.text = "INIT" 
@@ -112,13 +112,13 @@ class MyApp(App):
 		beepButton = Button(text="BEEP!")
 		beepButton.bind(on_press=press_callback)
 
-		startButton = StartButton()
+		#startButton = StartButton()
+		#startButton.bind(on_press=press_callback)
+
+		startButton = Button(text = "INIT")
+		startButton.background_normal = ''
+		startButton.background_color = [0.7, 0, 0, 1]
 		startButton.bind(on_press=press_callback)
-
-		#startButton = Button(text = "START")
-		#startButton.background_normal = ''
-		#startButton.background_color = [0.7, 0, 0, 1]
-
 		
 
 		wimg = Image(source='Prototype1.png')

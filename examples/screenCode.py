@@ -107,6 +107,7 @@ class MyApp(App):
 		startButton.background_normal = ''
 		startButton.background_color = [0.7, 0, 0, 1]
 		startButton.bind(on_press=press_callback)
+		startButton.size_hint_x=(0.2)
 		
 
 		wimg = Image(source='Prototype1.png')
@@ -120,9 +121,9 @@ class MyApp(App):
 		verticalTextBox = BoxLayout()
 		verticalTextBox.orientation = 'vertical'
 		verticalTextBox.add_widget(stateLabel)
-		
 		verticalTextBox.add_widget(beepButton)
 		verticalTextBox.add_widget(wimg)
+		verticalTextBox.size_hint_x=(0.2)
 
 		superBox.add_widget(FigureCanvasKivyAgg(plt.gcf()))
 		superBox.add_widget(verticalTextBox)

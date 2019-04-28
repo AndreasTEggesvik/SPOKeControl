@@ -53,13 +53,10 @@ def press_callback(obj):
 		print('PWM signal: ', speed)
 	elif obj.text == 'INIT':
 		obj.text = 'START'
-		obj.background_color = [0, 0.7, 0, 1]
 	elif obj.text == 'START':
-		obj.text = 'STOP'
-		obj.background_color = [0.7, 0, 0, 1]
+		print("Start button pressed")
 	elif obj.text == 'STOP':
-		obj.text = 'INIT'
-		obj.background_color = [0, 0.7, 0, 1]
+		print("Stop button pressed")
 
 def buzzer_off(dt):
 	plc_handler.set_digital_out(plc.DOUT1, plc.LOW)
@@ -79,11 +76,6 @@ class InputButton(Button):
 		else:
 			self.state = 'down'
 
-class StartButton(Button):
-	def __init__(self):
-		self.background_normal = ''
-		self.background_color = [0, 0.7, 0, 1]
-		self.text = "INIT" 
 			
 class StateLabel(Label):
 	def update(self, dt):
@@ -105,29 +97,40 @@ class MyApp(App):
 
 		startButton = Button(text = "INIT")
 		startButton.background_normal = ''
-		startButton.background_color = [0.7, 0, 0, 1]
+		startButton.background_color = [0, 0.7, 0, 1]
 		startButton.bind(on_press=press_callback)
-		startButton.size_hint_x=(0.2)
+		
+		stopButton = Button(text = "STOP")
+		stopButton.background_normal = ''
+		stopButton.background_color = [0.7, 0, 0, 1]
+		stopButton.bind(on_press=press_callback)
 		
 
 		wimg = Image(source='Prototype1.png')
 		speedSlider = Slider(orientation='vertical', min=0, max=1, value=speed)
 		speedSlider.bind(on_touch_move=update_speed)
-		speedSlider.size_hint_x=(0.1)
+		speedSlider.size_hint_x=(0.2)
 		# on_touch_down=update_speed,
 		
 		superBox = BoxLayout()
 
-		verticalTextBox = BoxLayout()
-		verticalTextBox.orientation = 'vertical'
-		verticalTextBox.add_widget(stateLabel)
-		verticalTextBox.add_widget(beepButton)
-		verticalTextBox.add_widget(wimg)
-		verticalTextBox.size_hint_x=(0.2)
+		verticalTextBox1 = BoxLayout()
+		verticalTextBox1.orientation = 'vertical'
+		verticalTextBox1.add_widget(stateLabel)
+		verticalTextBox1.add_widget(beepButton)
+		verticalTextBox1.add_widget(wimg)
+		verticalTextBox1.size_hint_x=(0.3)
+
+		verticalTextBox2 = BoxLayout()
+		verticalTextBox2.orientation = 'vertical'
+		verticalTextBox2.add_widget(startButton)
+		verticalTextBox2.add_widget(stopButton)
+		verticalTextBox2.size_hint_x=(0.3)
 
 		superBox.add_widget(FigureCanvasKivyAgg(plt.gcf()))
-		superBox.add_widget(verticalTextBox)
-		superBox.add_widget(startButton)
+		superBox.add_widget(verticalTextBox1)
+		superBox.add_widget(verticalTextBox2)
+
 		superBox.add_widget(speedSlider)
 
 		return superBox

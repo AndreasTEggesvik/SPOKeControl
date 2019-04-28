@@ -28,8 +28,14 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.lang import Builder
 import matplotlib.pyplot as plt
 from kivy.app import App
-plt.plot([1, 23, 2, 4])
-plt.ylabel('some numbers')
+import time
+
+tstart = round(time.time(),2)
+time_list = []
+measurement_list = []  
+
+#plt.plot([1, 23, 2, 4])
+#plt.ylabel('some numbers')
 
 # Thread: 
 import threading
@@ -64,9 +70,11 @@ def buzzer_off(dt):
 # This is called when the slider is updated:
 
 def update_speed(obj, value):
-	global speed
+	global speed, time_list, data_list, tstart
 	print("Updating speed to:" + str(obj.value))
 	speed = obj.value
+	time_list.append((round(time.time(),2) - tstart))
+	measurement_list.append(speed)
 
 # Modify the Button Class to update according to GPIO input:
 class InputButton(Button):
@@ -83,6 +91,10 @@ class StateLabel(Label):
 		textInput += 'Digital input 4: ' + str(plc_handler.get_digital_in(plc.DIN4))
 		self.text = textInput
 
+class graph_plotter():
+	def update(self, time_list, data_list):
+		plt.plot(time_list, data_list, 'r')
+
 class MyApp(App):
 
 	def build(self):
@@ -94,6 +106,8 @@ class MyApp(App):
 
 		stateLabel = StateLabel(text = 'Digital input 3 \nDigital input 4')
 		Clock.schedule_interval(stateLabel.update, 1.0/10.0)
+		global time_list, measurement_list
+		Clock.schedule_interval(graph_plotter.update(time_list, measurement_list), 1)
 
 		startButton = Button(text = "INIT")
 		startButton.background_normal = ''

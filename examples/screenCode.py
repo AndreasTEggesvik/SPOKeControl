@@ -14,6 +14,7 @@ plc_handler.set_pwm_frequency(plc.PWM_CHANNEL1, 1000)
 
 
 from kivy.uix.button import Button
+from kivy.uix.button import Label
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.image import Image
@@ -84,27 +85,22 @@ class StartButton(Button):
 		self.background_color = [0, 0.7, 0, 1]
 		self.text = "INIT" 
 			
-
-
+class StateLabel(Label):
+	def update(self, dt):
+		textInput = 'Digital input 3: ' + str(plc_handler.get_digital_in(plc.DIN3)) + '\n' 
+		textInput += 'Digital input 4: ' + str(plc_handler.get_digital_in(plc.DIN4))
+		self.text = textInput
 
 class MyApp(App):
 
 	def build(self):
-		# Set up the layout:
-		#layout = GridLayout(cols=5, spacing=30, padding=30, row_default_height=150)
-
-		# Make the background gray:
-		#with layout.canvas.before:
-		#	Color(.2,.2,.2,1)
-		#	self.rect = Rectangle(size=(800,600), pos=layout.pos)
-
+	
 
 		# Instantiate the first UI object (the GPIO input indicator):
-		inputDisplay = InputButton(text="Input")
-
-
+		#inputDisplay = InputButton(text="Input")
 		# Schedule the update of the state of the GPIO input button:
-		Clock.schedule_interval(inputDisplay.update, 1.0/10.0)
+		#Clock.schedule_interval(inputDisplay.update, 1.0/10.0)
+		
 
 
 		# Create the rest of the UI objects (and bind them to callbacks, if necessary):
@@ -114,6 +110,9 @@ class MyApp(App):
 
 		#startButton = StartButton()
 		#startButton.bind(on_press=press_callback)
+
+		stateLabel = StateLabel(text = 'Digital input 3 \nDigital input 4')
+		Clock.schedule_interval(stateLabel.update, 1.0/10.0)
 
 		startButton = Button(text = "INIT")
 		startButton.background_normal = ''
@@ -130,7 +129,9 @@ class MyApp(App):
 
 		verticalTextBox = BoxLayout()
 		verticalTextBox.orientation = 'vertical'
-		verticalTextBox.add_widget(inputDisplay)
+		#verticalTextBox.add_widget(inputDisplay)
+		verticalTextBox.add_widget(stateLabel)
+		
 		verticalTextBox.add_widget(beepButton)
 		verticalTextBox.add_widget(wimg)
 

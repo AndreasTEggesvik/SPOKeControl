@@ -31,7 +31,7 @@ from kivy.app import App
 from functools import partial
 import time
 
-tstart = round(time.time(),2)
+
   
 
 #plt.plot([1, 23, 2, 4])
@@ -67,10 +67,14 @@ def press_callback(obj):
 def buzzer_off(dt):
 	plc_handler.set_digital_out(plc.DOUT1, plc.LOW)
 
+time_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+measurement_list = [0, 0.1, 0.2, 0.1, 0.15, 0.4]
+tstart = round(time.time(),2)
+
 # This is called when the slider is updated:
 
 def update_speed(obj, value):
-	global speed, time_list, data_list, tstart
+	global speed, time_list, measurement_list, tstart
 	print("Updating speed to:" + str(obj.value))
 	speed = obj.value
 	time_list.append((round(time.time(),2) - tstart))
@@ -92,10 +96,9 @@ class StateLabel(Label):
 		self.text = textInput
 
 
-time_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
-measurement_list = [0, 0.1, 0.2, 0.1, 0.15, 0.4]
 
-def UpdateGraph(time_list, data_list):
+
+def UpdateGraph(dt, not_time_list, data_list):
 	global time_list
 	global measurement_list
 	#plt.plot([0.1, 0.2, 0.3, 0.4, 0.5, 0.6], [0, 0.1, 0.2, 0.1, 0.15, 0.4], 'r')

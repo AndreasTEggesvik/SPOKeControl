@@ -32,8 +32,7 @@ from functools import partial
 import time
 
 tstart = round(time.time(),2)
-time_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
-measurement_list = [0, 0.1, 0.2, 0.1, 0.15, 0.4]  
+  
 
 #plt.plot([1, 23, 2, 4])
 #plt.ylabel('some numbers')
@@ -92,10 +91,14 @@ class StateLabel(Label):
 		textInput += 'Digital input 4: ' + str(plc_handler.get_digital_in(plc.DIN4))
 		self.text = textInput
 
+time_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+measurement_list = [0, 0.1, 0.2, 0.1, 0.15, 0.4]
 
 def UpdateGraph(dt, time_list, data_list):
-	plt.plot([0.1, 0.2, 0.3, 0.4, 0.5, 0.6], [0, 0.1, 0.2, 0.1, 0.15, 0.4], 'r')
-	#plt.plot(time_list, data_list, 'r')
+	global time_list
+	global measurement_list
+	#plt.plot([0.1, 0.2, 0.3, 0.4, 0.5, 0.6], [0, 0.1, 0.2, 0.1, 0.15, 0.4], 'r')
+	plt.plot(time_list, measurement_list, 'r')
 
 class MyApp(App):
 
@@ -179,3 +182,7 @@ class BoxLayoutTest(App):
 MyApp().run()
 #MyPlot().run()
 
+print("Finished running MyApp")
+print("1")
+print("2")
+print("3")

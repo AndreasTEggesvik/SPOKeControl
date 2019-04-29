@@ -96,10 +96,14 @@ class StateLabel(Label):
 		self.text = textInput
 
 def UpdateGraph(dt, not_time_list, data_list):
+	# Clear existing figure and re-use it
+	plt.clf()
 	global time_list
 	global measurement_list
 	#plt.plot([0.1, 0.2, 0.3, 0.4, 0.5, 0.6], [0, 0.1, 0.2, 0.1, 0.15, 0.4], 'r')
 	plt.plot(time_list, measurement_list, 'r')
+	graph = FigureCanvasKivyAgg(plt.gcf)
+	
 
 class MyApp(App):
 
@@ -147,7 +151,8 @@ class MyApp(App):
 		verticalTextBox2.add_widget(stopButton)
 		verticalTextBox2.size_hint_x=(0.3)
 
-		superBox.add_widget(FigureCanvasKivyAgg(plt.gcf()))
+		#superBox.add_widget(FigureCanvasKivyAgg(plt.gcf()))
+		superBox.add_widget(graph)
 		superBox.add_widget(verticalTextBox1)
 		superBox.add_widget(verticalTextBox2)
 

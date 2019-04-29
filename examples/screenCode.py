@@ -106,7 +106,8 @@ def UpdateGraph(dt, not_time_list, data_list):
 	global measurement_list
 	#plt.plot([0.1, 0.2, 0.3, 0.4, 0.5, 0.6], [0, 0.1, 0.2, 0.1, 0.15, 0.4], 'r')
 	plt.plot(time_list, measurement_list, 'r')
-	graph = FigureCanvasKivyAgg(plt.gcf)
+	#graph = FigureCanvasKivyAgg(plt.gcf)
+	graph.draw()
 	
 
 class MyApp(App):

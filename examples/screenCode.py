@@ -94,7 +94,7 @@ class StateLabel(Label):
 time_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
 measurement_list = [0, 0.1, 0.2, 0.1, 0.15, 0.4]
 
-def UpdateGraph(dt, time_list, data_list):
+def UpdateGraph(dt, not_time_list, data_list):
 	global time_list
 	global measurement_list
 	#plt.plot([0.1, 0.2, 0.3, 0.4, 0.5, 0.6], [0, 0.1, 0.2, 0.1, 0.15, 0.4], 'r')

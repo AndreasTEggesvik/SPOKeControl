@@ -95,9 +95,6 @@ class StateLabel(Label):
 		textInput += 'Digital input 4: ' + str(plc_handler.get_digital_in(plc.DIN4))
 		self.text = textInput
 
-time_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
-measurement_list = [0, 0.1, 0.2, 0.1, 0.15, 0.4]
-
 def UpdateGraph(dt, not_time_list, data_list):
 	global time_list
 	global measurement_list

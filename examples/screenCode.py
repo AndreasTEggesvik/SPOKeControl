@@ -94,8 +94,6 @@ class StateLabel(Label):
 		textInput = 'Digital input 3: ' + str(plc_handler.get_digital_in(plc.DIN3)) + '\n' 
 		textInput += 'Digital input 4: ' + str(plc_handler.get_digital_in(plc.DIN4))
 		self.text = textInput
-
-
 plt.plot(time_list, measurement_list, 'r')
 graph = FigureCanvasKivyAgg(plt.gcf())
 
@@ -108,7 +106,6 @@ def UpdateGraph(dt, not_time_list, data_list):
 	plt.plot(time_list, measurement_list, 'r')
 	#graph = FigureCanvasKivyAgg(plt.gcf)
 	graph.draw()
-	
 
 class MyApp(App):
 
@@ -122,7 +119,7 @@ class MyApp(App):
 		stateLabel = StateLabel(text = 'Digital input 3 \nDigital input 4')
 		Clock.schedule_interval(stateLabel.update, 1.0/10.0)
 		global time_list, measurement_list
-		Clock.schedule_interval(partial(UpdateGraph, time_list, measurement_list), 1)
+		Clock.schedule_interval(partial(UpdateGraph, time_list, measurement_list), 0.2)
 
 		startButton = Button(text = "INIT")
 		startButton.background_normal = ''
@@ -157,6 +154,7 @@ class MyApp(App):
 		verticalTextBox2.size_hint_x=(0.3)
 
 		#superBox.add_widget(FigureCanvasKivyAgg(plt.gcf()))
+		global graph
 		superBox.add_widget(graph)
 		superBox.add_widget(verticalTextBox1)
 		superBox.add_widget(verticalTextBox2)

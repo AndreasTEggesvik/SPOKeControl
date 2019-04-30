@@ -110,7 +110,7 @@ def UpdateGraph(dt, not_time_list, data_list):
 from multiprocessing import Process,Pipe
 def HelloWorld(child_conn):
 	child_conn.send("Hello world")
-	child_conn.close()
+	#child_conn.close()
 
 def Calculation(child_conn):
 	A = child_conn.recv()
@@ -197,7 +197,7 @@ class BoxLayoutTest(App):
 		return superBox
 
 
-if __name__ == '__main__':
-	MyApp().run()
+#if __name__ == '__main__':
+#	MyApp().run()
 #MyPlot().run()
 

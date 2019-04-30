@@ -107,6 +107,16 @@ def UpdateGraph(dt, not_time_list, data_list):
 	#graph = FigureCanvasKivyAgg(plt.gcf)
 	graph.draw()
 
+from multiprocessing import Process,Pipe
+def HelloWorld(child_conn):
+	child_conn.send("Hello world")
+	child_conn.close()
+
+def Calculation(child_conn):
+	A = child_conn.recv()
+	child_conn.send(A[0] + A[1])
+	child_conn.close()
+
 class MyApp(App):
 
 	def build(self):
@@ -187,11 +197,7 @@ class BoxLayoutTest(App):
 		return superBox
 
 
-
-MyApp().run()
+if __name__ == '__main__':
+	MyApp().run()
 #MyPlot().run()
 
-print("Finished running MyApp")
-print("1")
-print("2")
-print("3")

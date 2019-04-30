@@ -112,9 +112,11 @@ def HelloWorld(child_conn):
 	child_conn.send("Hello world")
 	#child_conn.close()
 
-def Calculation(child_conn):
+def Calculation(child_conn, x):
 	A = child_conn.recv()
 	child_conn.send(A[0] + A[1])
+	x.extend([1,2,3,4])
+	child_conn.send(x)
 	child_conn.close()
 
 class MyApp(App):

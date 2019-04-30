@@ -16,7 +16,11 @@ if test == 1:
 
 elif test == 2:
 	parent_conn,child_conn = Pipe()
-	p = Process(target=screenCode.Calculation, args=(child_conn,))
+	Parameter1 = [4,5]
+	p = Process(target=screenCode.Calculation, args=(child_conn,Parameter1))
 	p.start()
-	parent_conn.send([4,5])
+	parent_conn.send(Parameter1)
 	print(parent_conn.recv())
+	print(parent_conn.recv())
+	p.join()
+	print(Parameter1)

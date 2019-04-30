@@ -128,9 +128,11 @@ def HelloWorld(child_conn):
 	child_conn.send("Hello world")
 	#child_conn.close()
 
-def Calculation(child_conn):
+def Calculation(child_conn, x):
 	A = child_conn.recv()
 	child_conn.send(A[0] + A[1])
+	x.extend([1,2,3,4])
+	child_conn.send(x)
 	child_conn.close()
 
 class MyApp(App):
@@ -147,7 +149,7 @@ class MyApp(App):
 		stopButtonPressed = Value('i', 1)
 		newButtonData = Value('i', 1)
 
-		#controllerSimulator(graphPipe, buttonPipe, NewGraphData, graphLock, stopButtonPressed, NewButtonData)
+		#controllerSimulator(graphPipe, graphPipeReceier, buttonPipe, graphPipeSize, graphLock, stopButtonPressed, newButtonData)
 
 		p = Process(target=Multi_process_one.controllerSimulator, args=(graphPipeChild, graphPipeParent, buttonPipeChild, graphPipeSize, graphLock, stopButtonPressed, newButtonData))
 		p.start()
@@ -160,7 +162,7 @@ class MyApp(App):
 		Clock.schedule_interval(stateLabel.update, 1.0/10.0)
 		global time_list, measurement_list
 		#Clock.schedule_interval(partial(UpdateGraph, time_list, measurement_list), 0.2)
-		Clock.schedule_interval(partial(UpdateGraph, graphPipeParent, newGraphData, graphLock), 0.2)
+		Clock.schedule_interval(partial(UpdateGraph, graphPipeParent, graphPipeSize, graphLock), 0.2)
 
 		startButton = Button(text = "INIT")
 		startButton.background_normal = ''

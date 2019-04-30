@@ -43,7 +43,7 @@ def controllerSimulator(graphPipe, graphPipeReceier, buttonPipe, graphPipeSize, 
 		time.sleep(0.11)
 			
 
-test = 2
+test = 0
 if test == 1:
 	parent_conn,child_conn = Pipe()
 	p = Process(target=screenCode.HelloWorld, args=(child_conn,))
@@ -54,12 +54,11 @@ if test == 1:
 
 elif test == 2:
 	parent_conn,child_conn = Pipe()
-	p = Process(target=screenCode.Calculation, args=(child_conn,))
+	Parameter1 = [4,5]
+	p = Process(target=screenCode.Calculation, args=(child_conn,Parameter1))
 	p.start()
-	parent_conn.send([4,5])
+	parent_conn.send(Parameter1)
 	print(parent_conn.recv())
-
-elif test == 3:
-	parent_conn,child_conn = Pipe()
-
-	p = Process(target=screenCode.MyApp().run(), args=(child_conn,))
+	print(parent_conn.recv())
+	p.join()
+	print(Parameter1)

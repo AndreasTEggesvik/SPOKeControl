@@ -97,17 +97,33 @@ class StateLabel(Label):
 plt.plot(time_list, measurement_list, 'r')
 graph = FigureCanvasKivyAgg(plt.gcf())
 
-def UpdateGraph(dt, not_time_list, data_list):
+#def UpdateGraph(dt, not_time_list, data_list):
 	# Clear existing figure and re-use it
-	plt.clf()
+#	plt.clf()
+#	global time_list
+#	global measurement_list
+	#plt.plot([0.1, 0.2, 0.3, 0.4, 0.5, 0.6], [0, 0.1, 0.2, 0.1, 0.15, 0.4], 'r')
+#	plt.plot(time_list, measurement_list, 'r')
+	#graph = FigureCanvasKivyAgg(plt.gcf)
+#	graph.draw()
+
+def UpdateGraph(dt, graphPipeParent, graphPipeSize, graphLock):
 	global time_list
 	global measurement_list
-	#plt.plot([0.1, 0.2, 0.3, 0.4, 0.5, 0.6], [0, 0.1, 0.2, 0.1, 0.15, 0.4], 'r')
-	plt.plot(time_list, measurement_list, 'r')
-	#graph = FigureCanvasKivyAgg(plt.gcf)
-	graph.draw()
+	
+	graphLock.acquire()
+	if (graphPipeSize.value == 1):
+		[timeD, measurementD] = graphPipeParent.recv()
+		graphPipeSize.value = graphPipeSize - 1 # Indicating that the data is read, pipe is cleared
+		time_list.extend(timeD)
+		measurement_list.extend(measurementD)
+		plt.clf()
+		plt.plot(time_list, measurement_list, 'r')
+		graph.draw()
+	graphLock.release()
 
-from multiprocessing import Process,Pipe
+from multiprocessing import Process,Pipe, Value, Lock
+import Multi_process_one
 def HelloWorld(child_conn):
 	child_conn.send("Hello world")
 	#child_conn.close()
@@ -118,18 +134,33 @@ def Calculation(child_conn):
 	child_conn.close()
 
 class MyApp(App):
-
 	def build(self):
 	
 		# Create the rest of the UI objects (and bind them to callbacks, if necessary):
-		
+		graphPipeParent, graphPipeChild = Pipe()
+		buttonPipeParent, buttonPipeChild = Pipe()
+		graphLock = Lock()
+
+		# Variables shared with the controller. 
+		# *.value == 1 indicates last message was received by this process
+		graphPipeSize = Value('i', 1)
+		stopButtonPressed = Value('i', 1)
+		newButtonData = Value('i', 1)
+
+		#controllerSimulator(graphPipe, buttonPipe, NewGraphData, graphLock, stopButtonPressed, NewButtonData)
+
+		p = Process(target=Multi_process_one.controllerSimulator, args=(graphPipeChild, graphPipeParent, buttonPipeChild, graphPipeSize, graphLock, stopButtonPressed, newButtonData))
+		p.start()
+
+
 		beepButton = Button(text="BEEP!")
 		beepButton.bind(on_press=press_callback)
 
 		stateLabel = StateLabel(text = 'Digital input 3 \nDigital input 4')
 		Clock.schedule_interval(stateLabel.update, 1.0/10.0)
 		global time_list, measurement_list
-		Clock.schedule_interval(partial(UpdateGraph, time_list, measurement_list), 0.2)
+		#Clock.schedule_interval(partial(UpdateGraph, time_list, measurement_list), 0.2)
+		Clock.schedule_interval(partial(UpdateGraph, graphPipeParent, newGraphData, graphLock), 0.2)
 
 		startButton = Button(text = "INIT")
 		startButton.background_normal = ''
@@ -172,6 +203,7 @@ class MyApp(App):
 		superBox.add_widget(speedSlider)
 
 		return superBox
+	
 
 
 class MyPlot(App):
@@ -197,7 +229,7 @@ class BoxLayoutTest(App):
 		return superBox
 
 
-#if __name__ == '__main__':
-#	MyApp().run()
+if __name__ == '__main__':
+	MyApp().run()
 #MyPlot().run()
 

@@ -47,25 +47,12 @@ def current_theta4(theta4):
 	return theta4
 
 
-#self.run_start_time = time_value
-#self.time_list = []
-#self.measurement_list_gantry = []  
-#self.reference_list_gantry = []    
-#self.measurement_list_ring = []
-#self.reference_list_ring = []
-
-
 def sendData(data_storage, graphPipe, graphPipeReceiver, graphPipeSize, graphLock, eraseMemory):
 	graphLock.acquire()
 	print("Sending data of size: ", len(data_storage.time_list))
 	if (graphPipeSize.value == 0):
 		# Only erase buffered data if the last message is read
 		eraseMemory.value = 1
-		#data_storage.time_list = []
-		#data_storage.measurement_list_gantry = []
-		#data_storage.reference_list_gantry = []
-		#data_storage.measurement_list_ring = []
-		#data_storage.reference_list_ring = []
 	elif (graphPipeSize.value > 0):
 		# If message was not read, clear the pipe
 		while(graphPipeSize.value > 0):
@@ -106,18 +93,12 @@ def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock
 		i += 1
 
 		if eraseMemory.value:
-			# This condition can cause us to erase memory not yet sent.
+			# This condition will cause us to erase memory not yet received.
 			# This only affects the display however, not the control
 			control_instance.eraseData()
 			eraseMemory.value = 0
 		time.sleep(0.02)
-		# For plots sake
-		#time_list.append((round(time.time(),2) - run_start_time))
-		#measurement_list_gantry.append(control_instance.r2)
-		#reference_list_gantry.append(control_instance.pid_gantry.SetPoint)
-		#measurement_list_ring.append(control_instance.theta4)
-		#reference_list_ring.append(control_instance.pid_ring.SetPoint)
-		#print(control_instance.pid_gantry.SetPoint)
+		
 	print("Done with mode 1")
 
 	# State 2:
@@ -141,21 +122,9 @@ def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock
 			eraseMemory.value = 0
 
 		time.sleep(0.02)
-		# For plots sake
-		#time_list.append((round(time.time(),2) - run_start_time))
-		#measurement_list_gantry.append(control_instance.r2)
-		#reference_list_gantry.append(control_instance.pid_gantry.SetPoint)
-		#measurement_list_ring.append(control_instance.theta4)
-		#reference_list_ring.append(control_instance.pid_ring.SetPoint)
-		#print(control_instance.pid_ring.SetPoint)
 	print("Done with mode 2")
 	#print("r2: ", round(r2, 4), " | co: ", pid_gantry.output, " | ", direction, " | ", round(PWM_signal_strength_gantry, 4), " | reference: ", pid_gantry.SetPoint)
 	
-	
-	#limit_switch = 0
-	#while (not limit_switch):
-		# Loop prosessen
-	#	controller_process(state) 
 	graphCommunication.terminate()
 	
 

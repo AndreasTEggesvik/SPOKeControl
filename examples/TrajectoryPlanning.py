@@ -71,7 +71,8 @@ def getLSPB_position(A0, A1, A2, tb, tf, t):
         return getTrajectoryPosition(A1, t)
     elif (tf - tb <= t <= tf):
         return getTrajectoryPosition(A2, t)
-
+    elif (t> tf):
+        return getTrajectoryPosition(A2, tf)
 # import TrajectoryPlanningFirst as tp
 # tp.calculateTrajectory(1, [0.2, 0, 5], [0, 20])
 

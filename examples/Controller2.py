@@ -121,7 +121,7 @@ def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock
 	print("Done with mode 1")
 
 	# State 2:
-	[t0, tf, state, theta4_next] = [20, 0, 2, 10 * 3.14/180] # 10 deg increase
+	[t0, tf, state, theta4_next] = [0, 10, 2, 10 * 3.14/180] # 10 deg increase
 	control_instance.initNewState(t0, tf, state, theta4_next) #Does the PID reset? 
 	while (not control_instance.timeout):# and control_instance.theta4_e < 0.017 and control_instance.r2_e < 0.02): # Only check time when testing
     	# While the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
@@ -206,7 +206,7 @@ class controller:
 		self.tstart = round(time.time(),2)
 		self.op_time = (round(time.time(),2) - self.tstart)
 		self.tf = tf
-		self.t0 = 0
+		self.t0 = t0
 		self.timeout = False
 		
 		# Controller initialization

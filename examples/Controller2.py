@@ -121,7 +121,7 @@ def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock
 	print("Done with mode 1")
 
 	# State 2:
-	[t0, tf, state, theta4_next] = [0, 10, 2, 10 * 3.14/180] # 10 deg increase
+	[t0, tf, state, theta4_next] = [20, 30, 2, 10 * 3.14/180] # 10 deg increase
 	control_instance.initNewState(t0, tf, state, theta4_next) #Does the PID reset? 
 	while (not control_instance.timeout):# and control_instance.theta4_e < 0.017 and control_instance.r2_e < 0.02): # Only check time when testing
     	# While the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
@@ -129,14 +129,17 @@ def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock
 		control_instance.updatePosition()
 		control_instance.updatePID() 
 		control_instance.storeData()
-		if eraseMemory.value:
-			control_instance.eraseData()
-
+		
 		if (i == 15):
 			graphCommunication = Process(target=sendData, args=(control_instance, graphPipe, graphPipeReceiver, graphPipeSize, graphLock, eraseMemory))
 			graphCommunication.start()
 			i = 0
 		i += 1
+
+		if eraseMemory.value:
+			control_instance.eraseData()
+			eraseMemory.value = 0
+
 		time.sleep(0.02)
 		# For plots sake
 		#time_list.append((round(time.time(),2) - run_start_time))

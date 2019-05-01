@@ -5,6 +5,7 @@ import time
 import TrajectoryPlanning as tp
 import matplotlib.pyplot as plt
 import Geometry
+from multiprocessing import Process, Pipe, Value, Lock
 
 #import Encoder
 #import MotorControl
@@ -60,7 +61,6 @@ def current_theta4(theta4):
 
 
 def sendData(data_storage, graphPipe, graphPipeReceiver, graphPipeSize, graphLock):
-
 	graphLock.acquire()
 	if (graphPipeSize.value == 0):
 		# Only erase buffered data if the last message is read
@@ -82,6 +82,7 @@ def sendData(data_storage, graphPipe, graphPipeReceiver, graphPipeSize, graphLoc
 		data_storage.measurement_list_ring, data_storage.reference_list_ring])
 	graphPipeSize.value = graphPipeSize.value + 1
 	graphLock.release()
+	time.sleep(0.5)
 
 def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, stopButtonPressed, newButtonData):
     # Initialize the trajectory and controller parameters
@@ -89,6 +90,7 @@ def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock
 	control_instance = controller(run_start_time)
 	
 	graphCommunication = Process(target=sendData, args=(control_instance, graphPipe, graphPipeReceiver, graphPipeSize, graphLock))
+	graphCommunication.start()
 
 	# State 1:
 	[t0, tf, state, theta4_next] = [0, 20, 1, 0]
@@ -134,6 +136,7 @@ def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock
 	#while (not limit_switch):
 		# Loop prosessen
 	#	controller_process(state) 
+	graphCommunication.terminate()
 	
 
 class controller:

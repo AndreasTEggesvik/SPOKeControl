@@ -16,12 +16,6 @@ import SPOKe_IO
 GANTRY_ROBOT = 1
 RING_ROBOT = 2
 
-encoder_instance = SPOKe_IO.Encoder_input()
-encoder_instance.reset_counter(1)
-encoder_instance.reset_counter(2)
-
-
-motor_control = SPOKe_IO.Motor_output()		# Instance for motor control
 
 
 
@@ -170,6 +164,11 @@ class controller:
 		self.reference_list_gantry = []    
 		self.measurement_list_ring = []
 		self.reference_list_ring = []
+
+		self.encoder_instance = SPOKe_IO.Encoder_input()
+		self.encoder_instance.reset_counter(1)
+		self.encoder_instance.reset_counter(2)
+		self.motor_control = SPOKe_IO.Motor_output()		# Instance for motor control
 		#self.tstart
 		#self.op_time
 		#self.tf
@@ -221,8 +220,10 @@ class controller:
 		self.pid_ring.setSampleTime(0.1)
 
 		
-		self.theta4 = encoder_instance.read_counter_deg(RING_ROBOT)
-		self.r2 = encoder_instance.read_counter_deg(GANTRY_ROBOT)
+		self.theta4 = self.encoder_instance.read_counter_deg(RING_ROBOT)
+		self.r2 = self.encoder_instance.read_counter_deg(GANTRY_ROBOT)
+		print("Theta4 at initiation: ", self.theta4)
+		print("r2 at initiation: ", self.r2)
 
 		# Pass på å ha kode som senere kan kontrollere to vinkler samtidig. 
 		if (state == 1 or state == 4):
@@ -259,10 +260,10 @@ class controller:
 
 	def updatePosition(self):
 		# Possible to make this return True or False?  
-		encoder_instance.update_counter(GANTRY_ROBOT)
-		self.r2 = Geometry.rad2r2(encoder_instance.read_counter_rad(GANTRY_ROBOT))
-		encoder_instance.update_counter(RING_ROBOT)
-		self.theta4 = Geometry.rad2theta4(encoder_instance.read_counter_rad(RING_ROBOT))
+		self.encoder_instance.update_counter(GANTRY_ROBOT)
+		self.r2 = Geometry.rad2r2(self.encoder_instance.read_counter_rad(GANTRY_ROBOT))
+		self.encoder_instance.update_counter(RING_ROBOT)
+		self.theta4 = Geometry.rad2theta4(self.encoder_instance.read_counter_rad(RING_ROBOT))
 
 	def updatePID(self):
     	# Necessary to make this return True or False?
@@ -276,12 +277,12 @@ class controller:
 	def setOutput(self):
 		# Possible to make this return True or False?
 		[direction_gantry, PWM_signal_strength_gantry] = PID_to_control_input(self.pid_gantry.output)
-		motor_control.setMotorDirection(GANTRY_ROBOT, direction_gantry)
-		motor_control.setMotorSpeed(GANTRY_ROBOT, PWM_signal_strength_gantry)
+		self.motor_control.setMotorDirection(GANTRY_ROBOT, direction_gantry)
+		self.motor_control.setMotorSpeed(GANTRY_ROBOT, PWM_signal_strength_gantry)
 
 		[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(self.pid_ring.output)
-		motor_control.setMotorDirection(RING_ROBOT, direction_ring)
-		motor_control.setMotorSpeed(RING_ROBOT, PWM_signal_strength_ring)
+		self.motor_control.setMotorDirection(RING_ROBOT, direction_ring)
+		self.motor_control.setMotorSpeed(RING_ROBOT, PWM_signal_strength_ring)
 
 	def storeData(self):
 		self.time_list.append((round(time.time(),2) - self.run_start_time))

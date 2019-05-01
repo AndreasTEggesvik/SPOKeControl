@@ -61,23 +61,23 @@ def current_theta4(theta4):
 #self.reference_list_ring = []
 
 
-def sendData(data_storage, graphPipe, graphPipeReceiver, graphPipeSize, graphLock):
+def sendData(data_storage, graphPipe, graphPipeReceiver, graphPipeSize, graphLock, eraseMemory):
 	graphLock.acquire()
 	print("Sending data of size: ", len(data_storage.time_list))
 	if (graphPipeSize.value == 0):
 		# Only erase buffered data if the last message is read
-		data_storage.time_list = []
-		data_storage.measurement_list_gantry = []
-		data_storage.reference_list_gantry = []
-		data_storage.measurement_list_ring = []
-		data_storage.reference_list_ring = []
+		eraseMemory.value = 1
+		#data_storage.time_list = []
+		#data_storage.measurement_list_gantry = []
+		#data_storage.reference_list_gantry = []
+		#data_storage.measurement_list_ring = []
+		#data_storage.reference_list_ring = []
 	elif (graphPipeSize.value > 0):
 		# If message was not read, clear the pipe
 		while(graphPipeSize.value > 0):
 			graphPipeReceiver.recv()
 			graphPipeSize.value = graphPipeSize.value - 1
-	#dataBuffer[0].extend(time_list)
-	#dataBuffer[1].extend(measurement_list)
+
 	print("really, the size is ", len(data_storage.time_list))
 	graphPipe.send([data_storage.time_list, data_storage.measurement_list_gantry, data_storage.reference_list_gantry, 
 		data_storage.measurement_list_ring, data_storage.reference_list_ring])
@@ -95,6 +95,7 @@ def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock
 	control_instance.initNewState(t0, tf, state, theta4_next) # (t0, tf, state, theta4_next)
 
 	i = 0
+	eraseMemory = Value('i', 0)
 
 	while (not control_instance.timeout): # and control_instance.theta4_e < 0.017 and control_instance.r2_e < 0.02): # Only check time when testing
     	# While the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
@@ -102,12 +103,19 @@ def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock
 		control_instance.updatePosition()
 		control_instance.updatePID()
 		control_instance.storeData()
+		
 
 		if (i == 15):
-			graphCommunication = Process(target=sendData, args=(control_instance, graphPipe, graphPipeReceiver, graphPipeSize, graphLock))
+			graphCommunication = Process(target=sendData, args=(control_instance, graphPipe, graphPipeReceiver, graphPipeSize, graphLock, eraseMemory))
 			graphCommunication.start()
 			i = 0
 		i += 1
+
+		if eraseMemory.value:
+			# This condition can cause us to erase memory not yet sent.
+			# This only affects the display however, not the control
+			control_instance.eraseMemory()
+			eraseMemory.value = 0
 
 		# For plots sake
 		#time_list.append((round(time.time(),2) - run_start_time))
@@ -127,6 +135,8 @@ def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock
 		control_instance.updatePosition()
 		control_instance.updatePID() 
 		control_instance.storeData()
+		if eraseMemory.value:
+			control_instance.eraseData()
 
 		if (i == 15):
 			graphCommunication = Process(target=sendData, args=(control_instance, graphPipe, graphPipeReceiver, graphPipeSize, graphLock))
@@ -280,7 +290,13 @@ class controller:
 		self.measurement_list_ring.append(self.theta4)
 		self.reference_list_ring.append(self.pid_ring.SetPoint)
 		#print("Data stored, total size: ", len(self.time_list))
-	
+	def eraseData(self):
+		self.time_list = []
+		self.measurement_list_gantry = []
+		self.reference_list_gantry = []
+		self.measurement_list_ring = []
+		self.reference_list_ring = []
+
 	def sendData(self, graphPipe, graphPipeReceiver, graphPipeSize, graphLock):
 		while(1):
 			graphLock.acquire()

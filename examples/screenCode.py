@@ -141,7 +141,7 @@ class MyApp(App):
 		superBox.add_widget(speedSlider)
 
 		return superBox
-	def on_stop():
+	def on_stop(self):
 		self.p.terminate()
 	
 

@@ -227,13 +227,10 @@ class controller:
 				self.r2_ref = self.r2_max
 			elif (state == 4):
 				self.r2_ref = self.r2_min
-			#[self.A0_gantry, self.A1_gantry, self.A2_gantry, self.tb_gantry] = tp.LSPB(0.1, [self.r2, 0, self.r2_max, 0], [self.t0, self.tf])
-			[self.A0_gantry, self.A1_gantry, self.A2_gantry, self.tb_gantry] = tp.LSPB(0.1, [0, 0, self.r2_max, 0], [self.t0, self.tf])
+			[self.A0_gantry, self.A1_gantry, self.A2_gantry, self.tb_gantry] = tp.LSPB(0.1, [self.r2, 0, self.r2_max, 0], [self.t0, self.tf])
 		elif (state ==2 or state == 5):
 			self.theta4_ref = next_theta4(self.theta4)
-			print("Arguments: ", 0.02, [self.theta4, 0, theta4_next, 0], [self.t0, self.tf])
-			[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(0.02, [0, 0, theta4_next, 0], [self.t0, self.tf])
-			#[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(0.02, [self.theta4, 0, theta4_next, 0], [self.t0, self.tf])
+			[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(0.02, [self.theta4, 0, theta4_next, 0], [t0, tf])
 			if (state ==2):
 				self.r2_ref = self.r2_max
 			elif (state ==5):

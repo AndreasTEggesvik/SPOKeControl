@@ -5,7 +5,6 @@ import screenCode
 import time
 from math import sin
 
-
 def controllerSimulator(graphPipe, graphPipeReceier, buttonPipe, graphPipeSize, graphLock, stopButtonPressed, newButtonData):
 	time_list = []
 	measurement_list = []
@@ -26,9 +25,9 @@ def controllerSimulator(graphPipe, graphPipeReceier, buttonPipe, graphPipeSize, 
 			if (graphPipeSize.value == 0):
 				# Only erase buffered data if the last message is read
 				dataBuffer = [[],[]]
-			else (graphPipeSize.value > 0)
+			elif (graphPipeSize.value > 0):
 				# If message was not read, clear the pipe
-				while(graphPipeSize.value != 0)
+				while(graphPipeSize.value != 0):
 					graphPipeReceier.recv()
 					graphPipeSize.value = graphPipeSize.value - 1
 

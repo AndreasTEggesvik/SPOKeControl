@@ -107,6 +107,9 @@ graph = FigureCanvasKivyAgg(plt.gcf())
 	#graph = FigureCanvasKivyAgg(plt.gcf)
 #	graph.draw()
 
+from multiprocessing import Process,Pipe, Value, Lock
+import Multi_process_one
+
 def UpdateGraph(dt, graphPipeParent, graphPipeSize, graphLock):
 	global time_list
 	global measurement_list
@@ -122,8 +125,8 @@ def UpdateGraph(dt, graphPipeParent, graphPipeSize, graphLock):
 		graph.draw()
 	graphLock.release()
 
-from multiprocessing import Process,Pipe, Value, Lock
-import Multi_process_one
+#from multiprocessing import Process,Pipe, Value, Lock
+#import Multi_process_one
 def HelloWorld(child_conn):
 	child_conn.send("Hello world")
 	#child_conn.close()

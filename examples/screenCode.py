@@ -67,8 +67,10 @@ def press_callback(obj):
 def buzzer_off(dt):
 	plc_handler.set_digital_out(plc.DOUT1, plc.LOW)
 
-time_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
-measurement_list = [0, 0.1, 0.2, 0.1, 0.15, 0.4]
+#time_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+#measurement_list = [0, 0.1, 0.2, 0.1, 0.15, 0.4]
+time_list = []
+measurement_list = []
 tstart = round(time.time(),2)
 
 # This is called when the slider is updated:
@@ -107,23 +109,34 @@ graph = FigureCanvasKivyAgg(plt.gcf())
 	#graph = FigureCanvasKivyAgg(plt.gcf)
 #	graph.draw()
 
-def UpdateGraph(dt, graphPipeParent, graphPipeSize, graphLock):
+
+from multiprocessing import Process, Pipe, Value, Lock
+import Multi_process_one
+def UpdateGraph(graphPipeParent, graphPipeSize, graphLock, dt):
 	global time_list
 	global measurement_list
-	
+#	print("Inside")
+#	print("graphPipeParent: ",graphPipeParent)
+#	print("graphPipeSize.value: ", graphPipeSize.value)
+#	print("type(graphPipeSize): ", type(graphPipeSize))
+#	print("graphLock: ", graphLock)
+#	print("type(graphLock)", type(graphLock))
+
 	graphLock.acquire()
-	if (graphPipeSize.value == 1):
+	if (graphPipeSize.value > 0):
+		print("Updating graph: ", graphPipeSize.value)
 		[timeD, measurementD] = graphPipeParent.recv()
-		graphPipeSize.value = graphPipeSize - 1 # Indicating that the data is read, pipe is cleared
+		graphPipeSize.value = graphPipeSize.value - 1 # Indicating that the data is read, pipe is cleared
 		time_list.extend(timeD)
 		measurement_list.extend(measurementD)
 		plt.clf()
 		plt.plot(time_list, measurement_list, 'r')
 		graph.draw()
 	graphLock.release()
+#	print("Done updating graph")
 
-from multiprocessing import Process,Pipe, Value, Lock
-import Multi_process_one
+#from multiprocessing import Process,Pipe, Value, Lock
+#import Multi_process_one
 def HelloWorld(child_conn):
 	child_conn.send("Hello world")
 	#child_conn.close()
@@ -142,12 +155,12 @@ class MyApp(App):
 		graphPipeParent, graphPipeChild = Pipe()
 		buttonPipeParent, buttonPipeChild = Pipe()
 		graphLock = Lock()
-
+		
 		# Variables shared with the controller. 
 		# *.value == 1 indicates last message was received by this process
-		graphPipeSize = Value('i', 1)
-		stopButtonPressed = Value('i', 1)
-		newButtonData = Value('i', 1)
+		graphPipeSize = Value('i', 0)
+		stopButtonPressed = Value('i', 0)
+		newButtonData = Value('i', 0)
 
 		#controllerSimulator(graphPipe, graphPipeReceier, buttonPipe, graphPipeSize, graphLock, stopButtonPressed, newButtonData)
 
@@ -162,7 +175,15 @@ class MyApp(App):
 		Clock.schedule_interval(stateLabel.update, 1.0/10.0)
 		global time_list, measurement_list
 		#Clock.schedule_interval(partial(UpdateGraph, time_list, measurement_list), 0.2)
-		Clock.schedule_interval(partial(UpdateGraph, graphPipeParent, graphPipeSize, graphLock), 0.2)
+		
+		#time.sleep(0.3)
+		#print("Outside")
+		#print("graphPipeParent: ", graphPipeParent)
+		#print("graphPipeSize: ", graphPipeSize)
+		#print("type(graphPipeSize): ", type(graphPipeSize))
+		#print("graphLock: ", graphLock)
+		#print("type(graphLock): ", type(graphLock))
+		Clock.schedule_interval(partial(UpdateGraph, graphPipeParent, graphPipeSize, graphLock), 0.6)
 
 		startButton = Button(text = "INIT")
 		startButton.background_normal = ''

@@ -1,4 +1,5 @@
 
+
 import PID
 
 import time
@@ -61,28 +62,30 @@ def current_theta4(theta4):
 
 
 def sendData(data_storage, graphPipe, graphPipeReceiver, graphPipeSize, graphLock):
-	graphLock.acquire()
-	if (graphPipeSize.value == 0):
-		# Only erase buffered data if the last message is read
-		data_storage.time_list = []
-		data_storage.measurement_list_gantry = []
-		data_storage.reference_list_gantry = []
-		data_storage.measurement_list_ring = []
-		data_storage.reference_list_ring = []
+	while(1):
+		graphLock.acquire()
+		print("Sending data of size: ", len(data_storage.time_list))
+		if (graphPipeSize.value == 0):
+			# Only erase buffered data if the last message is read
+			data_storage.time_list = []
+			data_storage.measurement_list_gantry = []
+			data_storage.reference_list_gantry = []
+			data_storage.measurement_list_ring = []
+			data_storage.reference_list_ring = []
 
-	elif (graphPipeSize.value > 0):
-		# If message was not read, clear the pipe
-		while(graphPipeSize.value > 0):
-			graphPipeReceiver.recv()
-			graphPipeSize.value = graphPipeSize.value - 1
-	dataBuffer[0].extend(time_list)
-	dataBuffer[1].extend(measurement_list)
-
-	graphPipe.send([data_storage.time_list, data_storage.measurement_list_gantry, data_storage.reference_list_gantry, 
-		data_storage.measurement_list_ring, data_storage.reference_list_ring])
-	graphPipeSize.value = graphPipeSize.value + 1
-	graphLock.release()
-	time.sleep(0.5)
+		elif (graphPipeSize.value > 0):
+			# If message was not read, clear the pipe
+			while(graphPipeSize.value > 0):
+				graphPipeReceiver.recv()
+				graphPipeSize.value = graphPipeSize.value - 1
+		#dataBuffer[0].extend(time_list)
+		#dataBuffer[1].extend(measurement_list)
+		print("really, the size is ", len(data_storage.time_list))
+		graphPipe.send([data_storage.time_list, data_storage.measurement_list_gantry, data_storage.reference_list_gantry, 
+			data_storage.measurement_list_ring, data_storage.reference_list_ring])
+		graphPipeSize.value = graphPipeSize.value + 1
+		graphLock.release()
+		time.sleep(0.5)
 
 def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, stopButtonPressed, newButtonData):
     # Initialize the trajectory and controller parameters
@@ -261,11 +264,12 @@ class controller:
 		motor_control.setMotorSpeed(RING_ROBOT, PWM_signal_strength_ring)
 
 	def storeData(self):
-		self.time_list.extend((round(time.time(),2) - self.run_start_time))
-		self.measurement_list_gantry.extend(self.r2)
-		self.reference_list_gantry.extend(self.pid_gantry.SetPoint)
-		self.measurement_list_ring.extend(self.theta4)
-		self.reference_list_ring.extend(self.pid_ring.SetPoint)
+		self.time_list.append((round(time.time(),2) - self.run_start_time))
+		self.measurement_list_gantry.append(self.r2)
+		self.reference_list_gantry.append(self.pid_gantry.SetPoint)
+		self.measurement_list_ring.append(self.theta4)
+		self.reference_list_ring.append(self.pid_ring.SetPoint)
+		print("Data stored, total size: ", len(self.time_list))
 
 
 

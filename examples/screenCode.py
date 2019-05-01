@@ -74,7 +74,8 @@ def UpdateGraph(graphPipeParent, graphPipeSize, graphLock, dt):
 		# [timeD, measurementD] = graphPipeParent.recv() 					# Compatible with Multi_process_one.py
 
 		[timeD, gantryM, gantryR, ringM, ringR] = graphPipeParent.recv() 	# Compatible with Controller2.py
-
+		print("The graph pipe is being read")
+		print("Size of time list: ", len(timeD))
 		graphPipeSize.value = graphPipeSize.value - 1 # Indicating that the data is read, pipe is cleared
 		time_list.extend(timeD)
 		#measurement_list.extend(measurementD) 								# Compatible with Multi_process_one.py

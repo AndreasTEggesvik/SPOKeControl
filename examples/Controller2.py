@@ -92,7 +92,7 @@ def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock
 	run_start_time = round(time.time(),2)
 	control_instance = controller(run_start_time)
 	
-	graphCommunication = Process(target=sendData, args=(control_instance, graphPipe, graphPipeReceiver, graphPipeSize, graphLock))
+	graphCommunication = Process(target=control_instance.sendData, args=(graphPipe, graphPipeReceiver, graphPipeSize, graphLock))
 	graphCommunication.start()
 
 	# State 1:
@@ -270,6 +270,32 @@ class controller:
 		self.measurement_list_ring.append(self.theta4)
 		self.reference_list_ring.append(self.pid_ring.SetPoint)
 		print("Data stored, total size: ", len(self.time_list))
+	
+	def sendData(graphPipe, graphPipeReceiver, graphPipeSize, graphLock):
+		while(1):
+			graphLock.acquire()
+			print("Sending data of size: ", len(self.time_list))
+			if (graphPipeSize.value == 0):
+				# Only erase buffered data if the last message is read
+				self.time_list = []
+				self.measurement_list_gantry = []
+				self.reference_list_gantry = []
+				self.measurement_list_ring = []
+				self.reference_list_ring = []
+
+			elif (graphPipeSize.value > 0):
+				# If message was not read, clear the pipe
+				while(graphPipeSize.value > 0):
+					graphPipeReceiver.recv()
+					graphPipeSize.value = graphPipeSize.value - 1
+			#dataBuffer[0].extend(time_list)
+			#dataBuffer[1].extend(measurement_list)
+			print("really, the size is ", len(self.time_list))
+			graphPipe.send([self.time_list, self.measurement_list_gantry, self.reference_list_gantry, 
+				self.measurement_list_ring, self.reference_list_ring])
+			graphPipeSize.value = graphPipeSize.value + 1
+			graphLock.release()
+			time.sleep(0.5)
 
 
 

@@ -269,9 +269,9 @@ class controller:
 		self.reference_list_gantry.append(self.pid_gantry.SetPoint)
 		self.measurement_list_ring.append(self.theta4)
 		self.reference_list_ring.append(self.pid_ring.SetPoint)
-		print("Data stored, total size: ", len(self.time_list))
+		#print("Data stored, total size: ", len(self.time_list))
 	
-	def sendData(graphPipe, graphPipeReceiver, graphPipeSize, graphLock):
+	def sendData(self, graphPipe, graphPipeReceiver, graphPipeSize, graphLock):
 		while(1):
 			graphLock.acquire()
 			print("Sending data of size: ", len(self.time_list))

@@ -1,62 +1,40 @@
-
-
-import kivy 
-kivy.require('1.11.0') # replace with your current kivy version !
-
+# In order to fix a "bug" in kivy
 import os
 os.environ['KIVY_GL_BACKEND'] = 'gl'
 
-import pymonarco_hat as plc
-lib_path = '../../pymonarco-hat/monarco-c/libmonarco.so'
-plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_VERB | plc.MONARCO_DPF_ERROR | plc.MONARCO_DPF_WARNING)
-plc_handler.set_pwm_frequency(plc.PWM_CHANNEL1, 1000)
-
-
-
-from kivy.uix.button import Button
-from kivy.uix.button import Label
-from kivy.uix.togglebutton import ToggleButton
-from kivy.uix.gridlayout import GridLayout
+import kivy
+from kivy.uix.button import Button, Label
+from kivy.uix.boxlayout import BoxLayout
+from kivy.lang import Builder
+from kivy.app import App
 from kivy.uix.image import Image
 from kivy.uix.slider import Slider
 from kivy.clock import Clock
-from kivy.graphics import Color, Rectangle, Ellipse
+from functools import partial
 
 # Graph:
 from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
-from kivy.uix.boxlayout import BoxLayout
-from kivy.lang import Builder
 import matplotlib.pyplot as plt
-from kivy.app import App
-from functools import partial
-import time
 
-
-  
-
-#plt.plot([1, 23, 2, 4])
-#plt.ylabel('some numbers')
-
-# Thread: 
-import threading
-
-
+# Multi processing
+from multiprocessing import Process, Pipe, Value, Lock
+import Multi_process_one
 
 
 speed = 1
+time_list = []
+measurement_list = []
+plt.plot(time_list, measurement_list, 'r')
+graph = FigureCanvasKivyAgg(plt.gcf())
+
 def press_callback(obj):
 	print("Button pressed,", obj.text)
 	if obj.text == 'BEEP!':
 		# turn on the beeper:
-		plc_handler.set_digital_out(plc.DOUT1, plc.HIGH)
-		print('Digital 3 input: ', plc_handler.get_digital_in(plc.DIN3))
-		print('Digital 4 input: ', plc_handler.get_digital_in(plc.DIN4))
+		
 		# schedule it to turn off:
 		Clock.schedule_once(buzzer_off, .1)
 
-		global speed
-		plc_handler.set_pwm_out(plc.DOUT2, speed)
-		print('PWM signal: ', speed)
 	elif obj.text == 'INIT':
 		obj.text = 'START'
 	elif obj.text == 'START':
@@ -65,62 +43,23 @@ def press_callback(obj):
 		print("Stop button pressed")
 
 def buzzer_off(dt):
-	plc_handler.set_digital_out(plc.DOUT1, plc.LOW)
-
-#time_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
-#measurement_list = [0, 0.1, 0.2, 0.1, 0.15, 0.4]
-time_list = []
-measurement_list = []
-tstart = round(time.time(),2)
+	print("After button-press")
 
 # This is called when the slider is updated:
-
 def update_speed(obj, value):
-	global speed, time_list, measurement_list, tstart
+	global speed
 	print("Updating speed to:" + str(obj.value))
 	speed = obj.value
-	time_list.append((round(time.time(),2) - tstart))
-	measurement_list.append(speed)
 
-# Modify the Button Class to update according to GPIO input:
-class InputButton(Button):
-	def update(self, dt):
-		if plc_handler.get_digital_in(plc.DIN4) > 0:
-			self.state = 'normal'
-		else:
-			self.state = 'down'
-
-			
 class StateLabel(Label):
 	def update(self, dt):
-		textInput = 'Digital input 3: ' + str(plc_handler.get_digital_in(plc.DIN3)) + '\n' 
-		textInput += 'Digital input 4: ' + str(plc_handler.get_digital_in(plc.DIN4))
+		textInput = 'Digital input 3: ' + '\n' 
+		textInput += 'Digital input 4: ')
 		self.text = textInput
-plt.plot(time_list, measurement_list, 'r')
-graph = FigureCanvasKivyAgg(plt.gcf())
 
-#def UpdateGraph(dt, not_time_list, data_list):
-	# Clear existing figure and re-use it
-#	plt.clf()
-#	global time_list
-#	global measurement_list
-	#plt.plot([0.1, 0.2, 0.3, 0.4, 0.5, 0.6], [0, 0.1, 0.2, 0.1, 0.15, 0.4], 'r')
-#	plt.plot(time_list, measurement_list, 'r')
-	#graph = FigureCanvasKivyAgg(plt.gcf)
-#	graph.draw()
-
-
-from multiprocessing import Process, Pipe, Value, Lock
-import Multi_process_one
 def UpdateGraph(graphPipeParent, graphPipeSize, graphLock, dt):
 	global time_list
 	global measurement_list
-#	print("Inside")
-#	print("graphPipeParent: ",graphPipeParent)
-#	print("graphPipeSize.value: ", graphPipeSize.value)
-#	print("type(graphPipeSize): ", type(graphPipeSize))
-#	print("graphLock: ", graphLock)
-#	print("type(graphLock)", type(graphLock))
 
 	graphLock.acquire()
 	if (graphPipeSize.value > 0):
@@ -133,20 +72,7 @@ def UpdateGraph(graphPipeParent, graphPipeSize, graphLock, dt):
 		plt.plot(time_list, measurement_list, 'r')
 		graph.draw()
 	graphLock.release()
-#	print("Done updating graph")
 
-#from multiprocessing import Process,Pipe, Value, Lock
-#import Multi_process_one
-def HelloWorld(child_conn):
-	child_conn.send("Hello world")
-	#child_conn.close()
-
-def Calculation(child_conn, x):
-	A = child_conn.recv()
-	child_conn.send(A[0] + A[1])
-	x.extend([1,2,3,4])
-	child_conn.send(x)
-	child_conn.close()
 
 class MyApp(App):
 	def build(self):
@@ -157,7 +83,6 @@ class MyApp(App):
 		graphLock = Lock()
 		
 		# Variables shared with the controller. 
-		# *.value == 1 indicates last message was received by this process
 		graphPipeSize = Value('i', 0)
 		stopButtonPressed = Value('i', 0)
 		newButtonData = Value('i', 0)
@@ -167,7 +92,6 @@ class MyApp(App):
 		p = Process(target=Multi_process_one.controllerSimulator, args=(graphPipeChild, graphPipeParent, buttonPipeChild, graphPipeSize, graphLock, stopButtonPressed, newButtonData))
 		p.start()
 
-
 		beepButton = Button(text="BEEP!")
 		beepButton.bind(on_press=press_callback)
 
@@ -175,14 +99,6 @@ class MyApp(App):
 		Clock.schedule_interval(stateLabel.update, 1.0/10.0)
 		global time_list, measurement_list
 		#Clock.schedule_interval(partial(UpdateGraph, time_list, measurement_list), 0.2)
-		
-		#time.sleep(0.3)
-		#print("Outside")
-		#print("graphPipeParent: ", graphPipeParent)
-		#print("graphPipeSize: ", graphPipeSize)
-		#print("type(graphPipeSize): ", type(graphPipeSize))
-		#print("graphLock: ", graphLock)
-		#print("type(graphLock): ", type(graphLock))
 		Clock.schedule_interval(partial(UpdateGraph, graphPipeParent, graphPipeSize, graphLock), 0.6)
 
 		startButton = Button(text = "INIT")
@@ -194,9 +110,9 @@ class MyApp(App):
 		stopButton.background_normal = ''
 		stopButton.background_color = [0.7, 0, 0, 1]
 		stopButton.bind(on_press=press_callback)
-		
 
 		wimg = Image(source='Prototype1.png')
+
 		speedSlider = Slider(orientation='vertical', min=0, max=1, value=speed)
 		speedSlider.bind(on_touch_move=update_speed)
 		speedSlider.size_hint_x=(0.2)
@@ -226,31 +142,12 @@ class MyApp(App):
 		superBox.add_widget(speedSlider)
 
 		return superBox
-	
-
 
 class MyPlot(App):
-	
 	def build(self):
 		box = BoxLayout()
 		box.add_widget(FigureCanvasKivyAgg(plt.gcf()))
 		return box
-
-class BoxLayoutTest(App):
-	def build(self):
-		superBox = BoxLayout(orientation='horizontal')
-
-		verticalTextBox = BoxLayout(orientation='vertical')
-		verticalTextBox.add_widget(inputDisplay)
-		verticalTextBox.add_widget(beepButton)
-		verticalTextBox.add_widget(wimg)
-		
-		superBox.add_widget(FigureCanvasKivyAgg(plt.gcf))
-		superBox.add_widget(verticalTextBox)
-		superBox.add_widget(startButton)
-		superBox.add_widget(speedSlider)
-		return superBox
-
 
 if __name__ == '__main__':
 	MyApp().run()

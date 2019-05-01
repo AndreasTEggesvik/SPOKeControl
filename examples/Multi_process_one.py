@@ -5,7 +5,6 @@ import screenCode
 import time
 from math import sin
 
-
 def controllerSimulator(graphPipe, graphPipeReceier, buttonPipe, graphPipeSize, graphLock, stopButtonPressed, newButtonData):
 	time_list = []
 	measurement_list = []

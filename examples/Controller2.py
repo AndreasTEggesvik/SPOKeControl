@@ -114,9 +114,9 @@ def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock
 		if eraseMemory.value:
 			# This condition can cause us to erase memory not yet sent.
 			# This only affects the display however, not the control
-			control_instance.eraseMemory()
+			control_instance.eraseData()
 			eraseMemory.value = 0
-
+		time.sleep(0.02)
 		# For plots sake
 		#time_list.append((round(time.time(),2) - run_start_time))
 		#measurement_list_gantry.append(control_instance.r2)
@@ -139,11 +139,11 @@ def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock
 			control_instance.eraseData()
 
 		if (i == 15):
-			graphCommunication = Process(target=sendData, args=(control_instance, graphPipe, graphPipeReceiver, graphPipeSize, graphLock))
+			graphCommunication = Process(target=sendData, args=(control_instance, graphPipe, graphPipeReceiver, graphPipeSize, graphLock, eraseMemory))
 			graphCommunication.start()
 			i = 0
 		i += 1
-
+		time.sleep(0.02)
 		# For plots sake
 		#time_list.append((round(time.time(),2) - run_start_time))
 		#measurement_list_gantry.append(control_instance.r2)

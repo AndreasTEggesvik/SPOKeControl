@@ -11,16 +11,12 @@ import Geometry
 import SPOKe_IO
 
 
-
 GANTRY_ROBOT = 1
 RING_ROBOT = 2
 
 encoder_instance = SPOKe_IO.Encoder_input()
-encoder_instance.reset_counter(1) 
-encoder_instance.update_counter(1)
-
-r2 = encoder_instance.read_counter_deg(GANTRY_ROBOT)		# Don't need?
-theta4 = encoder_instance.read_counter_deg(RING_ROBOT)		# Don't need?
+encoder_instance.reset_counter(1)
+encoder_instance.reset_counter(2)
 
 
 motor_control = SPOKe_IO.Motor_output()		# Instance for motor control
@@ -28,11 +24,11 @@ motor_control = SPOKe_IO.Motor_output()		# Instance for motor control
 
 
 # For plots
-time_list = []
-measurement_list_gantry = []  
-reference_list_gantry = []    
-measurement_list_ring = []
-reference_list_ring = []
+#time_list = []
+#measurement_list_gantry = []  
+#reference_list_gantry = []    
+#measurement_list_ring = []
+#reference_list_ring = []
 
 def PID_to_control_input(pid_output):
 	if pid_output >= 0:
@@ -54,12 +50,45 @@ def current_theta4(theta4):
 	# and not be functions of current value, but of some 
 	return theta4
 
-def main_test():
-    # Initialize the trajectory and controller parameters
-	control_instance = controller()
 
+self.run_start_time = time_value
+		self.time_list = []
+		self.measurement_list_gantry = []  
+		self.reference_list_gantry = []    
+		self.measurement_list_ring = []
+		self.reference_list_ring = []
+
+
+def sendData(data_storage, graphPipe, graphPipeReceiver, graphPipeSize, graphLock):
+
+	graphLock.acquire()
+	if (graphPipeSize.value == 0):
+		# Only erase buffered data if the last message is read
+		data_storage.time_list = []
+		data_storage.measurement_list_gantry = []
+		data_storage.reference_list_gantry = []
+		data_storage.measurement_list_ring = []
+		data_storage.reference_list_ring = []
+
+	elif (graphPipeSize.value > 0):
+		# If message was not read, clear the pipe
+		while(graphPipeSize.value > 0):
+			graphPipeReceiver.recv()
+			graphPipeSize.value = graphPipeSize.value - 1
+	dataBuffer[0].extend(time_list)
+	dataBuffer[1].extend(measurement_list)
+
+	graphPipe.send([data_storage.time_list, data_storage.measurement_list_gantry, data_storage.reference_list_gantry, 
+		data_storage.measurement_list_ring, data_storage.reference_list_ring])
+	graphPipeSize.value = graphPipeSize.value + 1
+	graphLock.release()
+
+def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, stopButtonPressed, newButtonData):
+    # Initialize the trajectory and controller parameters
 	run_start_time = round(time.time(),2)
-	#plot_time = (round(time.time(),2) - tstart)
+	control_instance = controller(run_start_time)
+	
+	graphCommunication = Process(target=sendData, args=(control_instance, graphPipe, graphPipeReceiver, graphPipeSize, graphLock))
 
 	# State 1:
 	[t0, tf, state, theta4_next] = [0, 20, 1, 0]
@@ -69,16 +98,17 @@ def main_test():
 		control_instance.updateTrajectory(state)
 		control_instance.updatePosition()
 		control_instance.updatePID()
+		control_instance.storeData()
 
 		# For plots sake
-		time_list.append((round(time.time(),2) - run_start_time))
-		measurement_list_gantry.append(control_instance.r2)
-		reference_list_gantry.append(control_instance.pid_gantry.SetPoint)
-		measurement_list_ring.append(control_instance.theta4)
-		reference_list_ring.append(control_instance.pid_ring.SetPoint)
-		print(control_instance.pid_gantry.SetPoint)
-
+		#time_list.append((round(time.time(),2) - run_start_time))
+		#measurement_list_gantry.append(control_instance.r2)
+		#reference_list_gantry.append(control_instance.pid_gantry.SetPoint)
+		#measurement_list_ring.append(control_instance.theta4)
+		#reference_list_ring.append(control_instance.pid_ring.SetPoint)
+		#print(control_instance.pid_gantry.SetPoint)
 	print("Done with mode 1")
+
 	# State 2:
 	[t0, tf, state, theta4_next] = [0, 10, 2, 10 * 3.14/180] # 10 deg increase
 	control_instance.initNewState(t0, tf, state, theta4_next) #Does the PID reset? 
@@ -87,26 +117,33 @@ def main_test():
 		control_instance.updateTrajectory(state)
 		control_instance.updatePosition()
 		control_instance.updatePID() 
+		control_instance.storeData()
 
 		# For plots sake
-		time_list.append((round(time.time(),2) - run_start_time))
-		measurement_list_gantry.append(control_instance.r2)
-		reference_list_gantry.append(control_instance.pid_gantry.SetPoint)
-		measurement_list_ring.append(control_instance.theta4)
-		reference_list_ring.append(control_instance.pid_ring.SetPoint)
-		print(control_instance.pid_ring.SetPoint)
+		#time_list.append((round(time.time(),2) - run_start_time))
+		#measurement_list_gantry.append(control_instance.r2)
+		#reference_list_gantry.append(control_instance.pid_gantry.SetPoint)
+		#measurement_list_ring.append(control_instance.theta4)
+		#reference_list_ring.append(control_instance.pid_ring.SetPoint)
+		#print(control_instance.pid_ring.SetPoint)
 	print("Done with mode 2")
 	#print("r2: ", round(r2, 4), " | co: ", pid_gantry.output, " | ", direction, " | ", round(PWM_signal_strength_gantry, 4), " | reference: ", pid_gantry.SetPoint)
 	
-
 	
-	limit_switch = 0
+	#limit_switch = 0
 	#while (not limit_switch):
 		# Loop prosessen
 	#	controller_process(state) 
+	
 
 class controller:
-	def __init__(self):
+	def __init__(self, time_value):
+		self.run_start_time = time_value
+		self.time_list = []
+		self.measurement_list_gantry = []  
+		self.reference_list_gantry = []    
+		self.measurement_list_ring = []
+		self.reference_list_ring = []
 		#self.tstart
 		#self.op_time
 		#self.tf
@@ -220,22 +257,28 @@ class controller:
 		motor_control.setMotorDirection(RING_ROBOT, direction_ring)
 		motor_control.setMotorSpeed(RING_ROBOT, PWM_signal_strength_ring)
 
+	def storeData(self):
+		self.time_list.extend((round(time.time(),2) - self.run_start_time))
+		self.measurement_list_gantry.extend(self.r2)
+		self.reference_list_gantry.extend(self.pid_gantry.SetPoint)
+		self.measurement_list_ring.extend(self.theta4)
+		self.reference_list_ring.extend(self.pid_ring.SetPoint)
 
 
-main_test()
-# PLOT: 
-plt.figure()
-plt.plot(time_list, measurement_list_gantry, 'b')
-plt.plot(time_list, reference_list_gantry, 'r')
-plt.show()
 
-plt.figure()
-plt.plot(time_list, measurement_list_ring, 'b')
-plt.plot(time_list, reference_list_ring, 'r')
-plt.show()
-	
-	
-	
-	
+
+test = 0
+if test == 1:
+	main_test()
+	# PLOT: 
+	plt.figure()
+	plt.plot(time_list, measurement_list_gantry, 'b')
+	plt.plot(time_list, reference_list_gantry, 'r')
+	plt.show()
+
+	plt.figure()
+	plt.plot(time_list, measurement_list_ring, 'b')
+	plt.plot(time_list, reference_list_ring, 'r')
+	plt.show()
 	
 	

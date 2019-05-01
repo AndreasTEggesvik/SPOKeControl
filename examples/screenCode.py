@@ -18,12 +18,20 @@ import matplotlib.pyplot as plt
 
 # Multi processing
 from multiprocessing import Process, Pipe, Value, Lock
-import Multi_process_one
 
+# Other programs
+import Multi_process_one
+import Controller2
 
 speed = 1
 time_list = []
 measurement_list = []
+
+gantry_val_list = []
+gantry_ref_list = []
+ring_val_list = []
+ring_ref_list = []
+
 plt.plot(time_list, measurement_list, 'r')
 graph = FigureCanvasKivyAgg(plt.gcf())
 
@@ -63,12 +71,21 @@ def UpdateGraph(graphPipeParent, graphPipeSize, graphLock, dt):
 
 	graphLock.acquire()
 	if (graphPipeSize.value > 0):
-		[timeD, measurementD] = graphPipeParent.recv()
+		# [timeD, measurementD] = graphPipeParent.recv() 					# Compatible with Multi_process_one.py
+
+		[timeD, gantryM, gantryR, ringM, ringR] = graphPipeParent.recv() 	# Compatible with Controller2.py
+
 		graphPipeSize.value = graphPipeSize.value - 1 # Indicating that the data is read, pipe is cleared
 		time_list.extend(timeD)
-		measurement_list.extend(measurementD)
+		#measurement_list.extend(measurementD) 								# Compatible with Multi_process_one.py
+		gantry_val_list.extend(gantryM)										# Compatible with Controller2.py
+		gantry_ref_list.extend(gantryR)										# Compatible with Controller2.py
+		ring_val_list.extend(ringM)											# Compatible with Controller2.py
+		ring_ref_list.extend(ringR)											# Compatible with Controller2.py
+		
 		plt.clf()
-		plt.plot(time_list, measurement_list, 'r')
+		#plt.plot(time_list, measurement_list, 'r') 						# Compatible with Multi_process_one.py
+		plt.plot(time_list, gantry_ref_list, 'r', time_list, ring_ref_list, 'b')
 		graph.draw()
 	graphLock.release()
 
@@ -88,7 +105,8 @@ class MyApp(App):
 
 		#controllerSimulator(graphPipe, graphPipeReceier, buttonPipe, graphPipeSize, graphLock, stopButtonPressed, newButtonData)
 
-		self.p = Process(target=Multi_process_one.controllerSimulator, args=(graphPipeChild, graphPipeParent, buttonPipeChild, graphPipeSize, graphLock, stopButtonPressed, newButtonData))
+		#self.p = Process(target=Multi_process_one.controllerSimulator, args=(graphPipeChild, graphPipeParent, buttonPipeChild, graphPipeSize, graphLock, stopButtonPressed, newButtonData))
+		self.p = Process(target=Controller2.main_test, args=(graphPipeChild, graphPipeParent, buttonPipeChild, graphPipeSize, graphLock, stopButtonPressed, newButtonData))
 		self.p.start()
 
 		beepButton = Button(text="BEEP!")

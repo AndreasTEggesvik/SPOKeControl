@@ -4,7 +4,7 @@ import RPi.GPIO as GPIO
 import time
 
 
-lib_path = '../monarco-c/libmonarco.so'
+lib_path = '../../pymonarco-hat/monarco-c/libmonarco.so'
 plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_VERB | plc.MONARCO_DPF_ERROR | plc.MONARCO_DPF_WARNING)
 		
 		
@@ -72,7 +72,7 @@ class Encoder_input:
 			elif new_value < self.last_received2:
 				# We have probably passed the storage  limit
 				self.local_counter2 += 65536 - self.last_received2 + new_value
-			elif new_value < last_received2:
+			elif new_value < self.last_received2:
 				# We have probably went backwards passt zero
 				self.local_counter2 += new_value - self.last_received2 - 65536
 			

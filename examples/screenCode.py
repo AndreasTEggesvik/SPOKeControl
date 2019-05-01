@@ -88,8 +88,8 @@ class MyApp(App):
 
 		#controllerSimulator(graphPipe, graphPipeReceier, buttonPipe, graphPipeSize, graphLock, stopButtonPressed, newButtonData)
 
-		p = Process(target=Multi_process_one.controllerSimulator, args=(graphPipeChild, graphPipeParent, buttonPipeChild, graphPipeSize, graphLock, stopButtonPressed, newButtonData))
-		p.start()
+		self.p = Process(target=Multi_process_one.controllerSimulator, args=(graphPipeChild, graphPipeParent, buttonPipeChild, graphPipeSize, graphLock, stopButtonPressed, newButtonData))
+		self.p.start()
 
 		beepButton = Button(text="BEEP!")
 		beepButton.bind(on_press=press_callback)
@@ -141,14 +141,12 @@ class MyApp(App):
 		superBox.add_widget(speedSlider)
 
 		return superBox
-
-class MyPlot(App):
-	def build(self):
-		box = BoxLayout()
-		box.add_widget(FigureCanvasKivyAgg(plt.gcf()))
-		return box
+	def on_stop():
+		self.p.terminate()
+	
 
 if __name__ == '__main__':
 	MyApp().run()
+
 #MyPlot().run()
 

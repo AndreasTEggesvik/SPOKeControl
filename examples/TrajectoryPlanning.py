@@ -36,10 +36,10 @@ def LSPB(V, constraints, t):
     [t0, tf] = t
     
     # Validity test
-    if (not (qf - q0)/V < tf):
+    if (not (qf - q0)/V < tf-t0):
         print("Too small tf relative to V")
         return False
-    elif (not tf < 2*(qf - q0)/V):
+    elif (not tf-t0 < 2*(qf - q0)/V):
         print("Too large tf relative to V")
         return False
     

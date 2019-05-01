@@ -54,7 +54,7 @@ def update_speed(obj, value):
 class StateLabel(Label):
 	def update(self, dt):
 		textInput = 'Digital input 3: ' + '\n' 
-		textInput += 'Digital input 4: ')
+		textInput += 'Digital input 4: '
 		self.text = textInput
 
 def UpdateGraph(graphPipeParent, graphPipeSize, graphLock, dt):
@@ -63,7 +63,6 @@ def UpdateGraph(graphPipeParent, graphPipeSize, graphLock, dt):
 
 	graphLock.acquire()
 	if (graphPipeSize.value > 0):
-		print("Updating graph: ", graphPipeSize.value)
 		[timeD, measurementD] = graphPipeParent.recv()
 		graphPipeSize.value = graphPipeSize.value - 1 # Indicating that the data is read, pipe is cleared
 		time_list.extend(timeD)

@@ -51,12 +51,12 @@ def current_theta4(theta4):
 	return theta4
 
 
-self.run_start_time = time_value
-		self.time_list = []
-		self.measurement_list_gantry = []  
-		self.reference_list_gantry = []    
-		self.measurement_list_ring = []
-		self.reference_list_ring = []
+#self.run_start_time = time_value
+#self.time_list = []
+#self.measurement_list_gantry = []  
+#self.reference_list_gantry = []    
+#self.measurement_list_ring = []
+#self.reference_list_ring = []
 
 
 def sendData(data_storage, graphPipe, graphPipeReceiver, graphPipeSize, graphLock):

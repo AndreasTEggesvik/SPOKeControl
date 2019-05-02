@@ -41,20 +41,25 @@ def sendData(data_storage, graphPipe,graphPipeSize, graphLock):
 	graphLock.release()
 	
 def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, stopButtonPressed, newButtonData):
-    # Initialize the trajectory and controller parameters
+    
+	# Initializing the robot, guaranteeing a safe starting position
 	run_start_time = round(time.time(),2)
 	control_instance = controller(run_start_time)
-	
 	control_instance.waitForInitSignal(buttonPipe)
-	time.sleep(4)
+	if (control_instance.initialize(stopButtonPressed) == False):
+		while (True):
+			time.sleep(0.5)
 	buttonPipe.send("Init finished")
 	newButtonData.value += 1
-	
-	# Start
+
+
+	# Start the normal procedure
 	control_instance.waitForStartSignal(buttonPipe)
 	buttonPipe.send("Starting")
 	newButtonData.value += 1
 	control_instance.run_start_time = round(time.time(),2)
+
+
 	# State 1:
 	[t0, tf, state, theta4_next] = [0, 20, 1, 0]
 	control_instance.initNewState(t0, tf, state, theta4_next) # (t0, tf, state, theta4_next)
@@ -124,6 +129,8 @@ def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock
 		i += 1
 
 		time.sleep(0.02)
+	control_instance.motor_control.openGrip()
+
 	print("Done with mode 3")
 	#print("r2: ", round(r2, 4), " | co: ", pid_gantry.output, " | ", direction, " | ", round(PWM_signal_strength_gantry, 4), " | reference: ", pid_gantry.SetPoint)
 	graphCommunication.terminate()
@@ -140,14 +147,14 @@ class controller:
 		self.dataBuffer = [self.time_list[:], self.measurement_list_gantry[:], self.reference_list_gantry[:], self.measurement_list_ring[:], self.reference_list_ring[:]]
 
 		self.encoder_instance = SPOKe_IO.Encoder_input()
-		self.encoder_instance.reset_counter(1)
-		self.encoder_instance.reset_counter(2)
-		self.motor_control = SPOKe_IO.Motor_output()		# Instance for motor control
+		self.motor_control = SPOKe_IO.Motor_output()
+		self.ls_instance = SPOKe_IO.LimitSwitch()			
+
 		#self.tstart
 		#self.op_time
 		#self.tf
 		#self.timeout 
-		#self.pid_gantry #init the PID controller here? 
+		#self.pid_gantry
 		#self.pid_ring
 
 		# Trajectory parameters:
@@ -171,7 +178,42 @@ class controller:
 		#self.r2_e
 
 		# Storage lists
+	def initialize(self, stopButtonPressed):
+		
+		self.motor_control.setMotorDirection(GANTRY_ROBOT, -1)
+		self.motor_control.setMotorDirection(RING_ROBOT, -1)
+		initVelocity = 0.5
 
+		while( not ( ls_instance.active(1) or ls_instance.active(2) or ls_instance.active(3) or ls_instance.active(4) or stopButtonPressed.value )):
+			self.motor_control.setMotorSpeed(GANTRY_ROBOT, initVelocity)
+			self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity)
+			time.sleep(0.05)
+		self.stop()
+		if (stopButtonPressed.value):
+			print("Stop button is pressed, looping forever")
+			return False
+
+		while ( not ( ls_instance.active(1) or ls_instance.active(2) or stopButtonPressed.value ))
+			self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity)
+			time.sleep(0.05)
+		self.stop()
+		if (stopButtonPressed.value):
+			print("Stop button is pressed, looping forever")
+			return False
+
+		while ( not ( ls_instance.active(3) or ls_instance.active(4) or stopButtonPressed.value ))
+			self.motor_control.setMotorSpeed(GANTRY_ROBOT, initVelocity)
+			time.sleep(0.05)
+		self.stop()
+		if (stopButtonPressed.value):
+			print("Stop button is pressed, looping forever")
+			return False
+
+		self.encoder_instance.reset_counter(1)
+		self.encoder_instance.reset_counter(2)
+		return True
+
+		
 	def initNewState(self, t0, tf, state, theta4_next):
 		# Fixing time
 		self.tstart = round(time.time(),2)
@@ -195,7 +237,6 @@ class controller:
 		self.pid_gantry.setSampleTime(0.1)
 		self.pid_ring = PID.PID(P_r, I_r, D_r)
 		self.pid_ring.setSampleTime(0.1)
-
 		
 		self.theta4 = self.encoder_instance.read_counter_deg(RING_ROBOT)
 		self.r2 = self.encoder_instance.read_counter_deg(GANTRY_ROBOT)

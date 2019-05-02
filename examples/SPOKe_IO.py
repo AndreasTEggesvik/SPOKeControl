@@ -31,21 +31,13 @@ class Encoder_input:
 		self.local_counter2 = 0
 		self.last_received2 = 0
 
-
-
-
 		#The monarco counter can only count to 65,536
 
 
 		# Not finished
 	def update_counter(self, counter_identifier):
 		if (counter_identifier == 1):
-			#self.local_counter1
-			#self.last_received1
-			
 			new_value = plc_handler.read_counter(1)
-			
-			
 			if abs(new_value - self.last_received1) < 45000:
 				# We have moved a reasonable length (just over 2 rotations)
 				self.local_counter1 +=  - self.last_received1 + new_value
@@ -53,19 +45,12 @@ class Encoder_input:
 				# We have probably passed the storage limit
 				self.local_counter1 += 65536 - self.last_received1 + new_value
 			elif new_value < self.last_received1:
-				# We have probably went backwards passt zero
+				# We have probably went backwards past zero
 				self.local_counter1 += new_value - self.last_received1 - 65536
-		
-			#local_counter1 +=  - last_received1 + new_value
 			self.last_received1 = new_value
 					
 		elif (counter_identifier == 2):
-			#global local_counter2
-			#global last_received2
-			
-			new_value = plc_handler.read_counter(2)
-			
-			
+			new_value = plc_handler.read_counter(2)			
 			if abs(new_value - self.last_received2) < 45000:
 				# We have moved a reasonable length (just over 2 rotations)
 				self.local_counter2 +=  - self.last_received2 + new_value
@@ -73,11 +58,9 @@ class Encoder_input:
 				# We have probably passed the storage  limit
 				self.local_counter2 += 65536 - self.last_received2 + new_value
 			elif new_value < self.last_received2:
-				# We have probably went backwards passt zero
+				# We have probably went backwards past zero
 				self.local_counter2 += new_value - self.last_received2 - 65536
-			
 			self.last_received2 = new_value
-	
 
 	def reset_counter(self, counter_identifier):
 		self.update_counter(counter_identifier)
@@ -117,6 +100,12 @@ motor1Pin2 = 22
 motor2Pin1 = 13
 motor2Pin2 = 11
 
+limitSwitchPin1 = 32
+limitSwitchPin2 = 33
+limitSwitchPin3 = 36
+limitSwitchPin4 = 35
+
+
 class Motor_output:
 	def __init__(self):
 		GPIO.setmode(GPIO.BOARD) # Use the physical naming convention
@@ -130,18 +119,17 @@ class Motor_output:
 		GPIO.setup(motor2Pin2, GPIO.OUT, initial = 0)
 		
 		# Set voltage switching ground and 3.7V
-		groundPin = 32
-		GPIO.setup(groundPin, GPIO.OUT, initial = 0)
-		GPIO.output(groundPin, GPIO.LOW)
-		referenceVoltagePin = 35
-		GPIO.setup(referenceVoltagePin, GPIO.OUT, initial = 0)
-		GPIO.output(referenceVoltagePin, GPIO.HIGH)
-		
-		
+		#groundPin = 32
+		#GPIO.setup(groundPin, GPIO.OUT, initial = 0)
+		#GPIO.output(groundPin, GPIO.LOW)
+		#referenceVoltagePin = 35
+		#GPIO.setup(referenceVoltagePin, GPIO.OUT, initial = 0)
+		#GPIO.output(referenceVoltagePin, GPIO.HIGH)
 		
 		# Initialize pwm channels
 		plc_handler.set_pwm_frequency(plc.PWM_CHANNEL1, 1000)
-		plc_handler.set_pwm_out(plc.DOUT2, 1)
+		plc_handler.set_pwm_out(plc.DOUT2, 1) #Assuming 1 is off
+		plc_handler.set_pwm_out(plc.DOUT1, 1)
 		
 
 		
@@ -166,7 +154,6 @@ class Motor_output:
 		else:
 			GPIO.output(pin1, GPIO.LOW)
 			GPIO.output(pin2, GPIO.LOW)
-			
 		return True;
 		
 		
@@ -188,7 +175,27 @@ class Motor_output:
 	def openGrip(self):
 		return False
 
+class LimitSwitch():
+	def __init__(self):
+		GPIO.setup(limitSwitchPin1, GPIO.IN, pull_up_down = GPIO.PUD_DOWN) # or PUD_UP
+		GPIO.setup(limitSwitchPin1, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+		GPIO.setup(limitSwitchPin1, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+		GPIO.setup(limitSwitchPin1, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
 
+	def active(self, switchNumber):
+		# Returns true if the limit switch is active
+		pin = -1
+		if switchNumber == 1:
+			pin = 32
+		elif switchNumber == 2:
+			pin = 33
+		elif switchNumber == 3:
+			pin = 35
+		elif switchNumber == 4:
+			pin = 36
+		else:
+			return True
+		return bool(GPIO.input(pin))
 
 
 ###################### TESTS ###########################

@@ -52,7 +52,8 @@ def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock
 	
 	# Start
 	control_instance.waitForStartSignal(buttonPipe)
-
+	buttonPipe.send("Starting")
+	newButtonData.value += 1
 	control_instance.run_start_time = round(time.time(),2)
 	# State 1:
 	[t0, tf, state, theta4_next] = [0, 20, 1, 0]

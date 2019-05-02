@@ -178,9 +178,9 @@ class Motor_output:
 class LimitSwitch():
 	def __init__(self):
 		GPIO.setup(limitSwitchPin1, GPIO.IN, pull_up_down = GPIO.PUD_DOWN) # or PUD_UP
-		GPIO.setup(limitSwitchPin1, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
-		GPIO.setup(limitSwitchPin1, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
-		GPIO.setup(limitSwitchPin1, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+		GPIO.setup(limitSwitchPin2, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+		GPIO.setup(limitSwitchPin3, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+		GPIO.setup(limitSwitchPin4, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
 
 	def active(self, switchNumber):
 		# Returns true if the limit switch is active

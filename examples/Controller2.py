@@ -184,7 +184,7 @@ class controller:
 		self.motor_control.setMotorDirection(RING_ROBOT, -1)
 		initVelocity = 0.5
 
-		while( not ( ls_instance.active(1) or ls_instance.active(2) or ls_instance.active(3) or ls_instance.active(4) or stopButtonPressed.value )):
+		while( not ( self.ls_instance.active(1) or self.ls_instance.active(2) or self.ls_instance.active(3) or self.ls_instance.active(4) or stopButtonPressed.value )):
 			self.motor_control.setMotorSpeed(GANTRY_ROBOT, initVelocity)
 			self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity)
 			time.sleep(0.05)
@@ -193,7 +193,7 @@ class controller:
 			print("Stop button is pressed, looping forever")
 			return False
 
-		while ( not ( ls_instance.active(1) or ls_instance.active(2) or stopButtonPressed.value ))
+		while ( not ( self.ls_instance.active(1) or self.ls_instance.active(2) or stopButtonPressed.value )):
 			self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity)
 			time.sleep(0.05)
 		self.stop()
@@ -201,7 +201,7 @@ class controller:
 			print("Stop button is pressed, looping forever")
 			return False
 
-		while ( not ( ls_instance.active(3) or ls_instance.active(4) or stopButtonPressed.value ))
+		while ( not ( self.ls_instance.active(3) or self.ls_instance.active(4) or stopButtonPressed.value )):
 			self.motor_control.setMotorSpeed(GANTRY_ROBOT, initVelocity)
 			time.sleep(0.05)
 		self.stop()

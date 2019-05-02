@@ -41,11 +41,6 @@ def press_callback(buttonPipeParent, stopButtonPressed, newButtonData, obj):
 		# turn on the beeper:
 		# schedule it to turn off:
 		Clock.schedule_once(buzzer_off, .1)
-	#elif obj.text == 'INIT':
-	#	buttonPipeParent.send("INIT")
-	#elif obj.text == 'START':
-	#	buttonPipeParent.send("START")
-	#	print("Start button pressed")
 	elif obj.text == 'STOP':
 		buttonPipeParent.send("STOP")
 		stopButtonPressed.value = 1
@@ -58,7 +53,7 @@ class StartButton(Button):
 			buttonPipeParent.send("INIT")
 		elif self.text == 'START':
 			buttonPipeParent.send("START")
-			print("Start button pressed")
+
 	def updateStartButton(self, buttonPipeParent, newButtonData, dt):
 		if (newButtonData.value):
 			b = buttonPipeParent.recv()
@@ -68,6 +63,7 @@ class StartButton(Button):
 			elif (b == "Starting"):
 				self.background_color = [0, 0.3, 0, 1]
 				newButtonData.value -= 1
+			print("Received message: ", b)
 
 
 def buzzer_off(dt):
@@ -132,7 +128,6 @@ class MyApp(App):
 		newButtonData = Value('i', 0)
 
 		#controllerSimulator(graphPipe, graphPipeReceier, buttonPipe, graphPipeSize, graphLock, stopButtonPressed, newButtonData)
-
 		#self.p = Process(target=Multi_process_one.controllerSimulator, args=(graphPipeChild, graphPipeParent, buttonPipeChild, graphPipeSize, graphLock, stopButtonPressed, newButtonData))
 		self.p = Process(target=Controller2.main_test, args=(graphPipeChild, graphPipeParent, buttonPipeChild, graphPipeSize, graphLock, stopButtonPressed, newButtonData))
 		self.p.start()
@@ -142,15 +137,12 @@ class MyApp(App):
 
 		stateLabel = StateLabel(text = 'Digital input 3 \nDigital input 4')
 		Clock.schedule_interval(stateLabel.update, 1.0/10.0)
-		#global time_list, measurement_list
 		#Clock.schedule_interval(partial(UpdateGraph, time_list, measurement_list), 0.2)
 		Clock.schedule_interval(partial(UpdateGraph, graphPipeParent, graphPipeSize, graphLock), 0.6)
 
-		#startButton = Button(text = "INIT")
 		startButton = StartButton(text = "INIT")
 		startButton.background_normal = ''
 		startButton.background_color = [0, 0.7, 0, 1]
-		#startButton.bind(on_press=press_callback)
 		startButton.bind(on_press=(partial(startButton.buttonPressed, buttonPipeParent)))
 		Clock.schedule_interval(partial(startButton.updateStartButton, buttonPipeParent, newButtonData), 0.6)
 
@@ -182,7 +174,6 @@ class MyApp(App):
 		verticalTextBox2.add_widget(stopButton)
 		verticalTextBox2.size_hint_x=(0.3)
 
-		#superBox.add_widget(FigureCanvasKivyAgg(plt.gcf()))
 		global graph
 		superBox.add_widget(graph)
 		superBox.add_widget(verticalTextBox1)
@@ -197,6 +188,3 @@ class MyApp(App):
 
 if __name__ == '__main__':
 	MyApp().run()
-
-#MyPlot().run()
-

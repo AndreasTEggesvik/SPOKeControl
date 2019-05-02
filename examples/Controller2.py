@@ -4,18 +4,14 @@ import PID
 
 import time
 import TrajectoryPlanning as tp
-import matplotlib.pyplot as plt
+
 import Geometry
 from multiprocessing import Process, Pipe, Value, Lock
-
-#import Encoder
-#import MotorControl
 import SPOKe_IO
 
 
 GANTRY_ROBOT = 1
 RING_ROBOT = 2
-
 
 
 def PID_to_control_input(pid_output):
@@ -29,7 +25,6 @@ def PID_to_control_input(pid_output):
 def invert_PWM(pwm_in):
 	return abs(pwm_in - 1)
 
-
 def next_theta4(theta4):
 	# This function must correspond to controller. Should be in geometry? 
 	return theta4 + 10 * 3.14/180 # 10 deg increase
@@ -38,93 +33,49 @@ def current_theta4(theta4):
 	# and not be functions of current value, but of some 
 	return theta4
 
-
-def sendData(data_storage, graphPipe, graphPipeReceiver, graphPipeSize, graphLock, eraseMemory):
+def sendData(data_storage, graphPipe,graphPipeSize, graphLock):
 	graphLock.acquire()
-	print("Sending data of size: ", len(data_storage.time_list))
-	if (graphPipeSize.value == 0):
-		# Only erase buffered data if the last message is read
-		eraseMemory.value = 1
-	#elif (graphPipeSize.value > 0):
-		# If message was not read, clear the pipe
-	#	while(graphPipeSize.value > 0):
-	#		graphPipeReceiver.recv()
-	#		graphPipeSize.value = graphPipeSize.value - 1
-
-	print("really, the size is ", len(data_storage.time_list))
-#	graphPipe.send([data_storage.time_list, data_storage.measurement_list_gantry, data_storage.reference_list_gantry, 
-#		data_storage.measurement_list_ring, data_storage.reference_list_ring])
+	print("Sending data of size: ", len(data_storage.dataBuffer[0]))
 	graphPipe.send(data_storage.dataBuffer)
 	graphPipeSize.value = graphPipeSize.value + 1
 	graphLock.release()
 	
-
 def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, stopButtonPressed, newButtonData):
     # Initialize the trajectory and controller parameters
 	run_start_time = round(time.time(),2)
 	control_instance = controller(run_start_time)
-
-	# Initiation
-	while(True):
-		b = buttonPipe.recv()
-		if (b == "INIT"):
-			print("Initializing robot")
-			break
-		elif (b == "STOP"):
-			print("Controller is being asked to stop. Has not yet started")
-			control_instance.stop()
-		elif (b == "START"):
-			print("Controller can not start, has not been initiated")
-	time.sleep(7)
+	
+	control_instance.waitForInitSignal(buttonPipe)
+	time.sleep(4)
 	buttonPipe.send("Init finished")
 	newButtonData.value += 1
-	 # To get effect of things going on, testing button update
 	
 	# Start
-	while(True):
-		b = buttonPipe.recv()
-		if (b == "START"):
-			print("Starting controller")
-			break
-		elif (b == "STOP"):
-			control_instance.stop()
-			print("Stopping, has not yet finished initializing")
+	control_instance.waitForStartSignal(buttonPipe)
 
-	buttonPipe.send("Starting")
-	newButtonData.value += 1
 	control_instance.run_start_time = round(time.time(),2)
 	# State 1:
 	[t0, tf, state, theta4_next] = [0, 20, 1, 0]
 	control_instance.initNewState(t0, tf, state, theta4_next) # (t0, tf, state, theta4_next)
 
 	i = 0
-	eraseMemory = Value('i', 0)
-
 	while (not control_instance.timeout): # and control_instance.theta4_e < 0.017 and control_instance.r2_e < 0.02): # Only check time when testing
     	# While the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
 		control_instance.updateTrajectory(state)
 		control_instance.updatePosition()
 		control_instance.updatePID(state)
 		control_instance.storeData()
-		
-#		if (graphPipeSize.value == 0):
-#			control_instance.eraseData()
 
 		if (i == 15):
 			if (graphPipeSize.value == 0):
 				control_instance.eraseBufferData()
 			control_instance.bufferData()
 			control_instance.eraseData()
-			graphCommunication = Process(target=sendData, args=(control_instance, graphPipe, graphPipeReceiver, graphPipeSize, graphLock, eraseMemory))
+			graphCommunication = Process(target=sendData, args=(control_instance, graphPipe, graphPipeSize, graphLock))
 			graphCommunication.start()
 			i = 0
 		i += 1
 
-#		if eraseMemory.value:
-#			# This condition will cause us to erase memory not yet received.
-#			# This only affects the display however, not the control
-#			control_instance.eraseData()
-#			eraseMemory.value = 0
 		time.sleep(0.02)
 	print("Done with mode 1")
 
@@ -139,15 +90,14 @@ def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock
 		control_instance.storeData()
 		
 		if (i == 15):
-			
-			graphCommunication = Process(target=sendData, args=(control_instance, graphPipe, graphPipeReceiver, graphPipeSize, graphLock, eraseMemory))
+			if (graphPipeSize.value == 0):
+				control_instance.eraseBufferData()
+			control_instance.bufferData()
+			control_instance.eraseData()
+			graphCommunication = Process(target=sendData, args=(control_instance, graphPipe, graphPipeSize, graphLock))
 			graphCommunication.start()
 			i = 0
 		i += 1
-
-		if eraseMemory.value:
-			control_instance.eraseData()
-			eraseMemory.value = 0
 
 		time.sleep(0.02)
 	print("Done with mode 2")
@@ -163,19 +113,18 @@ def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock
 		control_instance.storeData()
 	
 		if (i == 15):
-			graphCommunication = Process(target=sendData, args=(control_instance, graphPipe, graphPipeReceiver, graphPipeSize, graphLock, eraseMemory))
+			if (graphPipeSize.value == 0):
+				control_instance.eraseBufferData()
+			control_instance.bufferData()
+			control_instance.eraseData()
+			graphCommunication = Process(target=sendData, args=(control_instance, graphPipe, graphPipeSize, graphLock))
 			graphCommunication.start()
 			i = 0
 		i += 1
 
-		if eraseMemory.value:
-			control_instance.eraseData()
-			eraseMemory.value = 0
-
 		time.sleep(0.02)
 	print("Done with mode 3")
 	#print("r2: ", round(r2, 4), " | co: ", pid_gantry.output, " | ", direction, " | ", round(PWM_signal_strength_gantry, 4), " | reference: ", pid_gantry.SetPoint)
-	
 	graphCommunication.terminate()
 	
 
@@ -269,6 +218,29 @@ class controller:
 				self.r2_ref = self.r2_min
 		#elif (state == 3 or state == 6):
 			# don't care about this
+	def waitForInitSignal(self, buttonPipe):
+		while(True):
+			b = buttonPipe.recv()
+			if (b == "INIT"):
+				print("Initializing robot")
+				break
+			elif (b == "STOP"):
+				print("Controller is being asked to stop. Has not yet started")
+				self.stop()
+			elif (b == "START"):
+				print("Controller can not start, has not been initiated")
+			print("Should we sleep now? ")
+
+	def waitForStartSignal(self, buttonPipe):
+		while(True):
+			b = buttonPipe.recv()
+			if (b == "START"):
+				print("Starting controller")
+				break
+			elif (b == "STOP"):
+				self.stop()
+				print("Stopping, has not yet finished initializing")
+			print("Should we sleep now? ")
 
 	def updateTrajectory(self, state):
 		self.op_time = (round(time.time(),2) - self.tstart)
@@ -359,6 +331,8 @@ class controller:
 		self.measurement_list_ring = []
 		self.reference_list_ring = []
 
+
+import matplotlib as plt
 
 test = 0
 if test == 1:

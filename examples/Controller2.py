@@ -52,8 +52,9 @@ def sendData(data_storage, graphPipe, graphPipeReceiver, graphPipeSize, graphLoc
 	#		graphPipeSize.value = graphPipeSize.value - 1
 
 	print("really, the size is ", len(data_storage.time_list))
-	graphPipe.send([data_storage.time_list, data_storage.measurement_list_gantry, data_storage.reference_list_gantry, 
-		data_storage.measurement_list_ring, data_storage.reference_list_ring])
+#	graphPipe.send([data_storage.time_list, data_storage.measurement_list_gantry, data_storage.reference_list_gantry, 
+#		data_storage.measurement_list_ring, data_storage.reference_list_ring])
+	graphPipe.send(data_storage.dataBuffer)
 	graphPipeSize.value = graphPipeSize.value + 1
 	graphLock.release()
 	
@@ -186,7 +187,7 @@ class controller:
 		self.reference_list_gantry = []    
 		self.measurement_list_ring = []
 		self.reference_list_ring = []
-		self.dataBuffer = [self.time_list, self-measurement_list_gantry, self.reference_list_gantry, self.measurement_list_ring, self.reference_list_ring]
+		self.dataBuffer = [self.time_list[:], self.measurement_list_gantry[:], self.reference_list_gantry[:], self.measurement_list_ring[:], self.reference_list_ring[:]]
 
 		self.encoder_instance = SPOKe_IO.Encoder_input()
 		self.encoder_instance.reset_counter(1)
@@ -335,11 +336,11 @@ class controller:
 		self.motor_control.setMotorSpeed(RING_ROBOT, 0)
 
 	def bufferData(self):
-		self.dataBuffer[0].extend(self.time_list)
-		self.dataBuffer[1].extend(self-measurement_list_gantry)
-		self.dataBuffer[2].extend(self.reference_list_gantry)
-		self.dataBuffer[3].extend(self.measurement_list_ring)
-		self.dataBuffer[4].extend(self.reference_list_ring)
+		self.dataBuffer[0].extend(self.time_list[:])
+		self.dataBuffer[1].extend(self.measurement_list_gantry[:])
+		self.dataBuffer[2].extend(self.reference_list_gantry[:])
+		self.dataBuffer[3].extend(self.measurement_list_ring[:])
+		self.dataBuffer[4].extend(self.reference_list_ring[:])
 
 	def eraseBufferData(self):
 		self.dataBuffer = [[], [], [], [], []]

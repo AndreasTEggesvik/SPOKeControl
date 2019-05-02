@@ -110,16 +110,20 @@ def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock
 #			control_instance.eraseData()
 
 		if (i == 15):
+			if (graphPipeSize.value == 0):
+				control_instance.eraseBufferData()
+			control_instance.bufferData()
+			control_instance.eraseData()
 			graphCommunication = Process(target=sendData, args=(control_instance, graphPipe, graphPipeReceiver, graphPipeSize, graphLock, eraseMemory))
 			graphCommunication.start()
 			i = 0
 		i += 1
 
-		if eraseMemory.value:
-			# This condition will cause us to erase memory not yet received.
-			# This only affects the display however, not the control
-			control_instance.eraseData()
-			eraseMemory.value = 0
+#		if eraseMemory.value:
+#			# This condition will cause us to erase memory not yet received.
+#			# This only affects the display however, not the control
+#			control_instance.eraseData()
+#			eraseMemory.value = 0
 		time.sleep(0.02)
 	print("Done with mode 1")
 
@@ -134,6 +138,7 @@ def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock
 		control_instance.storeData()
 		
 		if (i == 15):
+			
 			graphCommunication = Process(target=sendData, args=(control_instance, graphPipe, graphPipeReceiver, graphPipeSize, graphLock, eraseMemory))
 			graphCommunication.start()
 			i = 0
@@ -181,6 +186,7 @@ class controller:
 		self.reference_list_gantry = []    
 		self.measurement_list_ring = []
 		self.reference_list_ring = []
+		self.dataBuffer = [self.time_list, self-measurement_list_gantry, self.reference_list_gantry, self.measurement_list_ring, self.reference_list_ring]
 
 		self.encoder_instance = SPOKe_IO.Encoder_input()
 		self.encoder_instance.reset_counter(1)
@@ -327,6 +333,16 @@ class controller:
 	def stop(self):
 		self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0)
 		self.motor_control.setMotorSpeed(RING_ROBOT, 0)
+
+	def bufferData(self):
+		self.dataBuffer[0].extend(self.time_list)
+		self.dataBuffer[1].extend(self-measurement_list_gantry)
+		self.dataBuffer[2].extend(self.reference_list_gantry)
+		self.dataBuffer[3].extend(self.measurement_list_ring)
+		self.dataBuffer[4].extend(self.reference_list_ring)
+
+	def eraseBufferData(self):
+		self.dataBuffer = [[], [], [], [], []]
 
 	def storeData(self):
 		self.time_list.append((round(time.time(),2) - self.run_start_time))

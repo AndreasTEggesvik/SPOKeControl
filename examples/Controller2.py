@@ -72,25 +72,26 @@ def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock
 		elif (b == "STOP"):
 			print("Controller is being asked to stop. Has not yet started")
 			control_instance.stop()
-		elif (b = "START"):
+		elif (b == "START"):
 			print("Controller can not start, has not been initiated")
+	time.sleep(7)
 	buttonPipe.send("Init finished")
 	newButtonData.value += 1
-
-	time.sleep(7) # To get effect of things going on, testing button update
+	 # To get effect of things going on, testing button update
+	
 	# Start
 	while(True):
 		b = buttonPipe.recv()
-		if (b = "START"):
+		if (b == "START"):
 			print("Starting controller")
 			break
-		elif (b = "STOP"):
+		elif (b == "STOP"):
 			control_instance.stop()
 			print("Stopping, has not yet finished initializing")
 
 	buttonPipe.send("Starting")
 	newButtonData.value += 1
-
+	control_instance.run_start_time = round(time.time(),2)
 	# State 1:
 	[t0, tf, state, theta4_next] = [0, 20, 1, 0]
 	control_instance.initNewState(t0, tf, state, theta4_next) # (t0, tf, state, theta4_next)
@@ -104,6 +105,9 @@ def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock
 		control_instance.updatePosition()
 		control_instance.updatePID(state)
 		control_instance.storeData()
+		
+#		if (graphPipeSize.value == 0):
+#			control_instance.eraseData()
 
 		if (i == 15):
 			graphCommunication = Process(target=sendData, args=(control_instance, graphPipe, graphPipeReceiver, graphPipeSize, graphLock, eraseMemory))

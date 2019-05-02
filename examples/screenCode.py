@@ -35,24 +35,25 @@ ring_ref_list = []
 plt.plot(time_list, measurement_list, 'r')
 graph = FigureCanvasKivyAgg(plt.gcf())
 
-def press_callback(obj, buttonPipeParent, stopButtonPressed, newButtonData):
+def press_callback(buttonPipeParent, stopButtonPressed, newButtonData, obj):
 	print("Button pressed,", obj.text)
 	if obj.text == 'BEEP!':
 		# turn on the beeper:
 		# schedule it to turn off:
 		Clock.schedule_once(buzzer_off, .1)
-	elif obj.text == 'INIT':
-		buttonPipeParent.send("INIT")
-	elif obj.text == 'START':
-		buttonPipeParent.send("START")
-		print("Start button pressed")
+	#elif obj.text == 'INIT':
+	#	buttonPipeParent.send("INIT")
+	#elif obj.text == 'START':
+	#	buttonPipeParent.send("START")
+	#	print("Start button pressed")
 	elif obj.text == 'STOP':
 		buttonPipeParent.send("STOP")
 		stopButtonPressed.value = 1
 		print("Stop button pressed")
 
 class StartButton(Button):
-	def buttonPressed(self, buttonPipeParent):
+	def buttonPressed(self, buttonPipeParent, obj):
+		print(type(self), " | ", type(obj)," | ", type(buttonPipeParent))
 		if self.text == 'INIT':
 			buttonPipeParent.send("INIT")
 		elif self.text == 'START':
@@ -88,9 +89,9 @@ def UpdateGraph(graphPipeParent, graphPipeSize, graphLock, dt):
 	global time_list, measurement_list, gantry_ref_list, gantry_ref_list, ring_val_list, ring_ref_list
 
 	graphLock.acquire()
-	elif (graphPipeSize.value > 1):
+	if (graphPipeSize.value > 1):
 		# If message was not read, clear the old messages in pipe
-		while(graphPipeSize.value > 0):
+		while(graphPipeSize.value > 1):
 			graphPipeParent.recv()
 			graphPipeSize.value = graphPipeSize.value - 1
 
@@ -157,7 +158,7 @@ class MyApp(App):
 		stopButton = Button(text = "STOP")
 		stopButton.background_normal = ''
 		stopButton.background_color = [0.7, 0, 0, 1]
-		stopButton.bind(on_press=press_callback)
+		stopButton.bind(on_press=(partial(press_callback, buttonPipeParent, stopButtonPressed, newButtonData)))
 
 		wimg = Image(source='Prototype1.png')
 

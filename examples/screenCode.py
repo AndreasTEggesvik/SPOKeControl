@@ -35,20 +35,39 @@ ring_ref_list = []
 plt.plot(time_list, measurement_list, 'r')
 graph = FigureCanvasKivyAgg(plt.gcf())
 
-def press_callback(obj):
+def press_callback(obj, buttonPipeParent, stopButtonPressed, newButtonData):
 	print("Button pressed,", obj.text)
 	if obj.text == 'BEEP!':
 		# turn on the beeper:
-		
 		# schedule it to turn off:
 		Clock.schedule_once(buzzer_off, .1)
-
 	elif obj.text == 'INIT':
-		obj.text = 'START'
+		buttonPipeParent.send("INIT")
 	elif obj.text == 'START':
+		buttonPipeParent.send("START")
 		print("Start button pressed")
 	elif obj.text == 'STOP':
+		buttonPipeParent.send("STOP")
+		stopButtonPressed.value = 1
 		print("Stop button pressed")
+
+class StartButton(Button):
+	def buttonPressed(self, buttonPipeParent):
+		if self.text == 'INIT':
+			buttonPipeParent.send("INIT")
+		elif self.text == 'START':
+			buttonPipeParent.send("START")
+			print("Start button pressed")
+	def updateStartButton(self, buttonPipeParent, newButtonData, dt):
+		if (newButtonData.value):
+			b = buttonPipeParent.recv()
+			if (b == "Init finished"):
+				self.text = "START"
+				newButtonData.value -= 1
+			elif (b == "Starting"):
+				self.background_color = [0, 0.3, 0, 1]
+				newButtonData.value -= 1
+
 
 def buzzer_off(dt):
 	print("After button-press")
@@ -66,17 +85,24 @@ class StateLabel(Label):
 		self.text = textInput
 
 def UpdateGraph(graphPipeParent, graphPipeSize, graphLock, dt):
-	global time_list
-	global measurement_list
+	global time_list, measurement_list, gantry_ref_list, gantry_ref_list, ring_val_list, ring_ref_list
 
 	graphLock.acquire()
-	if (graphPipeSize.value > 0):
-		# [timeD, measurementD] = graphPipeParent.recv() 					# Compatible with Multi_process_one.py
+	elif (graphPipeSize.value > 1):
+		# If message was not read, clear the old messages in pipe
+		while(graphPipeSize.value > 0):
+			graphPipeParent.recv()
+			graphPipeSize.value = graphPipeSize.value - 1
 
+	if (graphPipeSize.value == 1):
+		# [timeD, measurementD] = graphPipeParent.recv() 					# Compatible with Multi_process_one.py
 		[timeD, gantryM, gantryR, ringM, ringR] = graphPipeParent.recv() 	# Compatible with Controller2.py
+
 		print("The graph pipe is being read")
 		print("Size of time list: ", len(timeD))
+
 		graphPipeSize.value = graphPipeSize.value - 1 # Indicating that the data is read, pipe is cleared
+
 		time_list.extend(timeD)
 		#measurement_list.extend(measurementD) 								# Compatible with Multi_process_one.py
 		gantry_val_list.extend(gantryM)										# Compatible with Controller2.py
@@ -115,14 +141,18 @@ class MyApp(App):
 
 		stateLabel = StateLabel(text = 'Digital input 3 \nDigital input 4')
 		Clock.schedule_interval(stateLabel.update, 1.0/10.0)
-		global time_list, measurement_list
+		#global time_list, measurement_list
 		#Clock.schedule_interval(partial(UpdateGraph, time_list, measurement_list), 0.2)
 		Clock.schedule_interval(partial(UpdateGraph, graphPipeParent, graphPipeSize, graphLock), 0.6)
 
-		startButton = Button(text = "INIT")
+		#startButton = Button(text = "INIT")
+		startButton = StartButton(text = "INIT")
 		startButton.background_normal = ''
 		startButton.background_color = [0, 0.7, 0, 1]
-		startButton.bind(on_press=press_callback)
+		#startButton.bind(on_press=press_callback)
+		startButton.bind(on_press=(partial(startButton.buttonPressed, buttonPipeParent)))
+		Clock.schedule_interval(partial(startButton.updateStartButton, buttonPipeParent, newButtonData), 0.6)
+
 		
 		stopButton = Button(text = "STOP")
 		stopButton.background_normal = ''

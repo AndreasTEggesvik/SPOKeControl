@@ -18,14 +18,6 @@ RING_ROBOT = 2
 
 
 
-
-# For plots
-#time_list = []
-#measurement_list_gantry = []  
-#reference_list_gantry = []    
-#measurement_list_ring = []
-#reference_list_ring = []
-
 def PID_to_control_input(pid_output):
 	if pid_output >= 0:
 		direction = 1
@@ -53,11 +45,11 @@ def sendData(data_storage, graphPipe, graphPipeReceiver, graphPipeSize, graphLoc
 	if (graphPipeSize.value == 0):
 		# Only erase buffered data if the last message is read
 		eraseMemory.value = 1
-	elif (graphPipeSize.value > 0):
+	#elif (graphPipeSize.value > 0):
 		# If message was not read, clear the pipe
-		while(graphPipeSize.value > 0):
-			graphPipeReceiver.recv()
-			graphPipeSize.value = graphPipeSize.value - 1
+	#	while(graphPipeSize.value > 0):
+	#		graphPipeReceiver.recv()
+	#		graphPipeSize.value = graphPipeSize.value - 1
 
 	print("really, the size is ", len(data_storage.time_list))
 	graphPipe.send([data_storage.time_list, data_storage.measurement_list_gantry, data_storage.reference_list_gantry, 
@@ -71,6 +63,34 @@ def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock
 	run_start_time = round(time.time(),2)
 	control_instance = controller(run_start_time)
 
+	# Initiation
+	while(True):
+		b = buttonPipe.recv()
+		if (b == "INIT"):
+			print("Initializing robot")
+			break
+		elif (b == "STOP"):
+			print("Controller is being asked to stop. Has not yet started")
+			control_instance.stop()
+		elif (b = "START"):
+			print("Controller can not start, has not been initiated")
+	buttonPipe.send("Init finished")
+	newButtonData.value += 1
+
+	time.sleep(7) # To get effect of things going on, testing button update
+	# Start
+	while(True):
+		b = buttonPipe.recv()
+		if (b = "START"):
+			print("Starting controller")
+			break
+		elif (b = "STOP"):
+			control_instance.stop()
+			print("Stopping, has not yet finished initializing")
+
+	buttonPipe.send("Starting")
+	newButtonData.value += 1
+
 	# State 1:
 	[t0, tf, state, theta4_next] = [0, 20, 1, 0]
 	control_instance.initNewState(t0, tf, state, theta4_next) # (t0, tf, state, theta4_next)
@@ -82,9 +102,8 @@ def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock
     	# While the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
 		control_instance.updateTrajectory(state)
 		control_instance.updatePosition()
-		control_instance.updatePID()
+		control_instance.updatePID(state)
 		control_instance.storeData()
-		
 
 		if (i == 15):
 			graphCommunication = Process(target=sendData, args=(control_instance, graphPipe, graphPipeReceiver, graphPipeSize, graphLock, eraseMemory))
@@ -98,7 +117,6 @@ def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock
 			control_instance.eraseData()
 			eraseMemory.value = 0
 		time.sleep(0.02)
-		
 	print("Done with mode 1")
 
 	# State 2:
@@ -108,7 +126,7 @@ def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock
     	# While the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
 		control_instance.updateTrajectory(state)
 		control_instance.updatePosition()
-		control_instance.updatePID() 
+		control_instance.updatePID(state) 
 		control_instance.storeData()
 		
 		if (i == 15):
@@ -123,6 +141,29 @@ def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock
 
 		time.sleep(0.02)
 	print("Done with mode 2")
+
+	# State 3: 
+	control_instance.motor_control.closeGrip()
+	[t0, tf, state, theta4_next] = [0, 0, 3, "don't care"]
+	control_instance.initNewState(t0, tf, state, theta4_next)
+	while (False):
+		control_instance.updateTrajectory(state)
+		control_instance.updatePosition()
+		control_instance.updatePID(state)
+		control_instance.storeData()
+	
+		if (i == 15):
+			graphCommunication = Process(target=sendData, args=(control_instance, graphPipe, graphPipeReceiver, graphPipeSize, graphLock, eraseMemory))
+			graphCommunication.start()
+			i = 0
+		i += 1
+
+		if eraseMemory.value:
+			control_instance.eraseData()
+			eraseMemory.value = 0
+
+		time.sleep(0.02)
+	print("Done with mode 3")
 	#print("r2: ", round(r2, 4), " | co: ", pid_gantry.output, " | ", direction, " | ", round(PWM_signal_strength_gantry, 4), " | reference: ", pid_gantry.SetPoint)
 	
 	graphCommunication.terminate()
@@ -185,6 +226,9 @@ class controller:
 		elif(state == 2 or state ==5):
 			[P_g, I_g, D_g] = [10, 1, 0.2]
 			[P_r, I_r, D_r] = [10, 1, 0.2]	
+		if (state == 3 or state == 6):
+			[P_g, I_g, D_g] = [0, 0, 0]
+			[P_r, I_r, D_r] = [10, 1, 0.2]
 
 		self.pid_gantry = PID.PID(P_g, I_g, D_g)
 		self.pid_gantry.setSampleTime(0.1)
@@ -205,15 +249,15 @@ class controller:
 			elif (state == 4):
 				self.r2_ref = self.r2_min
 			[self.A0_gantry, self.A1_gantry, self.A2_gantry, self.tb_gantry] = tp.LSPB(0.1, [self.r2, 0, self.r2_max, 0], [self.t0, self.tf])
-			#[self.A0_gantry, self.A1_gantry, self.A2_gantry, self.tb_gantry] = tp.LSPB(0.1, [0, 0, self.r2_max, 0], [self.t0, self.tf])
-		elif (state ==2 or state == 5):
+		elif (state == 2 or state == 5):
 			self.theta4_ref = next_theta4(self.theta4)
 			[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(0.02, [self.theta4, 0, theta4_next, 0], [t0, tf])
-			#[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(0.02, [0, 0, theta4_next, 0], [t0, tf])
-			if (state ==2):
+			if (state == 2):
 				self.r2_ref = self.r2_max
-			elif (state ==5):
+			elif (state == 5):
 				self.r2_ref = self.r2_min
+		#elif (state == 3 or state == 6):
+			# don't care about this
 
 	def updateTrajectory(self, state):
 		self.op_time = (round(time.time(),2) - self.tstart)
@@ -228,33 +272,57 @@ class controller:
 			self.r2_ref = self.r2_ref # constant
 			self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring, self.tf, self.op_time)
 			return True
+		elif (state ==3 or state == 6):
+			self.r2_ref = self.r2
+			return True
 		return False
 
 	def updatePosition(self):
 		# Possible to make this return True or False?  
-		self.encoder_instance.update_counter(GANTRY_ROBOT)
 		self.r2 = Geometry.rad2r2(self.encoder_instance.read_counter_rad(GANTRY_ROBOT))
-		self.encoder_instance.update_counter(RING_ROBOT)
 		self.theta4 = Geometry.rad2theta4(self.encoder_instance.read_counter_rad(RING_ROBOT))
 
-	def updatePID(self):
+	def updatePID(self, state):
     	# Necessary to make this return True or False?
-		self.pid_gantry.SetPoint = self.r2_ref
-		self.pid_gantry.update(self.r2)
-		self.r2_e = self.r2_ref - self.r2
-		self.pid_ring.SetPoint = self.theta4_ref 
-		self.pid_ring.update(self.theta4)
-		self.theta4_e = self.theta4_ref - self.theta4
+		if (state == 3 or state == 6):
+			self.r2_e = 0
+			self.pid_ring.SetPoint = self.theta4_ref 
+			self.pid_ring.update(self.theta4)
+			self.theta4_e = self.theta4_ref - self.theta4
+			return True
+		elif (state == 1 or state == 2 or state == 4 or state == 5):
+			self.pid_gantry.SetPoint = self.r2_ref
+			self.pid_gantry.update(self.r2)
+			self.r2_e = self.r2_ref - self.r2
+			self.pid_ring.SetPoint = self.theta4_ref 
+			self.pid_ring.update(self.theta4)
+			self.theta4_e = self.theta4_ref - self.theta4
+			return True
+		return False
 
-	def setOutput(self):
+	def setOutput(self, state):
 		# Possible to make this return True or False?
 		[direction_gantry, PWM_signal_strength_gantry] = PID_to_control_input(self.pid_gantry.output)
 		self.motor_control.setMotorDirection(GANTRY_ROBOT, direction_gantry)
 		self.motor_control.setMotorSpeed(GANTRY_ROBOT, PWM_signal_strength_gantry)
 
+		if (state == 3):
+			self.motor_control.setMotorDirection(RING_ROBOT, -1)
+			self.motor_control.setMotorSpeed(RING_ROBOT, 0.4)
+			return True
+		elif (state == 6):
+			self.motor_control.setMotorDirection(RING_ROBOT, 1)
+			self.motor_control.setMotorSpeed(RING_ROBOT, 0.4)
+			return True
+		
 		[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(self.pid_ring.output)
 		self.motor_control.setMotorDirection(RING_ROBOT, direction_ring)
 		self.motor_control.setMotorSpeed(RING_ROBOT, PWM_signal_strength_ring)
+
+	# MUST BE TESTED BEFORE FIRST RUN: is PWM == 0 full throttle or full stop? 
+	def stop(self):
+		self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0)
+		self.motor_control.setMotorSpeed(RING_ROBOT, 0)
 
 	def storeData(self):
 		self.time_list.append((round(time.time(),2) - self.run_start_time))
@@ -262,41 +330,13 @@ class controller:
 		self.reference_list_gantry.append(self.pid_gantry.SetPoint)
 		self.measurement_list_ring.append(self.theta4)
 		self.reference_list_ring.append(self.pid_ring.SetPoint)
-		#print("Data stored, total size: ", len(self.time_list))
+
 	def eraseData(self):
 		self.time_list = []
 		self.measurement_list_gantry = []
 		self.reference_list_gantry = []
 		self.measurement_list_ring = []
 		self.reference_list_ring = []
-
-	def sendData(self, graphPipe, graphPipeReceiver, graphPipeSize, graphLock):
-		while(1):
-			graphLock.acquire()
-			print("Sending data of size: ", len(self.time_list))
-			if (graphPipeSize.value == 0):
-				# Only erase buffered data if the last message is read
-				self.time_list = []
-				self.measurement_list_gantry = []
-				self.reference_list_gantry = []
-				self.measurement_list_ring = []
-				self.reference_list_ring = []
-
-			elif (graphPipeSize.value > 0):
-				# If message was not read, clear the pipe
-				while(graphPipeSize.value > 0):
-					graphPipeReceiver.recv()
-					graphPipeSize.value = graphPipeSize.value - 1
-			#dataBuffer[0].extend(time_list)
-			#dataBuffer[1].extend(measurement_list)
-			print("really, the size is ", len(self.time_list))
-			graphPipe.send([self.time_list, self.measurement_list_gantry, self.reference_list_gantry, 
-				self.measurement_list_ring, self.reference_list_ring])
-			graphPipeSize.value = graphPipeSize.value + 1
-			graphLock.release()
-			time.sleep(0.5)
-
-
 
 
 test = 0

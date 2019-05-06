@@ -67,7 +67,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			tf = 10
 		elif (state == 3 or state == 6):
 			tf = -1
-		if ( not getNextTheta4d() ):
+		if ( not control_instance.getNextTheta4d(state) ):
 			# In case next desired angle is outside working area
 			break
 		control_instance.initNewState(t0, tf, state, "Don't care")
@@ -142,7 +142,8 @@ def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock
 	print("Done with mode 1")
 
 	# State 2:
-	[t0, tf, state, theta4_next] = [0, 10, 2, 10 * 3.14/180] # 10 deg increase
+	[t0, tf, state, theta4_next] = [0, 7, 2, 10 * 3.14/180] # 10 deg increase
+	control_instance.getNextTheta4d(state)
 	control_instance.initNewState(t0, tf, state, theta4_next) #Does the PID reset? 
 	while (not control_instance.timeout):# and control_instance.theta4_e < 0.017 and control_instance.r2_e < 0.02): # Only check time when testing
     	# While the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
@@ -226,7 +227,7 @@ class controller:
 
 		# Position parameters
 		#self.theta4
-		self.theta4d = dimensions.theta4Max
+		self.theta4d = self.dimensions.theta4Min
 		#self.theta4_ref
 		#self.theta4_e
 		#self.r2

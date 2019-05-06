@@ -65,7 +65,7 @@ class Dimensions:
 		self.r2Min = 0
 		#self.r2Max = self.r3*math.cos(self.phi1)*math.sqrt(self.r3**2*math.cos(self.phi1)**2 - r3**2 + r4**2)
 		self.r2Max = 1.5
-		self.theta4Min = 0
+		self.theta4Min = 0.000001
 		self.theta4Max = math.pi/2
 
 		self.l1 = 0.156

@@ -51,6 +51,7 @@ class StartButton(Button):
 		print(type(self), " | ", type(obj)," | ", type(buttonPipeParent))
 		if self.text == 'INIT':
 			buttonPipeParent.send("INIT")
+			self.background_color = [0, 0.3, 0, 1]
 		elif self.text == 'START':
 			buttonPipeParent.send("START")
 
@@ -59,6 +60,7 @@ class StartButton(Button):
 			b = buttonPipeParent.recv()
 			if (b == "Init finished"):
 				self.text = "START"
+				self.background_color = [0, 0.7, 0, 1]
 				newButtonData.value -= 1
 			elif (b == "Starting"):
 				self.background_color = [0, 0.3, 0, 1]

@@ -60,7 +60,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 
 	state = 1
 	print("Starting with state ", state)
-	while(1):
+	while(stopButtonPressed.value == 0):
 		t0 = 0
 		if (state == 1 or state == 4):
 			tf = 20
@@ -100,6 +100,8 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			state += 1
 		else: 
 			state = 1
+	print("Stop button has been pressed, the system stops.")
+	control_instance.stop()
 
 	
 
@@ -300,6 +302,7 @@ class controller:
 			self.pid_ring.SetPoint = self.theta4_ref 
 			self.pid_ring.update(self.theta4)
 			self.theta4_e = self.theta4_ref - self.theta4
+			self.pid.gantry.update(self.r2)
 			return True
 		elif (state == 1 or state == 2 or state == 4 or state == 5):
 			self.pid_gantry.SetPoint = self.r2_ref

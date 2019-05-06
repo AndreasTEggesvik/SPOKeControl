@@ -13,10 +13,10 @@ a = tp.calculateTrajectory([0, 0, 2, 0], [0, 15])
 
 # V, constraints, t
 # [q(t0), d(q(t0)), q(tf), d(q(tf))], t = [t0, tf]
-if not tp.LSPB(0.2, [0, 0, 2, 0], [0, 15]):
-	print("This is invalid: (0.2, [0, 0, 2, 0], [0, 15])")
+if not tp.LSPB(-0.2, [2, 0, 0, 0], [0, 15]):
+	print("This is invalid: (-0.2, [2, 0, 0, 0], [0, 15])")
 	
-[A0, A1, A2, tb] = tp.LSPB(0.2, [0, 0, 2, 0], [0, 15])
+[A0, A1, A2, tb] = tp.LSPB(-0.2, [2, 0, 0, 0], [0, 15])
 print("tb = ", tb)
 print("A2 = ", A2)
 tf = 15
@@ -34,7 +34,7 @@ time_list = []
 data_list = []
 data_list2 = []
 
-if (0 <= time_aug < tf):
+if (0 <= time_aug < tf+1):
 	while (True):
 		data_list.append(tp.getLSPB_position(A0, A1, A2, tb, tf, time_aug))
 		time_list.append(time_aug)
@@ -42,7 +42,7 @@ if (0 <= time_aug < tf):
 		print(time_aug, ": ", data_list[-1])
 		time.sleep(0.1)
 		time_aug = (round(time.time(),2) - tstart)
-		if (time_aug > tf):
+		if (time_aug > tf + 1):
 			break
 else:
 	print("False, time_aug =", time_aug)

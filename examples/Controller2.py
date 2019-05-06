@@ -39,7 +39,63 @@ def sendData(data_storage, graphPipe,graphPipeSize, graphLock):
 	graphPipe.send(data_storage.dataBuffer)
 	graphPipeSize.value = graphPipeSize.value + 1
 	graphLock.release()
-	
+
+def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, stopButtonPressed, newButtonData):
+	# Initializing the robot, guaranteeing a safe starting position
+	run_start_time = round(time.time(),2)
+	control_instance = controller(run_start_time)
+	control_instance.waitForInitSignal(buttonPipe)
+	if (control_instance.initialize(stopButtonPressed) == False):
+		while (True):
+			time.sleep(0.5)
+	buttonPipe.send("Init finished")
+	newButtonData.value += 1
+
+
+	# Start the normal procedure
+	control_instance.waitForStartSignal(buttonPipe)
+	buttonPipe.send("Starting")
+	newButtonData.value += 1
+	control_instance.run_start_time = round(time.time(),2)
+
+	state = 1
+	while(1):
+		t0 = 0
+		if (state == 1 or state == 4):
+			tf = 20
+		elif (state == 2 or state == 5):
+			tf = 10
+		elif (state == 3 or state == 6):
+			tf = -1
+		if ( not getNextTheta4d() ):
+			# In case next desired angle is outside working area
+			break
+		control_instance.initNewState(t0, tf, state, "Don't care")
+		i = 0 # For communication
+		while (not control_instance.timeout): # and control_instance.theta4_e < 0.017 and control_instance.r2_e < 0.02): # Only check time when testing
+			# While the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
+			control_instance.updateTrajectory(state)
+			control_instance.updatePosition()
+			control_instance.updatePID(state)
+			control_instance.storeData()
+
+			if (i == 15):
+				if (graphPipeSize.value == 0):
+					control_instance.eraseBufferData()
+				control_instance.bufferData()
+				control_instance.eraseData()
+				graphCommunication = Process(target=sendData, args=(control_instance, graphPipe, graphPipeSize, graphLock))
+				graphCommunication.start()
+				i = 0
+			i += 1
+
+			time.sleep(0.02)
+		print("Done with state ",  state)
+		if (state < 6):
+			state += 1
+		else: 
+			state = 1
+
 def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, stopButtonPressed, newButtonData):
     
 	# Initializing the robot, guaranteeing a safe starting position
@@ -150,6 +206,7 @@ class controller:
 		self.motor_control = SPOKe_IO.Motor_output()
 		self.ls_instance = SPOKe_IO.LimitSwitch()			
 
+		self.dimensions = Geometry.Dimensions()
 		#self.tstart
 		#self.op_time
 		#self.tf
@@ -169,11 +226,12 @@ class controller:
 
 		# Position parameters
 		#self.theta4
+		#self.theta4d
 		#self.theta4_ref
 		#self.theta4_e
 		#self.r2
-		self.r2_max = 1.5# Geometry.r2_max
-		self.r2_min = 0# Geometry.r2_min
+		self.r2_max = dimensions.r2Max
+		self.r2_min = dimensions.r2Min
 		#self.r2_ref
 		#self.r2_e
 
@@ -245,15 +303,15 @@ class controller:
 
 		# Pass på å ha kode som senere kan kontrollere to vinkler samtidig. 
 		if (state == 1 or state == 4):
-			self.theta4_ref = current_theta4(self.theta4) # constant
+			self.theta4_ref = self.theta4d #Constant
 			if (state == 1):
 				self.r2_ref = self.r2_max
 			elif (state == 4):
 				self.r2_ref = self.r2_min
 			[self.A0_gantry, self.A1_gantry, self.A2_gantry, self.tb_gantry] = tp.LSPB(0.1, [self.r2, 0, self.r2_max, 0], [self.t0, self.tf])
 		elif (state == 2 or state == 5):
-			self.theta4_ref = next_theta4(self.theta4)
-			[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(0.02, [self.theta4, 0, theta4_next, 0], [t0, tf])
+			self.theta4_ref = self.theta4d
+			[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(0.02, [self.theta4, 0, self.theta4d, 0], [t0, tf])
 			if (state == 2):
 				self.r2_ref = self.r2_max
 			elif (state == 5):
@@ -283,6 +341,18 @@ class controller:
 				self.stop()
 				print("Stopping, has not yet finished initializing")
 			print("Should we sleep now? ")
+
+	def getNextTheta4d(self, state):
+		if (state == 2):
+			self.theta4d = self.theta4d + dimensions.alpha1
+			return self.theta4d
+		elif (state == 5):
+			self.theta4d = self.theta4d + dimensions.alpha2
+			return self.theta4d
+		elif (state == 1 or state == 3 or state == 4 or state == 6):
+			return self.theta4d
+		else: 
+			return False
 
 	def updateTrajectory(self, state):
 		self.op_time = (round(time.time(),2) - self.tstart)

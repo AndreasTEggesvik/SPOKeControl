@@ -50,7 +50,28 @@ def cartesian2polar(cartesianInput):
 def polar2cartesian(polarInput):
 	[r, theta] = polarInput
 	return [r*math.cos(theta), r*math.sin(theta)]
-	
+
+class Dimensions:
+	def __init__(self):
+		# Dimensions given in metres and radians
+		self.r3 = 0.519 
+		self.r4 = 2.01
+		self.l_total = 1,620
+		self.l_rail = 1,711
+
+		self.phi4 = math.acos((self.r3**2 + self.r4**2 - self.l_total**2) / (2*self.r3*self.r4))
+		self.phi1 = math.pi - self.phi4
+
+		self.r2Min = 0
+		self.r2Max = self.r3*math.cos(self.phi1)*math.sqrt(self.r3**2*math.cos(self.phi1)**2 - r3**2 + r4**2)
+		self.theta4Min = 0
+		self.theta4Max = math.pi/2
+
+		self.l1 = 0.156
+		self.l2 = 0.059
+		self.alpha1 = self.l1/self.r4
+		self.alpha2 = self.l2/self.r4
+
 	
 ##########################################
 

@@ -226,12 +226,12 @@ class controller:
 
 		# Position parameters
 		#self.theta4
-		#self.theta4d
+		self.theta4d = dimensions.theta4Max
 		#self.theta4_ref
 		#self.theta4_e
 		#self.r2
-		self.r2_max = dimensions.r2Max
-		self.r2_min = dimensions.r2Min
+		self.r2_max = self.dimensions.r2Max
+		self.r2_min = self.dimensions.r2Min
 		#self.r2_ref
 		#self.r2_e
 
@@ -344,10 +344,10 @@ class controller:
 
 	def getNextTheta4d(self, state):
 		if (state == 2):
-			self.theta4d = self.theta4d + dimensions.alpha1
+			self.theta4d = self.theta4d + self.dimensions.alpha1
 			return self.theta4d
 		elif (state == 5):
-			self.theta4d = self.theta4d + dimensions.alpha2
+			self.theta4d = self.theta4d + self.dimensions.alpha2
 			return self.theta4d
 		elif (state == 1 or state == 3 or state == 4 or state == 6):
 			return self.theta4d

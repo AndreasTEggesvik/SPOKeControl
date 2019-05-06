@@ -74,10 +74,8 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			print("getNextTheta4d received True")
 			# In case next desired angle is outside working area
 			break
-		print("Init new state")
 		control_instance.initNewState(t0, tf, state, "Don't care")
-		i = 0 # For communication
-		print("Going in to while loop")
+		i = 0 
 		while (not control_instance.timeout): # and control_instance.theta4_e < 0.017 and control_instance.r2_e < 0.02): # Only check time when testing
 			# While the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
 			control_instance.updateTrajectory(state)
@@ -102,100 +100,6 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 		else: 
 			state = 1
 
-def main_test(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, stopButtonPressed, newButtonData):
-    
-	# Initializing the robot, guaranteeing a safe starting position
-	run_start_time = round(time.time(),2)
-	control_instance = controller(run_start_time)
-	control_instance.waitForInitSignal(buttonPipe)
-	if (control_instance.initialize(stopButtonPressed) == False):
-		while (True):
-			time.sleep(0.5)
-	buttonPipe.send("Init finished")
-	newButtonData.value += 1
-
-
-	# Start the normal procedure
-	control_instance.waitForStartSignal(buttonPipe)
-	buttonPipe.send("Starting")
-	newButtonData.value += 1
-	control_instance.run_start_time = round(time.time(),2)
-
-
-	# State 1:
-	[t0, tf, state, theta4_next] = [0, 20, 1, 0]
-	control_instance.initNewState(t0, tf, state, theta4_next) # (t0, tf, state, theta4_next)
-
-	i = 0
-	while (not control_instance.timeout): # and control_instance.theta4_e < 0.017 and control_instance.r2_e < 0.02): # Only check time when testing
-    	# While the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
-		control_instance.updateTrajectory(state)
-		control_instance.updatePosition()
-		control_instance.updatePID(state)
-		control_instance.storeData()
-
-		if (i == 15):
-			if (graphPipeSize.value == 0):
-				control_instance.eraseBufferData()
-			control_instance.bufferData()
-			control_instance.eraseData()
-			graphCommunication = Process(target=sendData, args=(control_instance, graphPipe, graphPipeSize, graphLock))
-			graphCommunication.start()
-			i = 0
-		i += 1
-
-		time.sleep(0.02)
-	print("Done with mode 1")
-
-	# State 2:
-	[t0, tf, state, theta4_next] = [0, 7, 2, 10 * 3.14/180] # 10 deg increase
-	control_instance.getNextTheta4d(state)
-	control_instance.initNewState(t0, tf, state, theta4_next) #Does the PID reset? 
-	while (not control_instance.timeout):# and control_instance.theta4_e < 0.017 and control_instance.r2_e < 0.02): # Only check time when testing
-    	# While the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
-		control_instance.updateTrajectory(state)
-		control_instance.updatePosition()
-		control_instance.updatePID(state) 
-		control_instance.storeData()
-		
-		if (i == 15):
-			if (graphPipeSize.value == 0):
-				control_instance.eraseBufferData()
-			control_instance.bufferData()
-			control_instance.eraseData()
-			graphCommunication = Process(target=sendData, args=(control_instance, graphPipe, graphPipeSize, graphLock))
-			graphCommunication.start()
-			i = 0
-		i += 1
-
-		time.sleep(0.02)
-	print("Done with mode 2")
-
-	# State 3: 
-	control_instance.motor_control.closeGrip()
-	[t0, tf, state, theta4_next] = [0, 0, 3, "don't care"]
-	control_instance.initNewState(t0, tf, state, theta4_next)
-	while (False):
-		control_instance.updateTrajectory(state)
-		control_instance.updatePosition()
-		control_instance.updatePID(state)
-		control_instance.storeData()
-	
-		if (i == 15):
-			if (graphPipeSize.value == 0):
-				control_instance.eraseBufferData()
-			control_instance.bufferData()
-			control_instance.eraseData()
-			graphCommunication = Process(target=sendData, args=(control_instance, graphPipe, graphPipeSize, graphLock))
-			graphCommunication.start()
-			i = 0
-		i += 1
-
-		time.sleep(0.02)
-	control_instance.motor_control.openGrip()
-
-	print("Done with mode 3")
-	#print("r2: ", round(r2, 4), " | co: ", pid_gantry.output, " | ", direction, " | ", round(PWM_signal_strength_gantry, 4), " | reference: ", pid_gantry.SetPoint)
 	graphCommunication.terminate()
 	
 

@@ -313,10 +313,10 @@ class controller:
 		elif (state == 2 or state == 5):
 			self.theta4_ref = self.theta4d
 			[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(0.02, [self.theta4, 0, self.theta4d, 0], [t0, tf])
-			if (state == 2):
-				self.r2_ref = self.r2_max
-			elif (state == 5):
-				self.r2_ref = self.r2_min
+			#if (state == 2):
+			#	self.r2_ref = self.r2_max # Does not need to be changed
+			#elif (state == 5):
+			#	self.r2_ref = self.r2_min # Does not need to be changed
 		#elif (state == 3 or state == 6):
 			# don't care about this
 	def waitForInitSignal(self, buttonPipe):

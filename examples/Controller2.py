@@ -59,19 +59,25 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 	control_instance.run_start_time = round(time.time(),2)
 
 	state = 1
+	print("Starting with state ", state)
 	while(1):
 		t0 = 0
 		if (state == 1 or state == 4):
 			tf = 20
-		elif (state == 2 or state == 5):
-			tf = 10
+		elif (state == 2):
+			tf = 7
+		elif (state == 5):
+			tf = 2
 		elif (state == 3 or state == 6):
 			tf = -1
 		if ( not control_instance.getNextTheta4d(state) ):
+			print("getNextTheta4d received True")
 			# In case next desired angle is outside working area
 			break
+		print("Init new state")
 		control_instance.initNewState(t0, tf, state, "Don't care")
 		i = 0 # For communication
+		print("Going in to while loop")
 		while (not control_instance.timeout): # and control_instance.theta4_e < 0.017 and control_instance.r2_e < 0.02): # Only check time when testing
 			# While the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
 			control_instance.updateTrajectory(state)
@@ -228,12 +234,12 @@ class controller:
 		# Position parameters
 		#self.theta4
 		self.theta4d = self.dimensions.theta4Min
-		#self.theta4_ref
+		self.theta4_ref = 0
 		#self.theta4_e
 		#self.r2
 		self.r2_max = self.dimensions.r2Max
 		self.r2_min = self.dimensions.r2Min
-		#self.r2_ref
+		self.r2_ref = 0
 		#self.r2_e
 
 		# Storage lists
@@ -297,24 +303,26 @@ class controller:
 		self.pid_ring = PID.PID(P_r, I_r, D_r)
 		self.pid_ring.setSampleTime(0.1)
 		
-		self.theta4 = self.encoder_instance.read_counter_deg(RING_ROBOT)
-		self.r2 = self.encoder_instance.read_counter_deg(GANTRY_ROBOT)
+		#self.theta4 = self.encoder_instance.read_counter_deg(RING_ROBOT)
+		#self.r2 = self.encoder_instance.read_counter_deg(GANTRY_ROBOT)
+		self.theta4 = self.theta4_ref
+		self.r2 = self.r2_ref 
 		print("Theta4 at initiation: ", self.theta4)
 		print("r2 at initiation: ", self.r2)
 
 		
 		# Pass på å ha kode som senere kan kontrollere to vinkler samtidig. 
 		if (state == 1 or state == 4):
-			self.theta4_ref = self.theta4d #Constant
+			#self.theta4_ref = self.theta4d #Constant
 			if (state == 1):
 				self.r2_ref = self.r2_max
+				velocityDir = 1
 			elif (state == 4):
 				self.r2_ref = self.r2_min
-			[self.A0_gantry, self.A1_gantry, self.A2_gantry, self.tb_gantry] = tp.LSPB(0.1, [self.r2, 0, self.r2_max, 0], [self.t0, self.tf])
-
-
+				velocityDir = -1
+			[self.A0_gantry, self.A1_gantry, self.A2_gantry, self.tb_gantry] = tp.LSPB(0.1*velocityDir, [self.r2, 0, self.r2_ref, 0], [self.t0, self.tf])
 		elif (state == 2 or state == 5):
-			self.theta4_ref = self.theta4d
+			#self.theta4_ref = self.theta4d
 			[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(0.02, [self.theta4, 0, self.theta4d, 0], [t0, tf])
 			#if (state == 2):
 			#	self.r2_ref = self.r2_max # Does not need to be changed
@@ -365,14 +373,14 @@ class controller:
 			return True
 		if (state == 1 or state == 4):
 			self.r2_ref = tp.getLSPB_position(self.A0_gantry, self.A1_gantry, self.A2_gantry, self.tb_gantry, self.tf, self.op_time)
-			self.theta4_ref = self.theta4_ref # constant
+			self.theta4_ref = self.theta4d # constant
 			return True
 		elif (state == 2 or state == 5):
 			self.r2_ref = self.r2_ref # constant
 			self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring, self.tf, self.op_time)
 			return True
 		elif (state ==3 or state == 6):
-			self.r2_ref = self.r2
+			#self.r2_ref = self.r2
 			return True
 		return False
 

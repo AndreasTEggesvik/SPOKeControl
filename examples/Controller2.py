@@ -76,8 +76,9 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			break
 		control_instance.initNewState(t0, tf, state, "Don't care")
 		i = 0 
-		while (not control_instance.timeout): # and control_instance.theta4_e < 0.017 and control_instance.r2_e < 0.02): # Only check time when testing
-			# While the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
+		while ((not control_instance.timeout) and (stopButtonPressed.value == 0) ): # and control_instance.theta4_e > 0.017 and control_instance.r2_e > 0.02): 
+			# Only check time when testing while the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
+
 			control_instance.updateTrajectory(state)
 			control_instance.updatePosition()
 			control_instance.updatePID(state)
@@ -100,7 +101,6 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 		else: 
 			state = 1
 
-	graphCommunication.terminate()
 	
 
 class controller:

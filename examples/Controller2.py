@@ -328,7 +328,7 @@ class controller:
 			self.pid_ring.SetPoint = self.theta4_ref 
 			self.pid_ring.update(self.theta4)
 			self.theta4_e = self.theta4_ref - self.theta4
-			self.pid_gantry.update(self.r2)
+			self.pid_gantry.SetPoint = self.r2_ref
 			return True
 		elif (state == 1 or state == 2 or state == 4 or state == 5):
 			self.pid_gantry.SetPoint = self.r2_ref

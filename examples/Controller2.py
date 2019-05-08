@@ -4,6 +4,7 @@ import PID
 
 import time
 import TrajectoryPlanning as tp
+import collections
 
 import Geometry
 from multiprocessing import Process, Pipe, Value, Lock
@@ -25,6 +26,21 @@ def PID_to_control_input(pid_output):
 def invert_PWM(pwm_in):
 	return abs(pwm_in - 1)
 
+def reactToError(control_instance, stopButtonPressed):
+	if (stopButtonPressed.value == 1):
+		print("Stop button is pressed, going out of loop")
+		control_instance.stop()
+		while(1):
+			print("In error state button pressed")
+			time.sleep(4)
+	elif (control_instance.isStuck()):
+		print("The robot is stuck. Stopping all motion")
+		control_instance.stop()
+		while(1):
+			print("In error, robot stuck detected")
+			time.sleep(4)
+
+
 def next_theta4(theta4):
 	# This function must correspond to controller. Should be in geometry? 
 	return theta4 + 10 * 3.14/180 # 10 deg increase
@@ -32,6 +48,16 @@ def current_theta4(theta4):
     # This function should maybe be in geometry? Or should current and next be stored in memory
 	# and not be functions of current value, but of some 
 	return theta4
+
+def getTf(state):
+	if (state == 1 or state == 4):
+		return 20
+	elif (state == 2):
+		return 7
+	elif (state == 5):
+		return  2
+	elif (state == 3 or state == 6):
+		return -1
 
 def sendData(data_storage, graphPipe,graphPipeSize, graphLock):
 	graphLock.acquire()
@@ -60,23 +86,19 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 
 	state = 1
 	print("Starting with state ", state)
+
 	while(stopButtonPressed.value == 0):
 		t0 = 0
-		if (state == 1 or state == 4):
-			tf = 20
-		elif (state == 2):
-			tf = 7
-		elif (state == 5):
-			tf = 2
-		elif (state == 3 or state == 6):
-			tf = -1
+		tf = getTf(state)
+		
 		if ( not control_instance.getNextTheta4d(state) ):
 			print("getNextTheta4d received True")
 			# In case next desired angle is outside working area
 			break
+
 		control_instance.initNewState(t0, tf, state, "Don't care")
 		i = 0 
-		while ((not control_instance.timeout) and (stopButtonPressed.value == 0) ): # and control_instance.theta4_e > 0.017 and control_instance.r2_e > 0.02): 
+		while ((not control_instance.timeout) and (stopButtonPressed.value == 0) and (not control_instance.isStuck()) and (not control_instance.ls_instance.anyActive())): # and control_instance.theta4_e > 0.017 and control_instance.r2_e > 0.02): 
 			# Only check time when testing while the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
 
 			control_instance.updateTrajectory(state)
@@ -95,6 +117,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			i += 1
 
 			time.sleep(0.02)
+		reactToError(control_instance, stopButtonPressed)
 		print("Done with state ",  state)
 		if (state < 6):
 			state += 1
@@ -103,12 +126,12 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 	print("Stop button has been pressed, the system stops.")
 	control_instance.stop()
 
-	
+
 
 class controller:
 	def __init__(self, time_value):
 		self.run_start_time = time_value
-		self.time_list = []
+		self.time_list = [0]
 		self.measurement_list_gantry = []  
 		self.reference_list_gantry = []    
 		self.measurement_list_ring = []
@@ -121,7 +144,6 @@ class controller:
 
 		self.dimensions = Geometry.Dimensions()
 		#self.tstart
-		#self.op_time
 		#self.tf
 		#self.timeout 
 		#self.pid_gantry
@@ -147,6 +169,11 @@ class controller:
 		self.r2_min = self.dimensions.r2Min
 		self.r2_ref = 0
 		#self.r2_e
+
+		self.timeDiffBuffer = collections.deque(maxlen=5)
+		self.tickDiffBuffer1 = collections.deque(maxlen=5)
+		self.tickDiffBuffer2 = collections.deque(maxlen=5)
+
 
 		# Storage lists
 	def initialize(self, stopButtonPressed):
@@ -188,7 +215,6 @@ class controller:
 	def initNewState(self, t0, tf, state, theta4_next):
 		# Fixing time
 		self.tstart = round(time.time(),2)
-		self.op_time = (round(time.time(),2) - self.tstart)
 		self.tf = tf
 		self.t0 = t0
 		self.timeout = False
@@ -273,17 +299,17 @@ class controller:
 			return False
 
 	def updateTrajectory(self, state):
-		self.op_time = (round(time.time(),2) - self.tstart)
-		if (self.op_time > self.tf - 0.1):
+		operation_time = (round(time.time(),2) - self.tstart)
+		if (operation_time > self.tf - 0.1):
 			self.timeout = True
 			return True
 		if (state == 1 or state == 4):
-			self.r2_ref = tp.getLSPB_position(self.A0_gantry, self.A1_gantry, self.A2_gantry, self.tb_gantry, self.tf, self.op_time)
+			self.r2_ref = tp.getLSPB_position(self.A0_gantry, self.A1_gantry, self.A2_gantry, self.tb_gantry, self.tf, operation_time)
 			self.theta4_ref = self.theta4d # constant
 			return True
 		elif (state == 2 or state == 5):
 			self.r2_ref = self.r2_ref # constant
-			self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring, self.tf, self.op_time)
+			self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring, self.tf, operation_time)
 			return True
 		elif (state ==3 or state == 6):
 			#self.r2_ref = self.r2
@@ -302,7 +328,7 @@ class controller:
 			self.pid_ring.SetPoint = self.theta4_ref 
 			self.pid_ring.update(self.theta4)
 			self.theta4_e = self.theta4_ref - self.theta4
-			self.pid.gantry.update(self.r2)
+			self.pid_gantry.update(self.r2)
 			return True
 		elif (state == 1 or state == 2 or state == 4 or state == 5):
 			self.pid_gantry.SetPoint = self.r2_ref
@@ -337,6 +363,29 @@ class controller:
 	def stop(self):
 		self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0)
 		self.motor_control.setMotorSpeed(RING_ROBOT, 0)
+	
+	# Could buffer PID signal also
+	def isStuck(self):
+		StuckThreshold = 129/0.5 # = 258 [tick/(s*PWM)]
+		# 40 ticks/s at PWM = 0.5 gives a speed of 
+
+		self.timeDiffBuffer.append(self.time_list[-1] - self.time_list[-2])
+		self.tickDiffBuffer1.append(self.encoder_instance.last_tick_diff1)
+		self.tickDiffBuffer1.append(self.encoder_instance.last_tick_diff2)
+
+		if (len(self.timeDiffBuffer) == 5):
+			velocityEstimate1 = sum(self.tickDiffBuffer1) / sum(self.timeDiffBuffer) # [tick/s]
+			GantryPWMSignal = PID_to_control_input(self.pid_gantry.output)[1]
+			if (velocityEstimate1 / GantryPWMSignal < StuckThreshold ): 
+				return True
+
+			velocityEstimate2 = sum(self.tickDiffBuffer2) / sum(self.timeDiffBuffer)
+			RingPWMSignal = PID_to_control_input(self.pid_ring.output)[1]
+			if (velocityEstimate2 / RingPWMSignal < StuckThreshold ): 
+				return True
+
+		return False 
+
 
 	def bufferData(self):
 		self.dataBuffer[0].extend(self.time_list[:])
@@ -365,18 +414,18 @@ class controller:
 
 import matplotlib as plt
 
-test = 0
-if test == 1:
-	main_test()
-	# PLOT: 
-	plt.figure()
-	plt.plot(time_list, measurement_list_gantry, 'b')
-	plt.plot(time_list, reference_list_gantry, 'r')
-	plt.show()
-
-	plt.figure()
-	plt.plot(time_list, measurement_list_ring, 'b')
-	plt.plot(time_list, reference_list_ring, 'r')
-	plt.show()
+#test = 0
+#if test == 1:
+#	main()
+#	# PLOT: 
+#	plt.figure()
+#	plt.plot(time_list, measurement_list_gantry, 'b')
+#	plt.plot(time_list, reference_list_gantry, 'r')
+#	plt.show()
+#
+#	plt.figure()
+#	plt.plot(time_list, measurement_list_ring, 'b')
+#	plt.plot(time_list, reference_list_ring, 'r')
+#	plt.show()
 	
 	

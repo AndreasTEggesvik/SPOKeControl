@@ -27,6 +27,10 @@ def calculateTrajectory(constraints, t):
     a = M_inv.dot(b)
     return a
 
+# mergingValue in range [0-1]
+def getLSPB_velocity(q0, qf, t0, tf, mergingValue):
+    return (1 + mergingValue) * (qf-q0)/(tf-t0)
+
 
 # constraints = [q(t0), d(q(t0)), q(tf), d(q(tf))], t = [t0, tf]
 # (0.2, [0, 0, 2, 0], [0, 5])
@@ -50,6 +54,7 @@ def LSPB(V, constraints, t):
     A2 = np.array([qf - A0[2]*tf**2, 2*A0[2]*tf, -A0[2]])
     #A2 = calculateTrajectory([qf - A0[2]*tf**2, 0, qf, dqf], [tf-tb , tf])
     return [A0, A1, A2, tb]
+
 
 # t is integer
 def getTrajectoryPosition(A, t):

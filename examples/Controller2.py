@@ -39,6 +39,12 @@ def reactToError(control_instance, stopButtonPressed):
 		while(1):
 			print("In error, robot stuck detected")
 			time.sleep(4)
+	elif(control_instance.ls_instance.anyActive()):
+		print("The robot has touched limit switch. Stopping all motion")
+		control_instance.stop()
+		while(1):
+			print("Limit switch active: ", int(control_instance.ls_instance.active(1)), int(control_instance.ls_instance.active(2)), int(control_instance.ls_instance.active(3)), int(control_instance.ls_instance.active(4)))
+			time.sleep(4)
 
 
 def next_theta4(theta4):
@@ -237,13 +243,14 @@ class controller:
 		
 		#self.theta4 = self.encoder_instance.read_counter_deg(RING_ROBOT)
 		#self.r2 = self.encoder_instance.read_counter_deg(GANTRY_ROBOT)
-		self.theta4 = self.theta4_ref
-		self.r2 = self.r2_ref 
+		self.theta4 = self.theta4_ref					# Only for simulation
+		self.r2 = self.r2_ref 							# Only for simulation
 		print("Theta4 at initiation: ", self.theta4)
 		print("r2 at initiation: ", self.r2)
 
 		
 		# Pass på å ha kode som senere kan kontrollere to vinkler samtidig. 
+		
 		if (state == 1 or state == 4):
 			#self.theta4_ref = self.theta4d #Constant
 			if (state == 1):
@@ -252,10 +259,14 @@ class controller:
 			elif (state == 4):
 				self.r2_ref = self.r2_min
 				velocityDir = -1
-			[self.A0_gantry, self.A1_gantry, self.A2_gantry, self.tb_gantry] = tp.LSPB(0.1*velocityDir, [self.r2, 0, self.r2_ref, 0], [self.t0, self.tf])
+			
+			velocity = tp.getLSPB_velocity(self.r2, self.r2_ref, self.t0, self.tf, 0.5)
+
+			[self.A0_gantry, self.A1_gantry, self.A2_gantry, self.tb_gantry] = tp.LSPB(velocity*velocityDir, [self.r2, 0, self.r2_ref, 0], [self.t0, self.tf])
 		elif (state == 2 or state == 5):
 			#self.theta4_ref = self.theta4d
-			[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(0.02, [self.theta4, 0, self.theta4d, 0], [t0, tf])
+			velocity = tp.getLSPB_velocity(self.theta4, self.theta4d, self.t0, self.tf, 0.5)
+			[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocity, [self.theta4, 0, self.theta4d, 0], [t0, tf])
 			#if (state == 2):
 			#	self.r2_ref = self.r2_max # Does not need to be changed
 			#elif (state == 5):
@@ -289,9 +300,13 @@ class controller:
 	def getNextTheta4d(self, state):
 		if (state == 2):
 			self.theta4d = self.theta4d + self.dimensions.alpha1
+			if (self.theta4d > self.geometry.theta4Max):
+				return False
 			return self.theta4d
 		elif (state == 5):
 			self.theta4d = self.theta4d + self.dimensions.alpha2
+			if (self.theta4d > self.geometry.theta4Max):
+				return False
 			return self.theta4d
 		elif (state == 1 or state == 3 or state == 4 or state == 6):
 			return self.theta4d

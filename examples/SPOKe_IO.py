@@ -15,27 +15,88 @@ class Encoder_input:
 		#lib_path = 'monarco-c/libmonarco.so'
 		#self.plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_VERB | plc.MONARCO_DPF_ERROR | plc.MONARCO_DPF_WARNING)
 		# Constants: 
-		self.gear_reduction = 92 # Don't really know
-		self.encoder_precision = 500 # Think we know
+		self.gear_reduction = 23 
+		self.encoder_precision = 500 
+		self.tickMultiplier = 4 
 
 		# (counter_identifier, mode, edge_count)
-		plc_handler.initiate_counter(2, 'QUAD', 'NONE')
-		plc_handler.initiate_counter(1, 'QUAD', 'NONE')
+		plc_handler.initiate_counter(2, 'QUAD', 'NONE') # Test to write "RISE"
+		plc_handler.initiate_counter(1, 'QUAD', 'NONE') # Test to write "RISE"
 		
 		# Turning on Encoder power
 		plc_handler.set_digital_out(plc.DOUT1, plc.LOW)
 
 		self.local_counter1 = 0
 		self.last_received1 = 0
+		self.last_tick_diff1 = 0
 
 		self.local_counter2 = 0
 		self.last_received2 = 0
+		self.last_tick_diff2 = 0
 
 		#The monarco counter can only count to 65,536
-
+		# We can count a total of 46 000 ticks for each rotation.
+		# This gives a precision of 0.0078 degrees
+		# We only need a precision of 0.25 degrees 
+		# We therefore only want to count 1440
+		# We therefore only count every 32th tick.
+		self.counterDownScalingFactor = 32
+		self.counterScalingRest1 = 0
+		self.counterScalingRest2 = 0
 
 		# Not finished
 	def update_counter(self, counter_identifier):
+		if (counter_identifier == 1):
+			new_value = plc_handler.read_counter(1)
+
+			if abs(new_value - self.last_received1) < 3000:
+				# We have moved a reasonable length (just over 2 rotations)
+				increase = new_value - self.last_received1
+
+			elif new_value < self.last_received1:
+				# We have probably passed the storage limit
+				increase = new_value - self.last_received1 + 65536
+
+			elif new_value < self.last_received1:
+				# We have probably went backwards past zero
+				increase = new_value - self.last_received1 - 65536
+
+			self.counterScalingRest1 += increase % self.counterDownScalingFactor
+			restOverflow = self.counterScalingRest1 // self.counterDownScalingFactor
+			increase += restOverflow
+			self.last_tick_diff1 = increase
+			self.counterScalingRest1 -= restOverflow * self.counterDownScalingFactor
+			self.local_counter1 +=  increase
+
+			self.last_received1 = new_value
+					
+		elif (counter_identifier == 2):
+			new_value = plc_handler.read_counter(2)			
+
+			if abs(new_value - self.last_received2) < 3000:
+				# We have moved a reasonable length (just over 2 rotations)
+				increase = new_value - self.last_received2
+
+			elif new_value < self.last_received2:
+				# We have probably passed the storage  limit
+				increase = new_value - self.last_received2 + 65536
+
+			elif new_value < self.last_received2:
+				# We have probably went backwards past zero
+				increase = new_value - self.last_received2 - 65536
+			
+			self.counterScalingRest2 += increase % self.counterDownScalingFactor
+			restOverflow = self.counterScalingRest2 // self.counterDownScalingFactor
+			increase += restOverflow
+			self.last_tick_diff1 = increase
+			self.counterScalingRest2 -= restOverflow * self.counterDownScalingFactor
+			self.local_counter2 +=  increase
+
+			self.last_received2 = new_value
+
+
+		# Not finished
+	def update_counter_old(self, counter_identifier):
 		if (counter_identifier == 1):
 			new_value = plc_handler.read_counter(1)
 			if abs(new_value - self.last_received1) < 45000:
@@ -73,16 +134,16 @@ class Encoder_input:
 	def read_counter_rad(self, counter_identifier):
 		self.update_counter(counter_identifier)
 		if (counter_identifier == 1):
-			return self.local_counter1 * 2 * 3.14 / (self.gear_reduction * self.encoder_precision)
+			return self.local_counter1 * 2 * 3.14 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		elif (counter_identifier == 2):
-			return self.local_counter2 * 2 * 3.14 / (self.gear_reduction * self.encoder_precision)
+			return self.local_counter2 * 2 * 3.14 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		
 	def read_counter_deg(self, counter_identifier):
 		self.update_counter(counter_identifier)
 		if (counter_identifier == 1):
-			return self.local_counter1 * 360 / (self.gear_reduction * self.encoder_precision)
+			return self.local_counter1 * 360 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		elif (counter_identifier == 2):
-			return self.local_counter2 * 360 / (self.gear_reduction * self.encoder_precision)
+			return self.local_counter2 * 360 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 
 
 
@@ -176,6 +237,7 @@ class Motor_output:
 		return False
 
 class LimitSwitch():
+	# Assuming high represents active switch
 	def __init__(self):
 		GPIO.setup(limitSwitchPin1, GPIO.IN, pull_up_down = GPIO.PUD_DOWN) # or PUD_UP
 		GPIO.setup(limitSwitchPin2, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
@@ -196,6 +258,9 @@ class LimitSwitch():
 		else:
 			return True
 		return bool(GPIO.input(pin))
+		
+	def anyActive(self):
+		return bool(GPIO.input(32) or GPIO.input(33) or GPIO.input(35) or GPIO.input(36)) 
 
 
 ###################### TESTS ###########################

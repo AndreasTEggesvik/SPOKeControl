@@ -57,7 +57,7 @@ class Encoder_input:
 				# We have probably passed the storage limit
 				increase = new_value - self.last_received1 + 65536
 
-			elif new_value < self.last_received1:
+			elif new_value > self.last_received1:
 				# We have probably went backwards past zero
 				increase = new_value - self.last_received1 - 65536
 
@@ -75,16 +75,16 @@ class Encoder_input:
 
 			if abs(new_value - self.last_received2) < 3000:
 				# We have moved a reasonable length (just over 2 rotations)
+			#	print("The difference between encoder signals are < 3000")
 				increase = new_value - self.last_received2
-
 			elif new_value < self.last_received2:
 				# We have probably passed the storage  limit
 				increase = new_value - self.last_received2 + 65536
-
-			elif new_value < self.last_received2:
+			#	print("new < last received")
+			elif new_value > self.last_received2:
 				# We have probably went backwards past zero
 				increase = new_value - self.last_received2 - 65536
-			
+			#	print("new > last received")
 			self.counterScalingRest2 += increase % self.counterDownScalingFactor
 			restOverflow = self.counterScalingRest2 // self.counterDownScalingFactor
 			increase += restOverflow

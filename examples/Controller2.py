@@ -33,18 +33,18 @@ def reactToError(control_instance, stopButtonPressed):
 		while(1):
 			print("In error state button pressed")
 			time.sleep(4)
-	elif (control_instance.isStuck()):
-		print("The robot is stuck. Stopping all motion")
-		control_instance.stop()
-		while(1):
-			print("In error, robot stuck detected")
-			time.sleep(4)
-	elif(control_instance.ls_instance.anyActive()):
-		print("The robot has touched limit switch. Stopping all motion")
-		control_instance.stop()
-		while(1):
-			print("Limit switch active: ", int(control_instance.ls_instance.active(1)), int(control_instance.ls_instance.active(2)), int(control_instance.ls_instance.active(3)), int(control_instance.ls_instance.active(4)))
-			time.sleep(4)
+#	elif (control_instance.isStuck()):
+#		print("The robot is stuck. Stopping all motion")
+#		control_instance.stop()
+#		while(1):
+#			print("In error, robot stuck detected")
+#			time.sleep(4)
+#	elif(control_instance.ls_instance.anyActive()):
+#		print("The robot has touched limit switch. Stopping all motion")
+#		control_instance.stop()
+#		while(1):
+#			print("Limit switch active: ", int(control_instance.ls_instance.active(1)), int(control_instance.ls_instance.active(2)), int(control_instance.ls_instance.active(3)), int(control_instance.ls_instance.active(4)))
+#			time.sleep(4)
 
 
 def next_theta4(theta4):
@@ -104,7 +104,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 
 		control_instance.initNewState(t0, tf, state, "Don't care")
 		i = 0 
-		while ((not control_instance.timeout) and (stopButtonPressed.value == 0) and (not control_instance.isStuck()) and (not control_instance.ls_instance.anyActive())): # and control_instance.theta4_e > 0.017 and control_instance.r2_e > 0.02): 
+		while ((not control_instance.timeout) and (stopButtonPressed.value == 0)): # and (not control_instance.isStuck())):# and (not control_instance.ls_instance.anyActive())): # and control_instance.theta4_e > 0.017 and control_instance.r2_e > 0.02): 
 			# Only check time when testing while the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
 
 			control_instance.updateTrajectory(state)
@@ -137,11 +137,11 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 class controller:
 	def __init__(self, time_value):
 		self.run_start_time = time_value
-		self.time_list = [0]
-		self.measurement_list_gantry = []  
-		self.reference_list_gantry = []    
-		self.measurement_list_ring = []
-		self.reference_list_ring = []
+		self.time_list = [0, 0]
+		self.measurement_list_gantry = [0, 0]  
+		self.reference_list_gantry = [0, 0]    
+		self.measurement_list_ring = [0, 0]
+		self.reference_list_ring = [0, 0]
 		self.dataBuffer = [self.time_list[:], self.measurement_list_gantry[:], self.reference_list_gantry[:], self.measurement_list_ring[:], self.reference_list_ring[:]]
 
 		self.encoder_instance = SPOKe_IO.Encoder_input()
@@ -300,12 +300,12 @@ class controller:
 	def getNextTheta4d(self, state):
 		if (state == 2):
 			self.theta4d = self.theta4d + self.dimensions.alpha1
-			if (self.theta4d > self.geometry.theta4Max):
+			if (self.theta4d > self.dimensions.theta4Max):
 				return False
 			return self.theta4d
 		elif (state == 5):
 			self.theta4d = self.theta4d + self.dimensions.alpha2
-			if (self.theta4d > self.geometry.theta4Max):
+			if (self.theta4d > self.dimensions.theta4Max):
 				return False
 			return self.theta4d
 		elif (state == 1 or state == 3 or state == 4 or state == 6):
@@ -388,14 +388,19 @@ class controller:
 		self.tickDiffBuffer1.append(self.encoder_instance.last_tick_diff1)
 		self.tickDiffBuffer1.append(self.encoder_instance.last_tick_diff2)
 
+
 		if (len(self.timeDiffBuffer) == 5):
 			velocityEstimate1 = sum(self.tickDiffBuffer1) / sum(self.timeDiffBuffer) # [tick/s]
 			GantryPWMSignal = PID_to_control_input(self.pid_gantry.output)[1]
+			if (GantryPWMSignal == 0): 
+				return False
 			if (velocityEstimate1 / GantryPWMSignal < StuckThreshold ): 
 				return True
 
 			velocityEstimate2 = sum(self.tickDiffBuffer2) / sum(self.timeDiffBuffer)
 			RingPWMSignal = PID_to_control_input(self.pid_ring.output)[1]
+			if (RingPWMSignal == 0):
+				return False
 			if (velocityEstimate2 / RingPWMSignal < StuckThreshold ): 
 				return True
 

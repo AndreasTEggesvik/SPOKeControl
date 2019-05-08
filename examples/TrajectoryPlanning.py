@@ -29,7 +29,7 @@ def calculateTrajectory(constraints, t):
 
 # mergingValue in range [0-1]
 def getLSPB_velocity(q0, qf, t0, tf, mergingValue):
-    return (1 + mergingValue) * (qf-q0)/(tf-t0)
+    return abs((1 + mergingValue) * (qf-q0)/(tf-t0))
 
 
 # constraints = [q(t0), d(q(t0)), q(tf), d(q(tf))], t = [t0, tf]

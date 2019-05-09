@@ -25,7 +25,7 @@ def PID_to_control_input(pid_output):
 
 
 
-def reactToError(control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock):
+def reactToError(control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData):
 	if (stopButtonPressed.value == 1):
 		stopButtonPressed.value == 0
 		print("Stop button is pressed, going out of loop")
@@ -34,12 +34,15 @@ def reactToError(control_instance, buttonPipe, stopButtonPressed, graphPipe, gra
 		sendData(control_instance, graphPipe, graphPipeSize, graphLock)
 		print("In error state button pressed")
 		time.sleep(4)
-		control_instance.waitForStartSignal(buttonPipe)
+		control_instance.waitForStartSignal(buttonPipe, newButtonData)
 #	elif (control_instance.isStuck()):
 #		print("The robot is stuck. Stopping all motion")
 #		control_instance.stop()
 #		control_instance.dataBuffer[5] = 50
 #		sendData(control_instance, graphPipe, graphPipeSize, graphLock)
+#		print("In error stuck")
+#		time.sleep(4)
+#		control_instance.waitForStartSignal(buttonPipe, newButtonData)
 #		while(1):
 #			print("In error, robot stuck detected")
 #			time.sleep(4)
@@ -119,7 +122,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			i += 1
 
 			time.sleep(0.02)
-		reactToError(control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock)
+		reactToError(control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData)
 		print("Done with state ",  state)
 		if (state < 6):
 			state += 1

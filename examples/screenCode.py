@@ -67,17 +67,19 @@ class StartButton(Button):
 			print("Received message: ", b)
 
 # This is called when the slider is updated:
-def update_speed(obj, operatingTimeConstant, value):
+def update_speed(operatingTimeConstant, obj, value):
 	operatingTimeConstant.value = obj.value
-	print("Updating speed to:" + operatingTimeConstant.value)
-
+	print("Updating speed to:" + str(operatingTimeConstant.value))
+#	print("Should be: " + str(obj.value))
+#	print("Or: " + str(value))
 	global speed
 	speed = obj.value
 
 class ValueLabel(Label):
 	def update(self, dt):
-		textInput = 'Theta4: ' + str(round(ring_val_list[-1]*180/3.14, 2)) + 'deg' '\n' 
-		textInput += 'r2: ' + str(round(gantry_val_list[-1], 2)) + 'm'
+		global ring_val_list, gantry_val_list
+		textInput = 'Theta4: ' + str(round(ring_ref_list[-1]*180/3.14, 2)) + 'deg' '\n' 
+		textInput += 'r2: ' + str(round(gantry_ref_list[-1], 2)) + 'm'
 		self.text = textInput
 
 class StateLabel(Label):

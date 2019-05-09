@@ -25,7 +25,7 @@ def PID_to_control_input(pid_output):
 
 
 
-def reactToError(control_instance, stopButtonPressed):
+def reactToError(control_instance, stopButtonPressed, graphPipe, graphPipeSize, graphLock):
 	if (stopButtonPressed.value == 1):
 		print("Stop button is pressed, going out of loop")
 		control_instance.stop()
@@ -53,11 +53,11 @@ def reactToError(control_instance, stopButtonPressed):
 
 def getTf(state, timeMultiplier):
 	if (state == 1 or state == 4):
-		return 20 #*timeMultiplier 
+		return 20 *timeMultiplier.value 
 	elif (state == 2):
-		return 7 #*timeMultiplier 
+		return 7 *timeMultiplier.value
 	elif (state == 5):
-		return  4 #*timeMultiplier 
+		return  4 *timeMultiplier.value
 	elif (state == 3 or state == 6):
 		return -1
 
@@ -118,7 +118,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			i += 1
 
 			time.sleep(0.02)
-		reactToError(control_instance, stopButtonPressed)
+		reactToError(control_instance, stopButtonPressed, graphPipe, graphPipeSize, graphLock)
 		print("Done with state ",  state)
 		if (state < 6):
 			state += 1

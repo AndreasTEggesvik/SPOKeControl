@@ -27,7 +27,7 @@ def PID_to_control_input(pid_output):
 
 def reactToError(control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData):
 	if (stopButtonPressed.value == 1):
-		stopButtonPressed.value == 0
+#		stopButtonPressed.value = 0
 		print("Stop button is pressed, going out of loop")
 		control_instance.stop()
 		control_instance.dataBuffer[5] = 100
@@ -35,6 +35,7 @@ def reactToError(control_instance, buttonPipe, stopButtonPressed, graphPipe, gra
 		print("In error state button pressed")
 		time.sleep(4)
 		control_instance.waitForStartSignal(buttonPipe, newButtonData)
+		stopButtonPressed.value = 0
 		return True
 #	elif (control_instance.isStuck()):
 #		print("The robot is stuck. Stopping all motion")

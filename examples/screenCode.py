@@ -40,7 +40,7 @@ graph = FigureCanvasKivyAgg(plt.gcf())
 
 def press_callback(buttonPipeParent, stopButtonPressed, newButtonData, obj):
 	print("Button pressed,", obj.text)
-	elif obj.text == 'STOP':
+	if obj.text == 'STOP':
 		buttonPipeParent.send("STOP")
 		stopButtonPressed.value = 1
 		print("Stop button pressed")

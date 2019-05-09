@@ -79,7 +79,6 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 	buttonPipe.send("Init finished")
 	newButtonData.value += 1
 
-
 	# Start the normal procedure
 	control_instance.waitForStartSignal(buttonPipe)
 	buttonPipe.send("Starting")
@@ -407,7 +406,7 @@ class controller:
 		self.dataBuffer[4].extend(self.reference_list_ring[:])
 
 	def eraseBufferData(self):
-		self.dataBuffer = [[], [], [], [], []]
+		self.dataBuffer = [[], [], [], [], [], self.dataBuffer[5]]
 
 	def storeData(self):
 		self.time_list.append((round(time.time(),2) - self.run_start_time))

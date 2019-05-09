@@ -25,15 +25,15 @@ def PID_to_control_input(pid_output):
 
 
 
-def reactToError(control_instance, stopButtonPressed, graphPipe, graphPipeSize, graphLock):
+def reactToError(control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock):
 	if (stopButtonPressed.value == 1):
 		print("Stop button is pressed, going out of loop")
 		control_instance.stop()
 		control_instance.dataBuffer[5] = 100
 		sendData(control_instance, graphPipe, graphPipeSize, graphLock)
-		while(1):
-			print("In error state button pressed")
-			time.sleep(4)
+		print("In error state button pressed")
+		time.sleep(4)
+		control_instance.waitForStartSignal(buttonPipe)
 #	elif (control_instance.isStuck()):
 #		print("The robot is stuck. Stopping all motion")
 #		control_instance.stop()
@@ -52,12 +52,14 @@ def reactToError(control_instance, stopButtonPressed, graphPipe, graphPipeSize, 
 
 
 def getTf(state, timeMultiplier):
+	# timeMultiplier in range [0.5, 1.5]
+	# Want low value to represent low velocity -> high tf
 	if (state == 1 or state == 4):
-		return 20 *timeMultiplier.value 
+		return 20 *abs(timeMultiplier.value -2) 
 	elif (state == 2):
-		return 7 *timeMultiplier.value
+		return 7 *abs(timeMultiplier.value -2)
 	elif (state == 5):
-		return  4 *timeMultiplier.value
+		return  4 *abs(timeMultiplier.value -2)
 	elif (state == 3 or state == 6):
 		return -1
 
@@ -73,7 +75,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 	run_start_time = round(time.time(),2)
 	control_instance = controller(run_start_time)
 	control_instance.waitForInitSignal(buttonPipe)
-	if (control_instance.initialize(stopButtonPressed) == False):
+	if (control_instance.initialize(stopButtonPressed, graphPipe, graphPipeSize, graphLock) == False):
 		while (True):
 			time.sleep(0.5)
 	buttonPipe.send("Init finished")
@@ -88,7 +90,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 	state = 1
 	print("Starting with state ", state)
 
-	while(stopButtonPressed.value == 0):
+	while(True):# stopButtonPressed.value == 0):
 		t0 = 0
 		tf = getTf(state, operatingTimeConstant)
 		
@@ -118,7 +120,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			i += 1
 
 			time.sleep(0.02)
-		reactToError(control_instance, stopButtonPressed, graphPipe, graphPipeSize, graphLock)
+		reactToError(control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock)
 		print("Done with state ",  state)
 		if (state < 6):
 			state += 1
@@ -177,7 +179,7 @@ class controller:
 
 
 		# Storage lists
-	def initialize(self, stopButtonPressed):
+	def initialize(self, stopButtonPressed, graphPipe, graphPipeSize, graphLock):
 		
 		self.motor_control.setMotorDirection(GANTRY_ROBOT, -1)
 		self.motor_control.setMotorDirection(RING_ROBOT, -1)
@@ -189,7 +191,7 @@ class controller:
 			time.sleep(0.05)
 		self.stop()
 		if (stopButtonPressed.value):
-			print("Stop button is pressed, looping forever")
+			print("Stop button is pressed during init, looping forever")
 			return False
 
 		while ( not ( self.ls_instance.active(1) or self.ls_instance.active(2) or stopButtonPressed.value )):
@@ -197,7 +199,7 @@ class controller:
 			time.sleep(0.05)
 		self.stop()
 		if (stopButtonPressed.value):
-			print("Stop button is pressed, looping forever")
+			print("Stop button is pressed during init, looping forever")
 			return False
 
 		while ( not ( self.ls_instance.active(3) or self.ls_instance.active(4) or stopButtonPressed.value )):
@@ -205,12 +207,13 @@ class controller:
 			time.sleep(0.05)
 		self.stop()
 		if (stopButtonPressed.value):
-			print("Stop button is pressed, looping forever")
+			print("Stop button is pressed during init, looping forever")
 			return False
 
 		self.encoder_instance.reset_counter(1)
 		self.encoder_instance.reset_counter(2)
 		self.dataBuffer[5] = 0
+		sendData(self, graphPipe, graphPipeSize, graphLock)
 		return True
 
 		
@@ -273,8 +276,9 @@ class controller:
 			elif (b == "STOP"):
 				print("Controller is being asked to stop. Has not yet started")
 				self.stop()
-			elif (b == "START"):
-				print("Controller can not start, has not been initiated")
+			#elif (b == "START"):
+			#	print("Starting from last known position")
+			#	break
 			print("Should we sleep now? ")
 
 	def waitForStartSignal(self, buttonPipe):
@@ -285,7 +289,7 @@ class controller:
 				break
 			elif (b == "STOP"):
 				self.stop()
-				print("Stopping, has not yet finished initializing")
+				print("Stopping, has not yet started")
 			print("Should we sleep now? ")
 
 	def getNextTheta4d(self, state):

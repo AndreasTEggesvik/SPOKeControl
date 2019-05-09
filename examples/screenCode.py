@@ -38,12 +38,15 @@ ring_ref_list = [0]
 plt.plot(time_list, gantry_ref_list, 'r')
 graph = FigureCanvasKivyAgg(plt.gcf())
 
-def press_callback(buttonPipeParent, stopButtonPressed, newButtonData, obj):
-	print("Button pressed,", obj.text)
+def press_callback(startButton, buttonPipeParent, stopButtonPressed, newButtonData, obj):
 	if obj.text == 'STOP':
 		buttonPipeParent.send("STOP")
 		stopButtonPressed.value = 1
 		print("Stop button pressed")
+
+		startButton.text = "START"
+		startButton.background_color = [0, 0.7, 0, 1]
+
 
 class StartButton(Button):
 	def buttonPressed(self, buttonPipeParent, obj):
@@ -86,9 +89,9 @@ class StateLabel(Label):
 	def update(self, dt):
 		global state
 		if (state == -1):
-			self.text = "State: Pre initialization"
+			self.text = "State: \nPre-initialization"
 		elif (state == 0):
-			self.text = "State: Initialized"
+			self.text = "State: \nInitialized"
 		elif (state == 1):
 			self.text = "State: 1"
 		elif (state == 2):
@@ -102,9 +105,10 @@ class StateLabel(Label):
 		elif (state == 6):
 			self.text = "State: 6"
 		elif (state == 50):
-			self.text = "State: stuck"
+			self.text = "State: \nStuck"
 		elif (state == 100):
-			self.text = "State: Stop button pressed"
+			self.text = "State: \nStop button pressed"
+			self.background_color = [0.5, 0.1, 0.1, 1]
 
 
 def UpdateGraph(graphPipeParent, graphPipeSize, graphLock, dt):
@@ -175,7 +179,7 @@ class MyApp(App):
 		#beepButton = Button(text="BEEP!")
 		#beepButton.bind(on_press=press_callback)
 
-		stateLabel = StateLabel(text = 'State: Pre initialization')
+		stateLabel = StateLabel(text = 'State: \n Pre-initialization')
 		Clock.schedule_interval(stateLabel.update, 0.5)
 
 
@@ -193,7 +197,7 @@ class MyApp(App):
 		stopButton = Button(text = "STOP")
 		stopButton.background_normal = ''
 		stopButton.background_color = [0.7, 0, 0, 1]
-		stopButton.bind(on_press=(partial(press_callback, buttonPipeParent, stopButtonPressed, newButtonData)))
+		stopButton.bind(on_press=(partial(press_callback, startButton, buttonPipeParent, stopButtonPressed, newButtonData)))
 
 		wimg = Image(source='Prototype1.png')
 

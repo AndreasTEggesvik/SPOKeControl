@@ -19,30 +19,27 @@ from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 import matplotlib.pyplot as plt
 
 # Multi processing
-from multiprocessing import Process, Pipe, Value, Lock
+from multiprocessing import Process, Pipe, Value, Array, Lock
 
 # Other programs
 import Multi_process_one
 import Controller2
 
 speed = 1
-time_list = []
+state = -1
+time_list = [0]
 measurement_list = []
 
-gantry_val_list = []
-gantry_ref_list = []
-ring_val_list = []
-ring_ref_list = []
+gantry_val_list = [0]
+gantry_ref_list = [0]
+ring_val_list = [0]
+ring_ref_list = [0]
 
-plt.plot(time_list, measurement_list, 'r')
+plt.plot(time_list, gantry_ref_list, 'r')
 graph = FigureCanvasKivyAgg(plt.gcf())
 
 def press_callback(buttonPipeParent, stopButtonPressed, newButtonData, obj):
 	print("Button pressed,", obj.text)
-	if obj.text == 'BEEP!':
-		# turn on the beeper:
-		# schedule it to turn off:
-		Clock.schedule_once(buzzer_off, .1)
 	elif obj.text == 'STOP':
 		buttonPipeParent.send("STOP")
 		stopButtonPressed.value = 1
@@ -69,24 +66,47 @@ class StartButton(Button):
 				newButtonData.value -= 1
 			print("Received message: ", b)
 
-
-def buzzer_off(dt):
-	print("After button-press")
-
 # This is called when the slider is updated:
-def update_speed(obj, value):
+def update_speed(obj, operatingTimeConstant, value):
+	operatingTimeConstant.value = obj.value
+	print("Updating speed to:" + operatingTimeConstant.value)
+
 	global speed
-	print("Updating speed to:" + str(obj.value))
 	speed = obj.value
+
+class ValueLabel(Label):
+	def update(self, dt):
+		textInput = 'Theta4: ' + str(round(ring_val_list[-1]*180/3.14, 2)) + 'deg' '\n' 
+		textInput += 'r2: ' + str(round(gantry_val_list[-1], 2)) + 'm'
+		self.text = textInput
 
 class StateLabel(Label):
 	def update(self, dt):
-		textInput = 'Digital input 3: ' + '\n' 
-		textInput += 'Digital input 4: '
-		self.text = textInput
+		global state
+		if (state == -1):
+			self.text = "State: Pre initialization"
+		elif (state == 0):
+			self.text = "State: Initialized"
+		elif (state == 1):
+			self.text = "State: 1"
+		elif (state == 2):
+			self.text = "State: 2"
+		elif (state == 3):
+			self.text = "State: 3"
+		elif (state == 4):
+			self.text = "State: 4"
+		elif (state == 5):
+			self.text = "State: 5"
+		elif (state == 6):
+			self.text = "State: 6"
+		elif (state == 50):
+			self.text = "State: stuck"
+		elif (state == 100):
+			self.text = "State: Stop button pressed"
+
 
 def UpdateGraph(graphPipeParent, graphPipeSize, graphLock, dt):
-	global time_list, measurement_list, gantry_val_list, gantry_ref_list, ring_val_list, ring_ref_list
+	global time_list, measurement_list, gantry_val_list, gantry_ref_list, ring_val_list, ring_ref_list, state
 
 	graphLock.acquire()
 	if (graphPipeSize.value > 1):
@@ -97,8 +117,8 @@ def UpdateGraph(graphPipeParent, graphPipeSize, graphLock, dt):
 
 	if (graphPipeSize.value == 1):
 		# [timeD, measurementD] = graphPipeParent.recv() 					# Compatible with Multi_process_one.py
-		[timeD, gantryM, gantryR, ringM, ringR] = graphPipeParent.recv() 	# Compatible with Controller2.py
-
+		[timeD, gantryM, gantryR, ringM, ringR, systemState] = graphPipeParent.recv() 	# Compatible with Controller2.py
+		state = systemState
 		print("The graph pipe is being read")
 		print("Size of time list: ", len(timeD))
 
@@ -128,9 +148,6 @@ def UpdateGraph(graphPipeParent, graphPipeSize, graphLock, dt):
 			gantry_ref_list = gantry_ref_list[-2000:]
 			ring_val_list = ring_val_list[-2000:]
 			ring_ref_list = ring_ref_list[-2000:]
-
-		
-
 	graphLock.release()
 
 
@@ -146,19 +163,23 @@ class MyApp(App):
 		graphPipeSize = Value('i', 0)
 		stopButtonPressed = Value('i', 0)
 		newButtonData = Value('i', 0)
+		operatingTimeConstant = Value('d', 1.0)
 
 		#controllerSimulator(graphPipe, graphPipeReceier, buttonPipe, graphPipeSize, graphLock, stopButtonPressed, newButtonData)
 		#self.p = Process(target=Multi_process_one.controllerSimulator, args=(graphPipeChild, graphPipeParent, buttonPipeChild, graphPipeSize, graphLock, stopButtonPressed, newButtonData))
-		self.p = Process(target=Controller2.main, args=(graphPipeChild, graphPipeParent, buttonPipeChild, graphPipeSize, graphLock, stopButtonPressed, newButtonData))
+		self.p = Process(target=Controller2.main, args=(graphPipeChild, graphPipeParent, buttonPipeChild, graphPipeSize, graphLock, stopButtonPressed, newButtonData, operatingTimeConstant))
 		self.p.start()
 
-		beepButton = Button(text="BEEP!")
-		beepButton.bind(on_press=press_callback)
+		#beepButton = Button(text="BEEP!")
+		#beepButton.bind(on_press=press_callback)
 
-		stateLabel = StateLabel(text = 'Digital input 3 \nDigital input 4')
-		Clock.schedule_interval(stateLabel.update, 1.0/10.0)
-		#Clock.schedule_interval(partial(UpdateGraph, time_list, measurement_list), 0.2)
-		Clock.schedule_interval(partial(UpdateGraph, graphPipeParent, graphPipeSize, graphLock), 0.6)
+		stateLabel = StateLabel(text = 'State: Pre initialization')
+		Clock.schedule_interval(stateLabel.update, 0.5)
+
+
+		valueLabel = ValueLabel(text = 'Theta4: -1 \nr2: -1')
+		Clock.schedule_interval(valueLabel.update, 0.5)
+		Clock.schedule_interval(partial(UpdateGraph, graphPipeParent, graphPipeSize, graphLock), 0.2)
 
 		startButton = StartButton(text = "INIT")
 		startButton.background_normal = ''
@@ -174,8 +195,9 @@ class MyApp(App):
 
 		wimg = Image(source='Prototype1.png')
 
-		speedSlider = Slider(orientation='vertical', min=0, max=1, value=speed)
-		speedSlider.bind(on_touch_move=update_speed)
+		speedSlider = Slider(orientation='vertical', min=0.5, max=1.5, value=speed)
+		#speedSlider.bind(on_touch_move=update_speed)
+		speedSlider.bind(on_touch_move=partial(update_speed, operatingTimeConstant))
 		speedSlider.size_hint_x=(0.2)
 		# on_touch_down=update_speed,
 		
@@ -183,8 +205,8 @@ class MyApp(App):
 
 		verticalTextBox1 = BoxLayout()
 		verticalTextBox1.orientation = 'vertical'
+		verticalTextBox1.add_widget(valueLabel)
 		verticalTextBox1.add_widget(stateLabel)
-		verticalTextBox1.add_widget(beepButton)
 		verticalTextBox1.add_widget(wimg)
 		verticalTextBox1.size_hint_x=(0.3)
 

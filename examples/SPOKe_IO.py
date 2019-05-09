@@ -189,9 +189,10 @@ class Motor_output:
 		
 		# Initialize pwm channels
 		plc_handler.set_pwm_frequency(plc.PWM_CHANNEL1, 1000)
+		plc_handler.set_pwm_frequency(plc.PWM_CHANNEL2, 1000)
 		plc_handler.set_pwm_out(plc.DOUT2, 1) #Assuming 1 is off
 		plc_handler.set_pwm_out(plc.DOUT1, 1)
-		
+		plc_handler.set_pwm_out(plc.DOUT4, 1)
 
 		
 		
@@ -222,7 +223,8 @@ class Motor_output:
 	def setMotorSpeed(self, motorNumber, speedValue):
 		if (1 < speedValue or speedValue < -1):
 			return False 
-			
+		speedValue = invert_PWM(speedValue)
+
 		if (motorNumber == 1):
 			plc_handler.set_pwm_out(plc.DOUT2, speedValue)
 		elif (motorNumber == 2):
@@ -235,6 +237,9 @@ class Motor_output:
 
 	def openGrip(self):
 		return False
+
+def invert_PWM(pwm_in):
+	return abs(pwm_in - 1)
 
 class LimitSwitch():
 	# Assuming high represents active switch

@@ -33,7 +33,7 @@ def reactToError(control_instance, buttonPipe, stopButtonPressed, graphPipe, gra
 		sendData(control_instance, graphPipe, graphPipeSize, graphLock)
 		print("In error state button pressed")
 		time.sleep(4)
-		control_instance.waitForStartSignal(buttonPipe, newButtonData)
+		control_instance.waitForStartSignal(buttonPipe, newButtonData, stopButtonPressed)
 		stopButtonPressed.value = 0
 		return True
 #	elif (control_instance.isStuck()):

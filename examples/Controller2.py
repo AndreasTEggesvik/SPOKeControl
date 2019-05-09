@@ -28,7 +28,6 @@ def PID_to_control_input(pid_output):
 def reactToError(control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData):
 	if (stopButtonPressed.value == 1):
 #		stopButtonPressed.value = 0
-		print("Stop button is pressed, going out of loop")
 		control_instance.stop()
 		control_instance.dataBuffer[5] = 100
 		sendData(control_instance, graphPipe, graphPipeSize, graphLock)
@@ -89,7 +88,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 		while (True):
 			time.sleep(0.5)
 	
-	control_instance.waitForStartSignal(buttonPipe, newButtonData)
+	control_instance.waitForStartSignal(buttonPipe, newButtonData, stopButtonPressed)
 	control_instance.run_start_time = round(time.time(),2)
 	state = 1
 	continuing = False
@@ -284,12 +283,13 @@ class controller:
 			elif (b == "STOP"):
 				self.stop()
 
-	def waitForStartSignal(self, buttonPipe, newButtonData):
+	def waitForStartSignal(self, buttonPipe, newButtonData, stopButtonPressed):
 		while(True):
 			b = buttonPipe.recv()
 			if (b == "START"):
 				buttonPipe.send("Starting")
 				newButtonData.value += 1
+				stopButtonPressed.value = 0
 				break
 			elif (b == "STOP"):
 				self.stop()

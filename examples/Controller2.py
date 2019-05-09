@@ -27,7 +27,6 @@ def PID_to_control_input(pid_output):
 
 def reactToError(control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData):
 	if (stopButtonPressed.value == 1):
-#		stopButtonPressed.value = 0
 		control_instance.stop()
 		control_instance.dataBuffer[5] = 100
 		sendData(control_instance, graphPipe, graphPipeSize, graphLock)

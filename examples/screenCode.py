@@ -4,7 +4,6 @@ os.environ['KIVY_GL_BACKEND'] = 'gl'
 
 import kivy
 from kivy.uix.button import Button, Label
-from kivy.graphics import Color, Rectangle
 from kivy.uix.boxlayout import BoxLayout
 from kivy.lang import Builder
 from kivy.app import App
@@ -109,10 +108,6 @@ class StateLabel(Label):
 			self.text = "State: \nStuck"
 		elif (state == 100):
 			self.text = "State: \nStop button pressed"
-			with self.canvas:
-				Color(0.5, 0.1, 0.1, 1)
-				Rectangle(pos=self.pos, size=self.size)
-			#self.background_color = [0.5, 0.1, 0.1, 1]
 
 
 def UpdateGraph(graphPipeParent, graphPipeSize, graphLock, dt):

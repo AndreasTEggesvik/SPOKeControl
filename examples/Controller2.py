@@ -35,6 +35,7 @@ def reactToError(control_instance, buttonPipe, stopButtonPressed, graphPipe, gra
 		print("In error state button pressed")
 		time.sleep(4)
 		control_instance.waitForStartSignal(buttonPipe, newButtonData)
+		return True
 #	elif (control_instance.isStuck()):
 #		print("The robot is stuck. Stopping all motion")
 #		control_instance.stop()
@@ -46,12 +47,15 @@ def reactToError(control_instance, buttonPipe, stopButtonPressed, graphPipe, gra
 #		while(1):
 #			print("In error, robot stuck detected")
 #			time.sleep(4)
+#		return True
 #	elif(control_instance.ls_instance.anyActive()):
 #		print("The robot has touched limit switch. Stopping all motion")
 #		control_instance.stop()
 #		while(1):
 #			print("Limit switch active: ", int(control_instance.ls_instance.active(1)), int(control_instance.ls_instance.active(2)), int(control_instance.ls_instance.active(3)), int(control_instance.ls_instance.active(4)))
 #			time.sleep(4)
+#		return True
+	return False
 
 
 
@@ -90,16 +94,17 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 	control_instance.run_start_time = round(time.time(),2)
 
 	state = 1
+	continuing = False
 	print("Starting with state ", state)
 
 	while(True):# stopButtonPressed.value == 0):
 		t0 = 0
 		tf = getTf(state, operatingTimeConstant)
-		
-		if ( not control_instance.getNextTheta4d(state) ):
-			print("getNextTheta4d received True")
-			# In case next desired angle is outside working area
-			break
+		if (not continuing):
+			if ( not control_instance.getNextTheta4d(state) ):
+				print("getNextTheta4d received True")
+				# In case next desired angle is outside working area
+				break
 
 		control_instance.initNewState(t0, tf, state)
 		i = 0 
@@ -122,7 +127,9 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			i += 1
 
 			time.sleep(0.02)
-		reactToError(control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData)
+		if (reactToError(control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData)):
+			state -= 1
+			continuing = True
 		print("Done with state ",  state)
 		if (state < 6):
 			state += 1

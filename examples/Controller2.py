@@ -27,6 +27,7 @@ def PID_to_control_input(pid_output):
 
 def reactToError(control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock):
 	if (stopButtonPressed.value == 1):
+		stopButtonPressed.value == 0
 		print("Stop button is pressed, going out of loop")
 		control_instance.stop()
 		control_instance.dataBuffer[5] = 100
@@ -75,16 +76,14 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 	run_start_time = round(time.time(),2)
 	control_instance = controller(run_start_time)
 	control_instance.waitForInitSignal(buttonPipe)
-	if (control_instance.initialize(stopButtonPressed, graphPipe, graphPipeSize, graphLock) == False):
+	if (control_instance.initialize(buttonPipe, newButtonData, stopButtonPressed, graphPipe, graphPipeSize, graphLock) == False):
 		while (True):
 			time.sleep(0.5)
-	buttonPipe.send("Init finished")
-	newButtonData.value += 1
+	
 
 	# Start the normal procedure
-	control_instance.waitForStartSignal(buttonPipe)
-	buttonPipe.send("Starting")
-	newButtonData.value += 1
+	control_instance.waitForStartSignal(buttonPipe, newButtonData)
+	
 	control_instance.run_start_time = round(time.time(),2)
 
 	state = 1
@@ -179,7 +178,7 @@ class controller:
 
 
 		# Storage lists
-	def initialize(self, stopButtonPressed, graphPipe, graphPipeSize, graphLock):
+	def initialize(self, buttonPipe, newButtonData,  stopButtonPressed, graphPipe, graphPipeSize, graphLock):
 		
 		self.motor_control.setMotorDirection(GANTRY_ROBOT, -1)
 		self.motor_control.setMotorDirection(RING_ROBOT, -1)
@@ -214,6 +213,8 @@ class controller:
 		self.encoder_instance.reset_counter(2)
 		self.dataBuffer[5] = 0
 		sendData(self, graphPipe, graphPipeSize, graphLock)
+		buttonPipe.send("Init finished")
+		newButtonData.value += 1
 		return True
 
 		
@@ -281,11 +282,13 @@ class controller:
 			#	break
 			print("Should we sleep now? ")
 
-	def waitForStartSignal(self, buttonPipe):
+	def waitForStartSignal(self, buttonPipe, newButtonData):
 		while(True):
 			b = buttonPipe.recv()
 			if (b == "START"):
 				print("Starting controller")
+				buttonPipe.send("Starting")
+				newButtonData.value += 1
 				break
 			elif (b == "STOP"):
 				self.stop()

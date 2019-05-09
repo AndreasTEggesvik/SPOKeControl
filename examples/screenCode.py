@@ -88,8 +88,10 @@ class ValueLabel(Label):
 class StateLabel(Label):
 	def update(self, dt):
 		global state
-		if (state == -1):
+		if (state == -2):
 			self.text = "State: \nPre-initialization"
+		elif (state == -1):
+			self.text = "State: \nInitializing"
 		elif (state == 0):
 			self.text = "State: \nInitialized"
 		elif (state == 1):

@@ -4,6 +4,7 @@ import numpy as np
 # Different modes has different constraints
 
 # example: ([0.2, 0, 5], [0, 20])
+#def calculateTrajectory(constraints, t, mode):
 def calculateTrajectory(constraints, t):
     
     # constraints = [q(t0), d(q(t0)), d(q(tf))]
@@ -11,7 +12,17 @@ def calculateTrajectory(constraints, t):
         M = np.array([[1, t[0], t[0]**2],
                     [0, 1, 2*t[0]],
                     [0, 1, 2*t[1]]])
-                    
+#
+#    if len(constraints) == 3 and mode == 1:
+#        M = np.array([[1, t[0], t[0]**2],
+#                    [0, 1, 2*t[0]],
+#                    [0, 1, 2*t[1]]])
+#    # constraints = [d(q(t0)), q(tf), d(q(tf))]
+#    elif len(constraints) == 3 and mode == 2:
+#        M = np.array([[0, 1, 2*t[0]],
+#                    [1, t[1], t[1]**2],
+#                    [0, 1, 2*t[1]]])
+#                    
     # constraints = [q(t0), d(q(t0)), q(tf), d(q(tf))]
     elif len(constraints) == 4:
         M = np.array([[1, t[0], t[0]**2, t[0]**3],
@@ -49,9 +60,10 @@ def LSPB(V, constraints, t):
     tb = (q0 - qf + V*tf)/V
     
     A0 = calculateTrajectory([q0, dq0, V], [t0, tb])
+    #A0 = calculateTrajectory([q0, dq0, V], [t0, tb], 1)
     A1 = np.array([(q0 + qf - V*tf)/2, V])
     A2 = np.array([qf - A0[2]*tf**2, 2*A0[2]*tf, -A0[2]])
-    #A2 = calculateTrajectory([qf - A0[2]*tf**2, 0, qf, dqf], [tf-tb , tf])
+    #A2 = calculateTrajectory([A[1]*(tf-tb), 0, qf, dqf], [tf-tb , tf], 2)
     return [A0, A1, A2, tb]
 
 

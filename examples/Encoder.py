@@ -15,6 +15,10 @@ class Encoder_input:
 		# Constants: 
 		self.gear_reduction = 92 # Don't really know
 		self.encoder_precision = 500 # Think we know
+		dimensions = geo.Dimensions()
+		self.r4 = geo.r4
+		self.r_m1 = geo.r_m1
+		self.r_m2 = geo.r_m2
 
 		# (counter_identifier, mode, edge_count)
 		self.plc_handler.initiate_counter(2, 'QUAD', 'NONE')
@@ -82,7 +86,8 @@ class Encoder_input:
 			self.local_counter1 = 0
 		elif (counter_identifier == 2):
 			self.local_counter2 = 0
-			
+	
+	# Not finished
 	def read_counter_rad(self, counter_identifier):
 		self.update_counter(counter_identifier)
 		if (counter_identifier == 1):

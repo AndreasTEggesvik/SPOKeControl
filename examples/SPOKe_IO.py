@@ -24,7 +24,7 @@ class Encoder_input:
 		plc_handler.initiate_counter(1, 'QUAD', 'NONE') # Test to write "RISE"
 		
 		# Turning on Encoder power
-		plc_handler.set_digital_out(plc.DOUT1, plc.LOW)
+		#plc_handler.set_digital_out(plc.DOUT1, plc.LOW)
 
 		self.local_counter1 = 0
 		self.last_received1 = 0

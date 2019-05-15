@@ -52,8 +52,8 @@ def polar2cartesian(polarInput):
 	return [r*math.cos(theta), r*math.sin(theta)]
 
 class Dimensions:
+	# Dimensions given in metres and radians
 	def __init__(self):
-		# Dimensions given in metres and radians
 		self.r3 = 0.519 
 		self.r4 = 2.01
 		self.l_total = 1.620
@@ -68,9 +68,14 @@ class Dimensions:
 		self.theta4Min = 0.000001
 		self.theta4Max = math.pi/2
 
-		self.l1 = 0.156
+		# Motor gears: 
+		r_m1 = 0.10 
+		r_m2 = 0.10
+
+		# Rope connection point dimensions:
+		self.l1 = 0.156 
 		self.l2 = 0.059
-		self.alpha1 = self.l1/self.r4
+		self.alpha1 = self.l1/self.r4 # Read thise values in Controller
 		self.alpha2 = self.l2/self.r4
 
 	
@@ -86,5 +91,3 @@ def getPolarCoordinates(encoderInput):
 	r2 = rad2r2(encoder_angle_rad_gantry)
 	return [theta1(theta4, r2), r1(r2)]
 	
-
-

@@ -25,7 +25,7 @@ def PID_to_control_input(pid_output):
 
 
 
-def reactToError(control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData):
+def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData):
 	if (stopButtonPressed.value == 1):
 #		stopButtonPressed.value = 0
 		control_instance.stop()
@@ -35,6 +35,11 @@ def reactToError(control_instance, buttonPipe, stopButtonPressed, graphPipe, gra
 		time.sleep(4)
 		control_instance.waitForStartSignal(buttonPipe, newButtonData, stopButtonPressed)
 		stopButtonPressed.value = 0
+		return True
+	elif ((state == 3 or state == 6) and control_instance.isStuck()):
+		print("We are in state ", state, "and are stuck. Proceeding to the state")
+		control_instance.stop()
+		control_instance.motor_control.openGrip()
 		return True
 #	elif (control_instance.isStuck()):
 #		print("The robot is stuck. Stopping all motion")
@@ -123,8 +128,9 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			i += 1
 			time.sleep(0.02)
 
-		if (reactToError(control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData)):
-			state -= 1
+		if (reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData)):
+			if (state != 3 or state != 6):
+				state -= 1
 			continuing = True
 		if (state < 6):
 			state += 1

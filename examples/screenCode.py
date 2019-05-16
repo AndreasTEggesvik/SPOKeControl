@@ -101,17 +101,17 @@ class StateLabel(Label):
 		elif (state == 0):
 			self.text = "State: \nInitialized"
 		elif (state == 1):
-			self.text = "State: 1"
+			self.text = "State: 1 \nMove radially \nout"
 		elif (state == 2):
-			self.text = "State: 2"
+			self.text = "State: 2 \nMove angular \nouter"
 		elif (state == 3):
-			self.text = "State: 3"
+			self.text = "State: 3 \nTighten rope"
 		elif (state == 4):
-			self.text = "State: 4"
+			self.text = "State: 4 \nMove radially \nin"
 		elif (state == 5):
-			self.text = "State: 5"
+			self.text = "State: 5 \nMove angular \ninner"
 		elif (state == 6):
-			self.text = "State: 6"
+			self.text = "State: 6 \nTighten rope"
 		elif (state == 50):
 			self.text = "State: \nStuck"
 		elif (state == 100):

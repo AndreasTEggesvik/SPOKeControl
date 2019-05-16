@@ -88,13 +88,13 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 	control_instance = controller(run_start_time)
 	control_instance.waitForInitSignal(buttonPipe)
 
-	self.dataBuffer[5] = -1
-	sendData(self, graphPipe, graphPipeSize, graphLock)
+	control_instance.dataBuffer[5] = -1
+	sendData(control_instance, graphPipe, graphPipeSize, graphLock)
 	time.sleep(4)
-	self.encoder_instance.reset_counter(1)
-	self.encoder_instance.reset_counter(2)
-	self.dataBuffer[5] = 0
-	sendData(self, graphPipe, graphPipeSize, graphLock)
+	control_instance.encoder_instance.reset_counter(1)
+	control_instance.encoder_instance.reset_counter(2)
+	control_instance.dataBuffer[5] = 0
+	sendData(control_instance, graphPipe, graphPipeSize, graphLock)
 	buttonPipe.send("Init finished")
 	newButtonData.value += 1
 

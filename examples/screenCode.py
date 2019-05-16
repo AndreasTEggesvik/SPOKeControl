@@ -57,7 +57,10 @@ class StartButton(Button):
 		elif self.text == 'START':
 			buttonPipeParent.send("START")
 
-	def updateStartButton(self, buttonPipeParent, newButtonData, dt):
+	def updateStartButton(self, buttonPipeParent, newButtonData, superBox, dt):
+		if (self.i > 100):
+			superBox.export_to_png("Screenshot.png")
+			print("Took screenshot")
 		if (newButtonData.value):
 			b = buttonPipeParent.recv()
 			if (b == "Init finished"):
@@ -180,6 +183,8 @@ class MyApp(App):
 		#beepButton = Button(text="BEEP!")
 		#beepButton.bind(on_press=press_callback)
 
+		superBox = BoxLayout()
+
 		stateLabel = StateLabel(text = 'State: \n Pre-initialization')
 		Clock.schedule_interval(stateLabel.update, 0.5)
 
@@ -192,7 +197,8 @@ class MyApp(App):
 		startButton.background_normal = ''
 		startButton.background_color = [0, 0.7, 0, 1]
 		startButton.bind(on_press=(partial(startButton.buttonPressed, buttonPipeParent)))
-		Clock.schedule_interval(partial(startButton.updateStartButton, buttonPipeParent, newButtonData), 0.6)
+		#Clock.schedule_interval(partial(startButton.updateStartButton, buttonPipeParent, newButtonData), 0.6)
+		Clock.schedule_interval(partial(startButton.updateStartButton, buttonPipeParent, newButtonData, superBox), 0.6)
 
 		
 		stopButton = Button(text = "STOP")
@@ -208,7 +214,7 @@ class MyApp(App):
 		speedSlider.size_hint_x=(0.2)
 		# on_touch_down=update_speed,
 		
-		superBox = BoxLayout()
+		#superBox = BoxLayout()
 
 		verticalTextBox1 = BoxLayout()
 		verticalTextBox1.orientation = 'vertical'
@@ -231,8 +237,10 @@ class MyApp(App):
 		superBox.add_widget(speedSlider)
 
 		return superBox
+	
 	def on_stop(self):
 		self.p.terminate()
+
 	
 
 if __name__ == '__main__':

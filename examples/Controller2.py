@@ -87,10 +87,22 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 	run_start_time = round(time.time(),2)
 	control_instance = controller(run_start_time)
 	control_instance.waitForInitSignal(buttonPipe)
-	if (control_instance.initialize(buttonPipe, newButtonData, stopButtonPressed, graphPipe, graphPipeSize, graphLock) == False):
-		print("Stop button is pressed during init, looping forever")
-		while (True):
-			time.sleep(0.5)
+
+	self.dataBuffer[5] = -1
+	sendData(self, graphPipe, graphPipeSize, graphLock)
+	time.sleep(4)
+	self.encoder_instance.reset_counter(1)
+	self.encoder_instance.reset_counter(2)
+	self.dataBuffer[5] = 0
+	sendData(self, graphPipe, graphPipeSize, graphLock)
+	buttonPipe.send("Init finished")
+	newButtonData.value += 1
+
+
+	#if (control_instance.initialize(buttonPipe, newButtonData, stopButtonPressed, graphPipe, graphPipeSize, graphLock) == False):
+	#	print("Stop button is pressed during init, looping forever")
+	#	while (True):
+	#		time.sleep(0.5)
 	
 	control_instance.waitForStartSignal(buttonPipe, newButtonData, stopButtonPressed)
 	control_instance.run_start_time = round(time.time(),2)

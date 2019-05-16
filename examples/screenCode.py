@@ -194,6 +194,7 @@ class MyApp(App):
 		Clock.schedule_interval(partial(UpdateGraph, graphPipeParent, graphPipeSize, graphLock), 0.2)
 
 		startButton = StartButton(text = "INIT")
+		startButton.i = 0
 		startButton.background_normal = ''
 		startButton.background_color = [0, 0.7, 0, 1]
 		startButton.bind(on_press=(partial(startButton.buttonPressed, buttonPipeParent)))

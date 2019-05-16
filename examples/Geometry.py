@@ -12,6 +12,7 @@ phi4 = math.acos((r3**2 + r4**2 - l_total**2) / (2*r3*r4))
 phi1 = math.pi - phi4
 
 
+
 ########### Helper functions ############
 
 def rad2theta4(encoder_angle_rad):

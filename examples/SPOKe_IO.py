@@ -2,7 +2,7 @@
 import pymonarco_hat as plc
 import RPi.GPIO as GPIO
 import time
-
+import Geometry
 
 lib_path = '../../pymonarco-hat/monarco-c/libmonarco.so'
 plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_VERB | plc.MONARCO_DPF_ERROR | plc.MONARCO_DPF_WARNING)
@@ -18,6 +18,11 @@ class Encoder_input:
 		self.gear_reduction = 23 
 		self.encoder_precision = 500 
 		self.tickMultiplier = 4 
+
+		dimensions = Geometry.Dimensions()
+
+		self.gear_radius1 = dimensions.r_m1
+		self.gear_radius2 = dimensions.r_m2
 
 		# (counter_identifier, mode, edge_count)
 		plc_handler.initiate_counter(2, 'QUAD', 'NONE') # Test to write "RISE"

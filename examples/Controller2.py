@@ -77,7 +77,6 @@ def getTf(state, timeMultiplier):
 
 def sendData(data_storage, graphPipe,graphPipeSize, graphLock):
 	graphLock.acquire()
-	print("Sending data of size: ", len(data_storage.dataBuffer[0]))
 	graphPipe.send(data_storage.dataBuffer)
 	graphPipeSize.value = graphPipeSize.value + 1
 	graphLock.release()
@@ -395,10 +394,15 @@ class controller:
 		StuckThreshold = 129/0.5 # = 258 [tick/(s*PWM)]
 		# 129 ticks/s at PWM = 0.5 gives a speed of 258 
 
-		self.timeDiffBuffer.append(self.time_list[-1] - self.time_list[-2])
+		if (len(self.time_list) > 2):
+			self.timeDiffBuffer.append(self.time_list[-1] - self.time_list[-2])
+		else:
+			# In the case where the data is erased before 
+			self.timeDiffBuffer.append(self.timeDiffBuffer[-1])
 		self.tickDiffBuffer1.append(self.encoder_instance.last_tick_diff1)
 		self.tickDiffBuffer1.append(self.encoder_instance.last_tick_diff2)
 
+		return False # Must be removed when testing the stuck function.
 
 		if (len(self.timeDiffBuffer) == 5):
 			velocityEstimate1 = sum(self.tickDiffBuffer1) / sum(self.timeDiffBuffer) # [tick/s]

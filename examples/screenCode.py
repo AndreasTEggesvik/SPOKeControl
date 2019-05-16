@@ -59,11 +59,14 @@ class StartButton(Button):
 			buttonPipeParent.send("START")
 
 	def updateStartButton(self, buttonPipeParent, newButtonData, superBox, dt):
-		if (self.i > 100):
-			superBox.export_to_png("Screenshot.png")
-			print("Took screenshot")
-			self.i = 0
-		self.i += 1
+
+		# Code for taking screenshot
+		#if (self.i > 100):
+		#	superBox.export_to_png("Screenshot.png")
+		#	print("Took screenshot")
+		#	self.i = 0
+		#self.i += 1
+
 		if (newButtonData.value):
 			b = buttonPipeParent.recv()
 			if (b == "Init finished"):
@@ -132,8 +135,6 @@ def UpdateGraph(graphPipeParent, graphPipeSize, graphLock, dt):
 		# [timeD, measurementD] = graphPipeParent.recv() 					# Compatible with Multi_process_one.py
 		[timeD, gantryM, gantryR, ringM, ringR, systemState] = graphPipeParent.recv() 	# Compatible with Controller2.py
 		state = systemState
-		print("The graph pipe is being read")
-		print("Size of time list: ", len(timeD))
 
 		graphPipeSize.value = graphPipeSize.value - 1 # Indicating that the data is read, pipe is cleared
 
@@ -200,9 +201,8 @@ class MyApp(App):
 		Clock.schedule_interval(partial(UpdateGraph, graphPipeParent, graphPipeSize, graphLock), 0.2)
 
 		startButton = StartButton(text = "INIT")
-		startButton.i = 0
+		# startButton.i = 0
 		startButton.background_normal = ''
-		startButton.i = 0
 		startButton.background_color = [0, 0.7, 0, 1]
 		startButton.bind(on_press=(partial(startButton.buttonPressed, buttonPipeParent)))
 		#Clock.schedule_interval(partial(startButton.updateStartButton, buttonPipeParent, newButtonData), 0.6)

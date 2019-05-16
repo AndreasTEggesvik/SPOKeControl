@@ -11,7 +11,7 @@ from kivy.uix.image import Image
 from kivy.uix.slider import Slider
 from kivy.clock import Clock
 from functools import partial
-from kivy.graphics import Color
+from kivy.graphics import Color, Rectangle
 
 import csv
 
@@ -227,7 +227,7 @@ class MyApp(App):
 
 		with superBox.canvas.before:
 			Color(.2,.2,.2,1)
-			self.rect = Rectangle(size=(800,600), pos=layout.pos)
+			self.rect = Rectangle(size=(800,600), pos=superBox.pos)
 
 
 			

@@ -61,6 +61,8 @@ class StartButton(Button):
 		if (self.i > 100):
 			superBox.export_to_png("Screenshot.png")
 			print("Took screenshot")
+			self.i = 0
+		self.i += 1
 		if (newButtonData.value):
 			b = buttonPipeParent.recv()
 			if (b == "Init finished"):
@@ -196,6 +198,7 @@ class MyApp(App):
 		startButton = StartButton(text = "INIT")
 		startButton.i = 0
 		startButton.background_normal = ''
+		startButton.i = 0
 		startButton.background_color = [0, 0.7, 0, 1]
 		startButton.bind(on_press=(partial(startButton.buttonPressed, buttonPipeParent)))
 		#Clock.schedule_interval(partial(startButton.updateStartButton, buttonPipeParent, newButtonData), 0.6)

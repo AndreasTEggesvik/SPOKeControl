@@ -11,6 +11,7 @@ from kivy.uix.image import Image
 from kivy.uix.slider import Slider
 from kivy.clock import Clock
 from functools import partial
+from kivy.graphics import Color
 
 import csv
 
@@ -165,6 +166,9 @@ def UpdateGraph(graphPipeParent, graphPipeSize, graphLock, dt):
 
 class MyApp(App):
 	def build(self):
+
+
+		
 	
 		# Create the rest of the UI objects (and bind them to callbacks, if necessary):
 		graphPipeParent, graphPipeChild = Pipe()
@@ -220,6 +224,13 @@ class MyApp(App):
 		
 		#superBox = BoxLayout()
 
+
+		with superBox.canvas.before:
+			Color(.2,.2,.2,1)
+			self.rect = Rectangle(size=(800,600), pos=layout.pos)
+
+
+			
 		verticalTextBox1 = BoxLayout()
 		verticalTextBox1.orientation = 'vertical'
 		verticalTextBox1.add_widget(valueLabel)

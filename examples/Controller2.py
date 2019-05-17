@@ -345,7 +345,7 @@ class controller:
 
 	def updatePosition(self):
 		# Possible to make this return True or False?  
-		print("val: ", self.encoder_instance.read_counter_rad(GANTRY_ROBOT))
+		print("val1: ", self.encoder_instance.read_counter_rad(1))
 		self.r2 = Geometry.rad2r2(self.encoder_instance.read_counter_rad(GANTRY_ROBOT))
 		self.theta4 = Geometry.rad2theta4(self.encoder_instance.read_counter_rad(RING_ROBOT))
 

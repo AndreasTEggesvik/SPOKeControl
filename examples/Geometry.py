@@ -70,8 +70,8 @@ class Dimensions:
 		self.theta4Max = math.pi/2
 
 		# Motor gears: 
-		r_m1 = 0.10 
-		r_m2 = 0.10
+		self.r_m1 = 0.10 
+		self.r_m2 = 0.10
 
 		# Rope connection point dimensions:
 		self.l1 = 0.156 

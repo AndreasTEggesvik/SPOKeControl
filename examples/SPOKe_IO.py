@@ -247,12 +247,13 @@ def invert_PWM(pwm_in):
 	return abs(pwm_in - 1)
 
 class LimitSwitch():
-	# Assuming high represents active switch
+
+	# Assuming low represents active switch
 	def __init__(self):
-		GPIO.setup(limitSwitchPin1, GPIO.IN, pull_up_down = GPIO.PUD_DOWN) # or PUD_UP
-		GPIO.setup(limitSwitchPin2, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
-		GPIO.setup(limitSwitchPin3, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
-		GPIO.setup(limitSwitchPin4, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+		GPIO.setup(limitSwitchPin1, GPIO.IN, pull_up_down = GPIO.PUD_UP) # or PUD_UP
+		GPIO.setup(limitSwitchPin2, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+		GPIO.setup(limitSwitchPin3, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+		GPIO.setup(limitSwitchPin4, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 
 	def active(self, switchNumber):
 		# Returns true if the limit switch is active
@@ -267,10 +268,10 @@ class LimitSwitch():
 			pin = 36
 		else:
 			return True
-		return bool(GPIO.input(pin))
+		return not bool(GPIO.input(pin))
 		
 	def anyActive(self):
-		return bool(GPIO.input(32) or GPIO.input(33) or GPIO.input(35) or GPIO.input(36)) 
+		return not bool(GPIO.input(32) and GPIO.input(33) and GPIO.input(35) and GPIO.input(36)) 
 
 
 ###################### TESTS ###########################

@@ -306,12 +306,13 @@ elif (test == 3):
 	# Reads Counter 1 and Counter 2 and position, resets every 20 count
 	encoder_instance = Encoder_input()
 	while (1):
-		for i in range (0,20):
+		for i in range (0,1000):
 			encoder_instance.update_counter(1)
 			encoder_instance.update_counter(2)
-			print("DI1-4:", plc_handler.get_digital_in(plc.DIN1), plc_handler.get_digital_in(plc.DIN2), plc_handler.get_digital_in(plc.DIN3), plc_handler.get_digital_in(plc.DIN4) ,
-			" |  Counter 1:", plc_handler.read_counter(1), " (", geo.rad2r2(encoder_instance.read_counter_rad(1)), ") |  Counter 2:", plc_handler.read_counter(2), " (", geo.rad2theta4(encoder_instance.read_counter_rad(2)), ")")
-			time.sleep(1)
+			if (not i % 10):
+				print("DI1-4:", plc_handler.get_digital_in(plc.DIN1), plc_handler.get_digital_in(plc.DIN2), plc_handler.get_digital_in(plc.DIN3), plc_handler.get_digital_in(plc.DIN4) ,
+				" |  Counter 1:", plc_handler.read_counter(1), " (", geo.rad2r2(encoder_instance.read_counter_rad(1)), ") |  Counter 2:", plc_handler.read_counter(2), " (", geo.rad2theta4(encoder_instance.read_counter_rad(2)), ")")
+			time.sleep(0.1)
 		encoder_instance.reset_counter(1)
 		encoder_instance.reset_counter(2)
 

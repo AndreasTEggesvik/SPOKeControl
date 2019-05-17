@@ -98,10 +98,10 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 	#newButtonData.value += 1
 
 
-	#if (control_instance.initialize(buttonPipe, newButtonData, stopButtonPressed, graphPipe, graphPipeSize, graphLock) == False):
-	#	print("Stop button is pressed during init, looping forever")
-	#	while (True):
-	#		time.sleep(0.5)
+	if (control_instance.initialize(buttonPipe, newButtonData, stopButtonPressed, graphPipe, graphPipeSize, graphLock) == False):
+		print("Stop button is pressed during init, looping forever")
+		while (True):
+			time.sleep(0.5)
 	
 	control_instance.waitForStartSignal(buttonPipe, newButtonData, stopButtonPressed)
 	control_instance.run_start_time = round(time.time(),2)
@@ -128,6 +128,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			control_instance.storeData()
 
 			if (i == 15):
+				print("r2 value = ", control_instance.r2, " | theta4 value = ", control_instance.theta4)
 				if (graphPipeSize.value == 0):
 					control_instance.eraseBufferData()
 				control_instance.bufferData()

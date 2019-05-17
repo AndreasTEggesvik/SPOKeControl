@@ -260,7 +260,8 @@ class controller:
 		self.pid_gantry.setSampleTime(0.1)
 		self.pid_ring = PID.PID(P_r, I_r, D_r)
 		self.pid_ring.setSampleTime(0.1)
-		
+		print(self.encoder_instance.read_counter_deg(GANTRY_ROBOT))
+		print(self.encoder_instance.read_counter_deg(RING_ROBOT))
 		#self.theta4 = self.encoder_instance.read_counter_deg(RING_ROBOT)
 		#self.r2 = self.encoder_instance.read_counter_deg(GANTRY_ROBOT)
 		self.theta4 = self.theta4_ref					# Only for simulation

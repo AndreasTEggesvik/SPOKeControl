@@ -4,7 +4,7 @@ import RPi.GPIO as GPIO
 import time
 import Geometry
 
-lib_path = '../../pymonarco-hat/monarco-c/libmonarco.so'
+lib_path = '../../../pymonarco-hat/monarco-c/libmonarco.so'
 plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_VERB | plc.MONARCO_DPF_ERROR | plc.MONARCO_DPF_WARNING)
 		
 		
@@ -25,8 +25,8 @@ class Encoder_input:
 		self.gear_radius2 = dimensions.r_m2
 
 		# (counter_identifier, mode, edge_count)
-		plc_handler.initiate_counter(2, 'QUAD', 'NONE') # Test to write "RISE"
-		plc_handler.initiate_counter(1, 'QUAD', 'NONE') # Test to write "RISE"
+		plc_handler.initiate_counter(2, 'QUAD', 'RISE') # Test to write "RISE"
+		plc_handler.initiate_counter(1, 'QUAD', 'RISE') # Test to write "RISE"
 		
 		# Turning on Encoder power
 		#plc_handler.set_digital_out(plc.DOUT1, plc.LOW)
@@ -277,7 +277,7 @@ class LimitSwitch():
 import Geometry as geo
 
 
-test = 0
+test = 2
 
 if (test == 1):
 	# Reads counter2 and angle in rad

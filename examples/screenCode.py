@@ -16,8 +16,9 @@ from kivy.graphics import Color, Rectangle
 import csv
 
 # Graph:
-from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
+#from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 import matplotlib.pyplot as plt
+from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 
 # Multi processing
 from multiprocessing import Process, Pipe, Value, Array, Lock
@@ -59,7 +60,6 @@ class StartButton(Button):
 			buttonPipeParent.send("START")
 
 	def updateStartButton(self, buttonPipeParent, newButtonData, superBox, dt):
-
 		# Code for taking screenshot
 		#if (self.i > 100):
 		#	superBox.export_to_png("Screenshot.png")

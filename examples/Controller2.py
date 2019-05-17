@@ -344,6 +344,8 @@ class controller:
 
 	def updatePosition(self):
 		# Possible to make this return True or False?  
+		self.encoder_instance.update_counter(GANTRY_ROBOT)
+		self.encoder_instance.update_counter(RING_ROBOT)
 		self.r2 = Geometry.rad2r2(self.encoder_instance.read_counter_rad(GANTRY_ROBOT))
 		self.theta4 = Geometry.rad2theta4(self.encoder_instance.read_counter_rad(RING_ROBOT))
 
@@ -397,9 +399,12 @@ class controller:
 
 		if (len(self.time_list) > 2):
 			self.timeDiffBuffer.append(self.time_list[-1] - self.time_list[-2])
-		else:
+		if (len(self.time_list) == 1):
 			# In the case where the data is erased before 
 			self.timeDiffBuffer.append(self.timeDiffBuffer[-1])
+		else:
+			self.timeDiffBuffer.append(0)
+
 		self.tickDiffBuffer1.append(self.encoder_instance.last_tick_diff1)
 		self.tickDiffBuffer1.append(self.encoder_instance.last_tick_diff2)
 

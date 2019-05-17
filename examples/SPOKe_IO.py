@@ -1,3 +1,4 @@
+test = 0
 
 import pymonarco_hat as plc
 import RPi.GPIO as GPIO
@@ -54,8 +55,8 @@ class Encoder_input:
 		if (counter_identifier == 1):
 			new_value = plc_handler.read_counter(1)
 
-			if abs(new_value - self.last_received1) < 3000:
-				# We have moved a reasonable length (just over 2 rotations)
+			if abs(new_value - self.last_received1) < 23000:
+				# We have moved a reasonable length (a half rotation)
 				increase = new_value - self.last_received1
 
 			elif new_value < self.last_received1:
@@ -78,7 +79,7 @@ class Encoder_input:
 		elif (counter_identifier == 2):
 			new_value = plc_handler.read_counter(2)			
 
-			if abs(new_value - self.last_received2) < 3000:
+			if abs(new_value - self.last_received2) < 23000:
 				# We have moved a reasonable length (just over 2 rotations)
 			#	print("The difference between encoder signals are < 3000")
 				increase = new_value - self.last_received2
@@ -146,9 +147,9 @@ class Encoder_input:
 	def read_counter_deg(self, counter_identifier):
 		self.update_counter(counter_identifier)
 		if (counter_identifier == 1):
-			return self.local_counter1 * 360 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
+			return self.local_counter1  * 360 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		elif (counter_identifier == 2):
-			return self.local_counter2 * 360 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
+			return self.local_counter2  * 360 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 
 
 
@@ -277,7 +278,7 @@ class LimitSwitch():
 import Geometry as geo
 
 
-test = 2
+#test = 2
 
 if (test == 1):
 	# Reads counter2 and angle in rad
@@ -290,14 +291,15 @@ elif (test == 2):
 	# Reads Counter 1 and Counter 2 and angle in deg, resets every 20 count
 	encoder_instance = Encoder_input()
 	while (1):
-		for i in range (0,20):
-			encoder_instance.update_counter(1)
-			encoder_instance.update_counter(2)
-			print("DI1-4:", plc_handler.get_digital_in(plc.DIN1), plc_handler.get_digital_in(plc.DIN2), plc_handler.get_digital_in(plc.DIN3), plc_handler.get_digital_in(plc.DIN4) ,
-			" |  Counter 1:", plc_handler.read_counter(1), " (", encoder_instance.read_counter_deg(1), ") |  Counter 2:", plc_handler.read_counter(2), " (", encoder_instance.read_counter_deg(2), ")")
-			time.sleep(1)
 		encoder_instance.reset_counter(1)
 		encoder_instance.reset_counter(2)
+		for i in range (0,1000):
+			encoder_instance.update_counter(1)
+			encoder_instance.update_counter(2)
+			if (not i % 10):
+				print("DI1-4:", plc_handler.get_digital_in(plc.DIN1), plc_handler.get_digital_in(plc.DIN2), plc_handler.get_digital_in(plc.DIN3), plc_handler.get_digital_in(plc.DIN4) ,
+				" |  Counter 1:", plc_handler.read_counter(1), " (", encoder_instance.read_counter_deg(1), ") |  Counter 2:", plc_handler.read_counter(2), " (", encoder_instance.read_counter_deg(2), ")")
+			time.sleep(0.1)
 		
 elif (test == 3):
 	# Testing motor direction

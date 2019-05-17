@@ -5,7 +5,7 @@ import math
 r3 = 0.5 
 r4 = 2 
 l_total = 1.64 # This value is too low
-r_gear_gantry = 19 / 1000
+r_gear_gantry = 25 / 1000 # 2.5 cm is an estimate
 r_gear_rotary = 19 / 1000
 
 phi4 = math.acos((r3**2 + r4**2 - l_total**2) / (2*r3*r4))

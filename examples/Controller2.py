@@ -87,15 +87,15 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 	control_instance = controller(run_start_time)
 	control_instance.waitForInitSignal(buttonPipe)
 
-	control_instance.dataBuffer[5] = -1
-	sendData(control_instance, graphPipe, graphPipeSize, graphLock)
-	time.sleep(4)
-	control_instance.encoder_instance.reset_counter(1)
-	control_instance.encoder_instance.reset_counter(2)
-	control_instance.dataBuffer[5] = 0
-	sendData(control_instance, graphPipe, graphPipeSize, graphLock)
-	buttonPipe.send("Init finished")
-	newButtonData.value += 1
+	#control_instance.dataBuffer[5] = -1
+	#sendData(control_instance, graphPipe, graphPipeSize, graphLock)
+	#time.sleep(4)
+	#control_instance.encoder_instance.reset_counter(1)
+	#control_instance.encoder_instance.reset_counter(2)
+	#control_instance.dataBuffer[5] = 0
+	#sendData(control_instance, graphPipe, graphPipeSize, graphLock)
+	#buttonPipe.send("Init finished")
+	#newButtonData.value += 1
 
 
 	#if (control_instance.initialize(buttonPipe, newButtonData, stopButtonPressed, graphPipe, graphPipeSize, graphLock) == False):
@@ -215,12 +215,12 @@ class controller:
 		if (stopButtonPressed.value):
 			return False
 
-		while ( not ( self.ls_instance.active(1) or self.ls_instance.active(2) or stopButtonPressed.value )):
-			self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity)
-			time.sleep(0.05)
-		self.stop()
-		if (stopButtonPressed.value):
-			return False
+#		while ( not ( self.ls_instance.active(1) or self.ls_instance.active(2) or stopButtonPressed.value )):
+#			self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity)
+#			time.sleep(0.05)
+#		self.stop()
+#		if (stopButtonPressed.value):
+#			return False
 
 		while ( not ( self.ls_instance.active(3) or self.ls_instance.active(4) or stopButtonPressed.value )):
 			self.motor_control.setMotorSpeed(GANTRY_ROBOT, initVelocity)

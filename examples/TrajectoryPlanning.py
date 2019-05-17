@@ -17,9 +17,9 @@ def calculateTrajectory(constraints, t):
 #        M = np.array([[1, t[0], t[0]**2],
 #                    [0, 1, 2*t[0]],
 #                    [0, 1, 2*t[1]]])
-#    # constraints = [d(q(t0)), q(tf), d(q(tf))]
+#    # constraints = [q(t0), q(tf), d(q(tf))]
 #    elif len(constraints) == 3 and mode == 2:
-#        M = np.array([[0, 1, 2*t[0]],
+#        M = np.array([[1, t[0], t[0]**2],
 #                    [1, t[1], t[1]**2],
 #                    [0, 1, 2*t[1]]])
 #                    
@@ -63,7 +63,7 @@ def LSPB(V, constraints, t):
     #A0 = calculateTrajectory([q0, dq0, V], [t0, tb], 1)
     A1 = np.array([(q0 + qf - V*tf)/2, V])
     A2 = np.array([qf - A0[2]*tf**2, 2*A0[2]*tf, -A0[2]])
-    #A2 = calculateTrajectory([A[1]*(tf-tb), 0, qf, dqf], [tf-tb , tf], 2)
+    #A2 = calculateTrajectory([A1[0] + A1[1]*(tf-tb), 0, qf, dqf], [tf-tb , tf], 2)
     return [A0, A1, A2, tb]
 
 

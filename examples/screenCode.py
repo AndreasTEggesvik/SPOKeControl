@@ -148,7 +148,7 @@ def UpdateGraph(graphPipeParent, graphPipeSize, graphLock, dt):
 		plt.clf()
 		#plt.plot(time_list, measurement_list, 'r') 						# Compatible with Multi_process_one.py
 		plotLen = min(len(time_list), 2000)
-		plt.plot(time_list[-plotLen:], gantry_ref_list[-plotLen:], 'r', time_list[-plotLen:], ring_ref_list[-plotLen:], 'b')
+		plt.plot(time_list[-plotLen:], gantry_ref_list[-plotLen:], '--r', time_list[-plotLen:], gantry_val_list.extend(gantryM), 'r', time_list[-plotLen:], ring_ref_list[-plotLen:], '--b')
 		graph.draw()
 		if (len(time_list) > 5000):
 			with open('SPOKeRunData.csv', 'a') as csvFile:

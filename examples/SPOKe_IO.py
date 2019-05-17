@@ -293,7 +293,7 @@ elif (test == 2):
 	while (1):
 		encoder_instance.reset_counter(1)
 		encoder_instance.reset_counter(2)
-<<<<<<< HEAD
+
 		for i in range (0,1000):
 			encoder_instance.update_counter(1)
 			encoder_instance.update_counter(2)
@@ -302,9 +302,6 @@ elif (test == 2):
 				" |  Counter 1:", plc_handler.read_counter(1), " (", encoder_instance.read_counter_deg(1), ") |  Counter 2:", plc_handler.read_counter(2), " (", encoder_instance.read_counter_deg(2), ")")
 			time.sleep(0.1)
 		
-=======
-
->>>>>>> a91a04253e4ae13eeba3d235dc2e2477a56b4b94
 elif (test == 3):
 	# Reads Counter 1 and Counter 2 and position, resets every 20 count
 	encoder_instance = Encoder_input()

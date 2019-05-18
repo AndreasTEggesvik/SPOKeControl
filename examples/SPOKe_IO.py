@@ -5,6 +5,9 @@ import RPi.GPIO as GPIO
 import time
 import Geometry
 
+user = 'controller'
+#user = 'tester'
+
 #lib_path = '../../../pymonarco-hat/monarco-c/libmonarco.so'
 #plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_VERB | plc.MONARCO_DPF_ERROR | plc.MONARCO_DPF_WARNING)
 		
@@ -109,31 +112,42 @@ class Encoder_input:
 		# Not finished
 	def update_counter_old(self, counter_identifier, plc_handler):
 #		global plc_handler
-		if (counter_identifier == 1):
-			new_value = plc_handler.read_counter(1)
-			if abs(new_value - self.last_received1) < 45000:
-				# We have moved a reasonable length (just over 2 rotations)
-				self.local_counter1 +=  - self.last_received1 + new_value
-			elif new_value < self.last_received1:
-				# We have probably passed the storage limit
-				self.local_counter1 += 65536 - self.last_received1 + new_value
-			elif new_value < self.last_received1:
-				# We have probably went backwards past zero
-				self.local_counter1 += new_value - self.last_received1 - 65536
-			self.last_received1 = new_value
+		if (user == 'controller'):
+			if (counter_identifier == 1):
+				new_value = plc_handler.read_counter(1)
+				if abs(new_value) < 45000:
+					# We have moved a reasonable length (just over 2 rotations)
+					self.local_counter1 +=  new_value
+				else:
+					# We have probably went backwards past zero
+					self.local_counter1 += new_value - 65536
+				self.last_received1 = new_value
+		elif (user == 'tester'):
+			if (counter_identifier == 1):
+				new_value = plc_handler.read_counter(1)
+				if abs(new_value - self.last_received1) < 45000:
+					# We have moved a reasonable length (just over 2 rotations)
+					self.local_counter1 +=  - self.last_received1 + new_value
+				elif new_value < self.last_received1:
+					# We have probably passed the storage limit
+					self.local_counter1 += 65536 - self.last_received1 + new_value
+				elif new_value < self.last_received1:
+					# We have probably went backwards past zero
+					self.local_counter1 += new_value - self.last_received1 - 65536
+				self.last_received1 = new_value
 					
-		elif (counter_identifier == 2):
-			new_value = plc_handler.read_counter(2)			
-			if abs(new_value - self.last_received2) < 45000:
-				# We have moved a reasonable length (just over 2 rotations)
-				self.local_counter2 +=  - self.last_received2 + new_value
-			elif new_value < self.last_received2:
-				# We have probably passed the storage  limit
-				self.local_counter2 += 65536 - self.last_received2 + new_value
-			elif new_value < self.last_received2:
-				# We have probably went backwards past zero
-				self.local_counter2 += new_value - self.last_received2 - 65536
-			self.last_received2 = new_value
+			elif (counter_identifier == 2):
+				new_value = plc_handler.read_counter(2)			
+				if abs(new_value - self.last_received2) < 45000:
+					# We have moved a reasonable length (just over 2 rotations)
+					self.local_counter2 +=  - self.last_received2 + new_value
+				elif new_value < self.last_received2:
+					# We have probably passed the storage  limit
+					self.local_counter2 += 65536 - self.last_received2 + new_value
+				elif new_value < self.last_received2:
+					# We have probably went backwards past zero
+					self.local_counter2 += new_value - self.last_received2 - 65536
+				self.last_received2 = new_value
 
 	def reset_counter(self, counter_identifier, plc_handler):
 		self.update_counter(counter_identifier, plc_handler)

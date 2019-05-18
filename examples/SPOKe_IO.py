@@ -101,6 +101,9 @@ class Encoder_input:
 			self.local_counter2 +=  increase
 
 			self.last_received2 = new_value
+	def readCounterValue(self,counter_identifier, plc_handler):
+		return plc_handler.read_counter(counter_identifier)
+
 
 
 		# Not finished

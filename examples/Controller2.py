@@ -214,8 +214,8 @@ class controller:
 		initVelocity = 0.5
 
 		while( not ( self.ls_instance.active(1) or self.ls_instance.active(2) or self.ls_instance.active(3) or self.ls_instance.active(4) or stopButtonPressed.value )):
-			self.motor_control.setMotorSpeed(GANTRY_ROBOT, initVelocity)
-			self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity)
+	#		self.motor_control.setMotorSpeed(GANTRY_ROBOT, initVelocity)
+	#		self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity)
 			time.sleep(0.05)
 		self.stop()
 		if (stopButtonPressed.value):
@@ -229,7 +229,7 @@ class controller:
 #			return False
 
 		while ( not ( self.ls_instance.active(3) or self.ls_instance.active(4) or stopButtonPressed.value )):
-			self.motor_control.setMotorSpeed(GANTRY_ROBOT, initVelocity)
+	#		self.motor_control.setMotorSpeed(GANTRY_ROBOT, initVelocity)
 			time.sleep(0.05)
 		self.stop()
 		if (stopButtonPressed.value):
@@ -376,25 +376,25 @@ class controller:
 		# Possible to make this return True or False?
 		[direction_gantry, PWM_signal_strength_gantry] = PID_to_control_input(self.pid_gantry.output)
 		self.motor_control.setMotorDirection(GANTRY_ROBOT, direction_gantry)
-		self.motor_control.setMotorSpeed(GANTRY_ROBOT, PWM_signal_strength_gantry)
+	#	self.motor_control.setMotorSpeed(GANTRY_ROBOT, PWM_signal_strength_gantry)
 
 		if (state == 3):
 			self.motor_control.setMotorDirection(RING_ROBOT, -1)
-			self.motor_control.setMotorSpeed(RING_ROBOT, 0.4)
+	#		self.motor_control.setMotorSpeed(RING_ROBOT, 0.4)
 			return True
 		elif (state == 6):
 			self.motor_control.setMotorDirection(RING_ROBOT, 1)
-			self.motor_control.setMotorSpeed(RING_ROBOT, 0.4)
+	#		self.motor_control.setMotorSpeed(RING_ROBOT, 0.4)
 			return True
 		
 		[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(self.pid_ring.output)
 		self.motor_control.setMotorDirection(RING_ROBOT, direction_ring)
-		self.motor_control.setMotorSpeed(RING_ROBOT, PWM_signal_strength_ring)
+	#	self.motor_control.setMotorSpeed(RING_ROBOT, PWM_signal_strength_ring)
 
 	# MUST BE TESTED BEFORE FIRST RUN: is PWM == 0 full throttle or full stop? 
 	def stop(self):
-		self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0)
-		self.motor_control.setMotorSpeed(RING_ROBOT, 0)
+	#	self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0)
+	#	self.motor_control.setMotorSpeed(RING_ROBOT, 0)
 	
 	# Could buffer PID signal also
 	def isStuck(self):

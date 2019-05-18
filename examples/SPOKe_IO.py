@@ -29,9 +29,17 @@ class Encoder_input:
 		self.gear_radius2 = dimensions.r_m2
 
 		# (counter_identifier, mode, edge_count)
-		#global plc_handler
+		GPIO.setmode(GPIO.BOARD)
+
 		plc_handler.initiate_counter(2, 'QUAD', 'RISE') # Test to write "RISE"
+		index2SignalPort = 26
+		GPIO.setup(index2SignalPort, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
 		plc_handler.initiate_counter(1, 'QUAD', 'NONE') # Test to write "RISE"
+		index1SignalPort = 7
+		GPIO.setup(index1SignalPort, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
+		GPIO.add_event_detect(index1SignalPort, GPIO.RISING, callback=self.receivedIndex1Value, bouncetime=2)
 		
 		# Turning on Encoder power
 		#plc_handler.set_digital_out(plc.DOUT1, plc.LOW)
@@ -55,6 +63,17 @@ class Encoder_input:
 		self.counterScalingRest2 = 0
 
 		# Not finished
+	def receivedIndex1Value(self, channel):
+		#self.local_counter1 * 2 * 3.14 /6000
+
+		rest = self.local_counter1 % 500
+		self.local_counter1 -= rest
+		if (rest > 250):
+			self.local_counter1 += 500
+			
+		GPIO.add_event_detect(index1SignalPort, GPIO.RISING, callback=self.receivedIndex1Value, bouncetime=2)
+
+
 	def update_counter(self, counter_identifier, plc_handler):
 #		
 		if (user == 'controller'):
@@ -185,16 +204,16 @@ class Encoder_input:
 			self.local_counter2 = 0
 			
 	def read_counter_rad(self, counter_identifier, plc_handler):
-		self.update_counter(counter_identifier, plc_handler)
+		self.update_counter_old(counter_identifier, plc_handler)
 		if (counter_identifier == 1):
 			return self.local_counter1 * 2 * 3.14 /6000 #/ (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		elif (counter_identifier == 2):
 			return self.local_counter2 * 2 * 3.14 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		
 	def read_counter_deg(self, counter_identifier, plc_handler):
-		self.update_counter(counter_identifier, plc_handler)
+		self.update_counter_old(counter_identifier, plc_handler)
 		if (counter_identifier == 1):
-			return self.local_counter1 * 360 /6000 # / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
+			return self.local_counter1 # * 360 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		elif (counter_identifier == 2):
 			return self.local_counter2  * 360 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 

@@ -31,7 +31,7 @@ class Encoder_input:
 		# (counter_identifier, mode, edge_count)
 		#global plc_handler
 		plc_handler.initiate_counter(2, 'QUAD', 'RISE') # Test to write "RISE"
-		plc_handler.initiate_counter(1, 'QUAD', 'RISE') # Test to write "RISE"
+		plc_handler.initiate_counter(1, 'QUAD', 'NONE') # Test to write "RISE"
 		
 		# Turning on Encoder power
 		#plc_handler.set_digital_out(plc.DOUT1, plc.LOW)
@@ -192,9 +192,9 @@ class Encoder_input:
 			return self.local_counter2 * 2 * 3.14 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		
 	def read_counter_deg(self, counter_identifier, plc_handler):
-		self.update_counter(counter_identifier, plc_handler)
+		self.update_counter_old(counter_identifier, plc_handler)
 		if (counter_identifier == 1):
-			return self.local_counter1  * 360 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
+			return self.local_counter1 #  * 360 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		elif (counter_identifier == 2):
 			return self.local_counter2  * 360 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 

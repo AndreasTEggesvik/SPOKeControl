@@ -139,7 +139,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 				graphCommunication.start()
 				i = 0
 			i += 1
-			time.sleep(0.1)
+			time.sleep(0.02)
 
 		if (reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData)):
 			if (state != 3 or state != 6):
@@ -165,7 +165,7 @@ class controller:
 
 		import pymonarco_hat as plc
 		lib_path = '../../../pymonarco-hat/monarco-c/libmonarco.so'
-		self.plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_ERROR | plc.MONARCO_DPF_WARNING)	
+		self.plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_WARNING)	
 
 		self.encoder_instance = SPOKe_IO.Encoder_input(self.plc_handler)
 		self.motor_control = SPOKe_IO.Motor_output(self.plc_handler)
@@ -407,7 +407,7 @@ class controller:
 			self.timeDiffBuffer.append(self.time_list[-1] - self.time_list[-2])
 		if (len(self.time_list) == 1):
 			# In the case where the data is erased before 
-			self.timeDiffBuffer.append(self.timeDiffBuffer[-1])
+			self.timeDiffBuffer.append(self.timeDiffBuffer[1])
 		else:
 			self.timeDiffBuffer.append(0)
 

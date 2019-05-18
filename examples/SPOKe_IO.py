@@ -26,6 +26,7 @@ class Encoder_input:
 		self.gear_radius2 = dimensions.r_m2
 
 		# (counter_identifier, mode, edge_count)
+		global plc_handler
 		plc_handler.initiate_counter(2, 'QUAD', 'RISE') # Test to write "RISE"
 		plc_handler.initiate_counter(1, 'QUAD', 'RISE') # Test to write "RISE"
 		
@@ -52,6 +53,7 @@ class Encoder_input:
 
 		# Not finished
 	def update_counter(self, counter_identifier):
+		global plc_handler
 		if (counter_identifier == 1):
 			new_value = plc_handler.read_counter(1)
 
@@ -103,6 +105,7 @@ class Encoder_input:
 
 		# Not finished
 	def update_counter_old(self, counter_identifier):
+		global plc_handler
 		if (counter_identifier == 1):
 			new_value = plc_handler.read_counter(1)
 			if abs(new_value - self.last_received1) < 45000:
@@ -138,7 +141,7 @@ class Encoder_input:
 			self.local_counter2 = 0
 			
 	def read_counter_rad(self, counter_identifier):
-		self.update_counter(counter_identifier)
+		self.update_counter_old(counter_identifier)
 		if (counter_identifier == 1):
 			return self.local_counter1 * 2 * 3.14 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		elif (counter_identifier == 2):

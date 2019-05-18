@@ -4,7 +4,6 @@ import pymonarco_hat as plc
 import RPi.GPIO as GPIO
 import time
 import Geometry
-
 user = 'controller'
 #user = 'tester'
 
@@ -36,10 +35,10 @@ class Encoder_input:
 		GPIO.setup(index2SignalPort, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 		plc_handler.initiate_counter(1, 'QUAD', 'NONE') # Test to write "RISE"
-		index1SignalPort = 7
-		GPIO.setup(index1SignalPort, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+		self.index1SignalPort = 7
+		GPIO.setup(self.index1SignalPort, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
-		GPIO.add_event_detect(index1SignalPort, GPIO.RISING, callback=self.receivedIndex1Value, bouncetime=2)
+		GPIO.add_event_detect(self.index1SignalPort, GPIO.RISING, callback=self.receivedIndex1Value, bouncetime=2)
 		
 		# Turning on Encoder power
 		#plc_handler.set_digital_out(plc.DOUT1, plc.LOW)
@@ -65,13 +64,13 @@ class Encoder_input:
 		# Not finished
 	def receivedIndex1Value(self, channel):
 		#self.local_counter1 * 2 * 3.14 /6000
-
+		print("INDEX")
 		rest = self.local_counter1 % 500
 		self.local_counter1 -= rest
 		if (rest > 250):
 			self.local_counter1 += 500
 			
-		GPIO.add_event_detect(index1SignalPort, GPIO.RISING, callback=self.receivedIndex1Value, bouncetime=2)
+#		GPIO.add_event_detect(self.index1SignalPort, GPIO.RISING, callback=self.receivedIndex1Value, bouncetime=2)
 
 
 	def update_counter(self, counter_identifier, plc_handler):

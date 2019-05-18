@@ -7,7 +7,7 @@ import time
 
 import pymonarco_hat as plc
 lib_path = '../../../pymonarco-hat/monarco-c/libmonarco.so'
-plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_VERB | plc.MONARCO_DPF_ERROR | plc.MONARCO_DPF_WARNING)
+plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_VERB | plc.MONARCO_DPF_WARNING)
 
 encoder_instance = SPOKe_IO.Encoder_input(plc_handler)
 

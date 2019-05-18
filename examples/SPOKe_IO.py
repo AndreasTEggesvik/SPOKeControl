@@ -79,7 +79,7 @@ class Encoder_input:
 		elif (counter_identifier == 2):
 			new_value = plc_handler.read_counter(2)			
 
-			if abs(new_value - self.last_received2) < 23000:
+			if abs(new_value - self.last_received2) < 23000: 
 				# We have moved a reasonable length (just over 2 rotations)
 			#	print("The difference between encoder signals are < 3000")
 				increase = new_value - self.last_received2

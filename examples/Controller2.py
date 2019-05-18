@@ -161,6 +161,10 @@ class controller:
 		self.reference_list_ring = [0, 0]
 		self.dataBuffer = [self.time_list[:], self.measurement_list_gantry[:], self.reference_list_gantry[:], self.measurement_list_ring[:], self.reference_list_ring[:], -1]
 
+
+		lib_path = '../../../pymonarco-hat/monarco-c/libmonarco.so'
+		plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_VERB | plc.MONARCO_DPF_ERROR | plc.MONARCO_DPF_WARNING)	
+		
 		self.encoder_instance = SPOKe_IO.Encoder_input()
 		self.motor_control = SPOKe_IO.Motor_output()
 		self.ls_instance = SPOKe_IO.LimitSwitch()			
@@ -230,8 +234,8 @@ class controller:
 		if (stopButtonPressed.value):
 			return False
 
-		self.encoder_instance.reset_counter(1)
-		self.encoder_instance.reset_counter(2)
+#		self.encoder_instance.reset_counter(1)
+#		self.encoder_instance.reset_counter(2)
 		self.dataBuffer[5] = 0
 		sendData(self, graphPipe, graphPipeSize, graphLock)
 		buttonPipe.send("Init finished")
@@ -261,8 +265,8 @@ class controller:
 		self.pid_gantry.setSampleTime(0.1)
 		self.pid_ring = PID.PID(P_r, I_r, D_r)
 		self.pid_ring.setSampleTime(0.1)
-		print(self.encoder_instance.read_counter_deg(GANTRY_ROBOT))
-		print(self.encoder_instance.read_counter_deg(RING_ROBOT))
+		print(self.encoder_instance.read_counter_deg(1))
+		print(self.encoder_instance.read_counter_deg(2))
 		#self.theta4 = self.encoder_instance.read_counter_deg(RING_ROBOT)
 		#self.r2 = self.encoder_instance.read_counter_deg(GANTRY_ROBOT)
 		self.theta4 = self.theta4_ref					# Only for simulation
@@ -346,8 +350,9 @@ class controller:
 	def updatePosition(self):
 		# Possible to make this return True or False?  
 		print("val1: ", self.encoder_instance.read_counter_rad(1))
-		self.r2 = Geometry.rad2r2(self.encoder_instance.read_counter_rad(GANTRY_ROBOT))
-		self.theta4 = Geometry.rad2theta4(self.encoder_instance.read_counter_rad(RING_ROBOT))
+		print("val2: ", self.encoder_instance.read_counter_rad(2))
+		self.r2 = Geometry.rad2r2(self.encoder_instance.read_counter_rad(1))
+		self.theta4 = Geometry.rad2theta4(self.encoder_instance.read_counter_rad(2))
 
 	def updatePID(self, state):
     	# Necessary to make this return True or False?

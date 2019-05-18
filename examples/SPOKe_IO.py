@@ -5,13 +5,13 @@ import RPi.GPIO as GPIO
 import time
 import Geometry
 
-lib_path = '../../../pymonarco-hat/monarco-c/libmonarco.so'
-plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_VERB | plc.MONARCO_DPF_ERROR | plc.MONARCO_DPF_WARNING)
+#lib_path = '../../../pymonarco-hat/monarco-c/libmonarco.so'
+#plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_VERB | plc.MONARCO_DPF_ERROR | plc.MONARCO_DPF_WARNING)
 		
 		
 class Encoder_input: 
 	# Encoder readings
-	def __init__(self):
+	def __init__(self, plc_handler):
 		#lib_path = '../monarco-c/libmonarco.so'
 		#lib_path = 'monarco-c/libmonarco.so'
 		#self.plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_VERB | plc.MONARCO_DPF_ERROR | plc.MONARCO_DPF_WARNING)
@@ -26,7 +26,7 @@ class Encoder_input:
 		self.gear_radius2 = dimensions.r_m2
 
 		# (counter_identifier, mode, edge_count)
-		global plc_handler
+		#global plc_handler
 		plc_handler.initiate_counter(2, 'QUAD', 'RISE') # Test to write "RISE"
 		plc_handler.initiate_counter(1, 'QUAD', 'RISE') # Test to write "RISE"
 		
@@ -52,7 +52,7 @@ class Encoder_input:
 		self.counterScalingRest2 = 0
 
 		# Not finished
-	def update_counter(self, counter_identifier):
+	def update_counter(self, counter_identifier, plc_handler):
 		global plc_handler
 		if (counter_identifier == 1):
 			new_value = plc_handler.read_counter(1)
@@ -104,7 +104,7 @@ class Encoder_input:
 
 
 		# Not finished
-	def update_counter_old(self, counter_identifier):
+	def update_counter_old(self, counter_identifier, plc_handler):
 		global plc_handler
 		if (counter_identifier == 1):
 			new_value = plc_handler.read_counter(1)
@@ -132,23 +132,23 @@ class Encoder_input:
 				self.local_counter2 += new_value - self.last_received2 - 65536
 			self.last_received2 = new_value
 
-	def reset_counter(self, counter_identifier):
-		self.update_counter(counter_identifier)
+	def reset_counter(self, counter_identifier, plc_handler):
+		self.update_counter(counter_identifier, plc_handler)
 		
 		if (counter_identifier == 1):
 			self.local_counter1 = 0
 		elif (counter_identifier == 2):
 			self.local_counter2 = 0
 			
-	def read_counter_rad(self, counter_identifier):
-		self.update_counter_old(counter_identifier)
+	def read_counter_rad(self, counter_identifier, plc_handler):
+		self.update_counter_old(counter_identifier, plc_handler)
 		if (counter_identifier == 1):
 			return self.local_counter1 * 2 * 3.14 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		elif (counter_identifier == 2):
 			return self.local_counter2 * 2 * 3.14 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		
-	def read_counter_deg(self, counter_identifier):
-		self.update_counter(counter_identifier)
+	def read_counter_deg(self, counter_identifier, plc_handler):
+		self.update_counter(counter_identifier, plc_handler)
 		if (counter_identifier == 1):
 			return self.local_counter1  * 360 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		elif (counter_identifier == 2):
@@ -175,7 +175,8 @@ limitSwitchPin4 = 35
 
 
 class Motor_output:
-	def __init__(self):
+	def __init__(self, plc_handler):
+		self.plc_handler = plc_handler
 		GPIO.setmode(GPIO.BOARD) # Use the physical naming convention
 		#lib_path = '../monarco-c/libmonarco.so'
 		#self.plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_VERB | plc.MONARCO_DPF_ERROR | plc.MONARCO_DPF_WARNING)
@@ -195,11 +196,11 @@ class Motor_output:
 		#GPIO.output(referenceVoltagePin, GPIO.HIGH)
 		
 		# Initialize pwm channels
-		plc_handler.set_pwm_frequency(plc.PWM_CHANNEL1, 1000)
-		plc_handler.set_pwm_frequency(plc.PWM_CHANNEL2, 1000)
-		plc_handler.set_pwm_out(plc.DOUT2, 1) #Assuming 1 is off
-		plc_handler.set_pwm_out(plc.DOUT1, 1)
-		plc_handler.set_pwm_out(plc.DOUT4, 1)
+		self.plc_handler.set_pwm_frequency(plc.PWM_CHANNEL1, 1000)
+		self.plc_handler.set_pwm_frequency(plc.PWM_CHANNEL2, 1000)
+		self.plc_handler.set_pwm_out(plc.DOUT2, 1) #Assuming 1 is off
+		self.plc_handler.set_pwm_out(plc.DOUT1, 1)
+		self.plc_handler.set_pwm_out(plc.DOUT4, 1)
 
 		
 		
@@ -233,9 +234,9 @@ class Motor_output:
 		speedValue = invert_PWM(speedValue)
 
 		if (motorNumber == 1):
-			plc_handler.set_pwm_out(plc.DOUT2, speedValue)
+			self.plc_handler.set_pwm_out(plc.DOUT2, speedValue)
 		elif (motorNumber == 2):
-			plc_handler.set_pwm_out(plc.DOUT4, speedValue)
+			self.plc_handler.set_pwm_out(plc.DOUT4, speedValue)
 		else:
 			return False
 		

@@ -137,7 +137,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 				graphCommunication.start()
 				i = 0
 			i += 1
-			time.sleep(0.02)
+			time.sleep(0.1)
 
 		if (reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData)):
 			if (state != 3 or state != 6):
@@ -163,7 +163,7 @@ class controller:
 
 		import pymonarco_hat as plc
 		lib_path = '../../../pymonarco-hat/monarco-c/libmonarco.so'
-		self.plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_VERB | plc.MONARCO_DPF_ERROR | plc.MONARCO_DPF_WARNING)	
+		self.plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_ERROR | plc.MONARCO_DPF_WARNING)	
 
 		self.encoder_instance = SPOKe_IO.Encoder_input(self.plc_handler)
 		self.motor_control = SPOKe_IO.Motor_output(self.plc_handler)
@@ -349,8 +349,8 @@ class controller:
 
 	def updatePosition(self):
 		# Possible to make this return True or False?  
-		print("val1: ", self.encoder_instance.read_counter_rad(1, self.plc_handler))
-		print("val2: ", self.encoder_instance.read_counter_rad(2, self.plc_handler))
+#		print("val1: ", self.encoder_instance.read_counter_deg(1, self.plc_handler))
+#		print("val2: ", self.encoder_instance.read_counter_deg(2, self.plc_handler))
 		self.r2 = Geometry.rad2r2(self.encoder_instance.read_counter_rad(1, self.plc_handler))
 		self.theta4 = Geometry.rad2theta4(self.encoder_instance.read_counter_rad(2, self.plc_handler))
 

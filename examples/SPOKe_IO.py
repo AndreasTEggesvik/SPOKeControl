@@ -53,7 +53,7 @@ class Encoder_input:
 
 		# Not finished
 	def update_counter(self, counter_identifier, plc_handler):
-		global plc_handler
+#		global plc_handler
 		if (counter_identifier == 1):
 			new_value = plc_handler.read_counter(1)
 
@@ -105,7 +105,7 @@ class Encoder_input:
 
 		# Not finished
 	def update_counter_old(self, counter_identifier, plc_handler):
-		global plc_handler
+#		global plc_handler
 		if (counter_identifier == 1):
 			new_value = plc_handler.read_counter(1)
 			if abs(new_value - self.last_received1) < 45000:

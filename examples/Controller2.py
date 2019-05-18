@@ -129,7 +129,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 
 			if (i == 15):
 				print("r2 value = ", control_instance.r2, " | theta4 value = ", control_instance.theta4)
-				print("Degrees: ", encoder_instance.read_counter_deg(1, self.plc_handler))
+				print("Degrees: ", control_instance.encoder_instance.read_counter_deg(1, control_instance.plc_handler))
 				if (graphPipeSize.value == 0):
 					control_instance.eraseBufferData()
 				control_instance.bufferData()

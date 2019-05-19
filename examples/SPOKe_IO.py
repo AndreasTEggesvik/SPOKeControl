@@ -69,6 +69,8 @@ class Encoder_input:
 		self.local_counter1 -= rest
 		if (rest > 250):
 			self.local_counter1 += 500
+		elif (rest < -250):
+			self.local_counter1 -= 500
 			
 #		GPIO.add_event_detect(self.index1SignalPort, GPIO.RISING, callback=self.receivedIndex1Value, bouncetime=2)
 

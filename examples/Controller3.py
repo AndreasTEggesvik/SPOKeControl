@@ -11,15 +11,9 @@ from multiprocessing import Process, Pipe, Value, Lock
 import SPOKe_IO
 
 
-GANTRY_ROBOT = 1
-RING_ROBOT = 2
-
-
-
 def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, stopButtonPressed, newButtonData, operatingTimeConstant):
 	# Initializing the robot, guaranteeing a safe starting position
-	run_start_time = round(time.time(),2)
-	control_instance = Controller(run_start_time)
+	control_instance = Controller()
 
 	i = 0
 
@@ -41,7 +35,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 
 
 class Controller:
-	def __init__(self, time_value):
+	def __init__(self):
 		import pymonarco_hat as plc
 		lib_path = '../../../pymonarco-hat/monarco-c/libmonarco.so'
 		self.plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_WARNING)	
@@ -49,9 +43,3 @@ class Controller:
 		self.encoder_instance = SPOKe_IO.Encoder_input(self.plc_handler)
 		self.motor_control = SPOKe_IO.Motor_output(self.plc_handler)
 		self.ls_instance = SPOKe_IO.LimitSwitch()			
-
-	# MUST BE TESTED BEFORE FIRST RUN: is PWM == 0 full throttle or full stop? 
-	def stop(self):
-		return True
-	#	self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0)
-	#	self.motor_control.setMotorSpeed(RING_ROBOT, 0)

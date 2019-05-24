@@ -4,8 +4,8 @@ import pymonarco_hat as plc
 import RPi.GPIO as GPIO
 import time
 import Geometry
-user = 'controller'
-#user = 'tester'
+#user = 'controller'
+user = 'tester'
 
 #lib_path = '../../../pymonarco-hat/monarco-c/libmonarco.so'
 #plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_VERB | plc.MONARCO_DPF_ERROR | plc.MONARCO_DPF_WARNING)
@@ -38,7 +38,7 @@ class Encoder_input:
 		self.index1SignalPort = 7
 		GPIO.setup(self.index1SignalPort, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
-		GPIO.add_event_detect(self.index1SignalPort, GPIO.RISING, callback=self.receivedIndex1Value, bouncetime=2)
+#		GPIO.add_event_detect(self.index1SignalPort, GPIO.RISING, callback=self.receivedIndex1Value, bouncetime=2)
 		
 		# Turning on Encoder power
 		#plc_handler.set_digital_out(plc.DOUT1, plc.LOW)

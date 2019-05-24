@@ -26,11 +26,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 	continuing = False
 
 	t0 = 0
-	if (not continuing):
-		if ( not control_instance.getNextTheta4d(state) ):
-			DoNothing = 1
-	continuing = False
-	control_instance.initNewState(t0, tf, state)
+	control_instance.initNewState(t0, 20, state)
 	i = 0 
 
 
@@ -91,7 +87,6 @@ class Controller:
 
 		# Position parameters
 		#self.theta4
-		self.theta4d = self.dimensions.theta4Min
 		self.theta4_ref = 0
 		#self.theta4_e
 		#self.r2

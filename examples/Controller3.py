@@ -78,7 +78,7 @@ class Controller:
 		self.ls_instance = SPOKe_IO.LimitSwitch()			
 
 		self.dimensions = Geometry.Dimensions()
-		#self.tstart
+		self.tstart = round(time.time(),2)
 		#self.tf
 		#self.timeout 
 		#self.pid_gantry

@@ -16,6 +16,7 @@ RING_ROBOT = 2
 
 
 
+
 def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, stopButtonPressed, newButtonData, operatingTimeConstant):
 	# Initializing the robot, guaranteeing a safe starting position
 	run_start_time = round(time.time(),2)
@@ -23,6 +24,16 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 
 	state = 1
 	i = 0
+
+	t0 = 0
+	tf = getTf(state, operatingTimeConstant)
+	if (not continuing):
+		if ( not control_instance.getNextTheta4d(state) ):
+			# In case next desired angle is outside working area
+			break
+	continuing = False
+	control_instance.initNewState(t0, tf, state)
+	i = 0 
 	#while ((not control_instance.timeout) and (stopButtonPressed.value == 0)): # and (not control_instance.isStuck())):# and (not control_instance.ls_instance.anyActive())): # and control_instance.theta4_e > 0.017 and control_instance.r2_e > 0.02): 
 		# Only check time when testing while the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
 	while(1):
@@ -167,7 +178,23 @@ class Controller:
 		self.motor_control.setMotorDirection(RING_ROBOT, direction_ring)
 	#	self.motor_control.setMotorSpeed(RING_ROBOT, PWM_signal_strength_ring)
 
+	def getNextTheta4d(self, state):
+		if (state == 2):
+			self.theta4d = self.theta4d + self.dimensions.alpha1
+			if (self.theta4d > self.dimensions.theta4Max):
+				return False
+			return self.theta4d
+		elif (state == 5):
+			self.theta4d = self.theta4d + self.dimensions.alpha2
+			if (self.theta4d > self.dimensions.theta4Max):
+				return False
+			return self.theta4d
+		elif (state == 1 or state == 3 or state == 4 or state == 6):
+			return self.theta4d
+		else: 
+			return False
 
+			
 	# MUST BE TESTED BEFORE FIRST RUN: is PWM == 0 full throttle or full stop? 
 	def stop(self):
 		return True
@@ -197,3 +224,23 @@ class Controller:
 		self.reference_list_gantry = []
 		self.measurement_list_ring = []
 		self.reference_list_ring = []
+
+
+
+
+
+
+
+
+
+def getTf(state, timeMultiplier):
+	# timeMultiplier in range [0.5, 1.5]
+	# Want low value to represent low velocity -> high tf
+	if (state == 1 or state == 4):
+		return 20 *abs(timeMultiplier.value -2) 
+	elif (state == 2):
+		return 7 *abs(timeMultiplier.value -2)
+	elif (state == 5):
+		return  4 *abs(timeMultiplier.value -2)
+	elif (state == 3 or state == 6):
+		return -1

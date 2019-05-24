@@ -23,14 +23,16 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 	while(1):
 		
 #		control_instance.encoder_instance.update_counter(1, control_instance.plc_handler)
-		control_instance.updatePosition()
+#		control_instance.updatePosition()
 		if (i == 9):
-			#print("r2 value = ", control_instance.r2, " | theta4 value = ", control_instance.theta4)
+#		for i in range (0,100):
+#			if (not i % 10):
+				#print("r2 value = ", control_instance.r2, " | theta4 value = ", control_instance.theta4)
 			print("Degrees: ", control_instance.encoder_instance.read_counter_deg(1, control_instance.plc_handler), ' ( ', control_instance.encoder_instance.local_counter1, ')' )
-
+	
 			i = 0
 		i += 1
-		time.sleep(0.02)
+		time.sleep(0.015)
 
 class Controller:
 	def __init__(self):

@@ -26,7 +26,6 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 	continuing = False
 
 	t0 = 0
-	tf = getTf(state, operatingTimeConstant)
 	if (not continuing):
 		if ( not control_instance.getNextTheta4d(state) ):
 			DoNothing = 1
@@ -74,7 +73,6 @@ class Controller:
 		self.motor_control = SPOKe_IO.Motor_output(self.plc_handler)
 		self.ls_instance = SPOKe_IO.LimitSwitch()			
 
-		self.dimensions = Geometry.Dimensions()
 		self.tstart = round(time.time(),2)
 		#self.tf
 		#self.timeout 
@@ -160,40 +158,9 @@ class Controller:
 
 		self.dataBuffer[5] = state
 
-	def getNextTheta4d(self, state):
-		if (state == 2):
-			self.theta4d = self.theta4d + self.dimensions.alpha1
-			if (self.theta4d > self.dimensions.theta4Max):
-				return False
-			return self.theta4d
-		elif (state == 5):
-			self.theta4d = self.theta4d + self.dimensions.alpha2
-			if (self.theta4d > self.dimensions.theta4Max):
-				return False
-			return self.theta4d
-		elif (state == 1 or state == 3 or state == 4 or state == 6):
-			return self.theta4d
-		else: 
-			return False
 
-	def setOutput(self, state):
-		# Possible to make this return True or False?
-		[direction_gantry, PWM_signal_strength_gantry] = PID_to_control_input(self.pid_gantry.output)
-		self.motor_control.setMotorDirection(GANTRY_ROBOT, direction_gantry)
-	#	self.motor_control.setMotorSpeed(GANTRY_ROBOT, PWM_signal_strength_gantry)
 
-		if (state == 3):
-			self.motor_control.setMotorDirection(RING_ROBOT, -1)
-	#		self.motor_control.setMotorSpeed(RING_ROBOT, 0.4)
-			return True
-		elif (state == 6):
-			self.motor_control.setMotorDirection(RING_ROBOT, 1)
-	#		self.motor_control.setMotorSpeed(RING_ROBOT, 0.4)
-			return True
-		
-		[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(self.pid_ring.output)
-		self.motor_control.setMotorDirection(RING_ROBOT, direction_ring)
-	#	self.motor_control.setMotorSpeed(RING_ROBOT, PWM_signal_strength_ring)
+
 
 
 	# MUST BE TESTED BEFORE FIRST RUN: is PWM == 0 full throttle or full stop? 
@@ -225,16 +192,3 @@ class Controller:
 		self.reference_list_gantry = []
 		self.measurement_list_ring = []
 		self.reference_list_ring = []
-
-
-def getTf(state, timeMultiplier):
-		# timeMultiplier in range [0.5, 1.5]
-	# Want low value to represent low velocity -> high tf
-	if (state == 1 or state == 4):
-		return 20 *abs(timeMultiplier.value -2) 
-	elif (state == 2):
-		return 7 *abs(timeMultiplier.value -2)
-	elif (state == 5):
-		return  4 *abs(timeMultiplier.value -2)
-	elif (state == 3 or state == 6):
-		return -1

@@ -12,15 +12,16 @@ import SPOKe_IO
 
 
 def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, stopButtonPressed, newButtonData, operatingTimeConstant):
+#def main():
 	# Initializing the robot, guaranteeing a safe starting position
 	control_instance = Controller()
 
 	i = 0
 
-	#while ((not control_instance.timeout) and (stopButtonPressed.value == 0)): # and (not control_instance.isStuck())):# and (not control_instance.ls_instance.anyActive())): # and control_instance.theta4_e > 0.017 and control_instance.r2_e > 0.02): 
+#	while ((not control_instance.timeout) and (stopButtonPressed.value == 0)): # and (not control_instance.isStuck())):# and (not control_instance.ls_instance.anyActive())): # and control_instance.theta4_e > 0.017 and control_instance.r2_e > 0.02): 
 		# Only check time when testing while the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
 	while(1):
-#		control_instance.updatePosition()
+#		control_instance.encoder_instance.update_counter(1, control_instance.plc_handler)
 		if (i == 15):
 			#print("r2 value = ", control_instance.r2, " | theta4 value = ", control_instance.theta4)
 			print("Degrees: ", control_instance.encoder_instance.read_counter_deg(1, control_instance.plc_handler), ' ( ', control_instance.encoder_instance.local_counter1, ')' )

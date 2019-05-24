@@ -26,8 +26,8 @@ def main():
 		for i in range (0,100):
 			c.motor_instance.setMotorDirection(1, -1)
 			c.motor_instance.setMotorSpeed(1,1)
-			c.encoder_instance.update_counter(1, c.plc_handler)
-			c.encoder_instance.update_counter(2, c.plc_handler)
+#			c.encoder_instance.update_counter(1, c.plc_handler)
+#			c.encoder_instance.update_counter(2, c.plc_handler)
 			if (not i % 10):
 #				print("Ticks: ", encoder_instance.readCounterValue(1, plc_handler))
 				print("Counter 1:", c.encoder_instance.read_counter_deg(1, c.plc_handler), "(", c.encoder_instance.local_counter1, ")") # " |  Counter 2:", geo.rad2theta4(encoder_instance.read_counter_rad(2, plc_handler)))

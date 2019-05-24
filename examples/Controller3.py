@@ -26,7 +26,6 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 	continuing = False
 
 	t0 = 0
-	control_instance.initNewState(t0, 20, state)
 	i = 0 
 
 
@@ -95,40 +94,6 @@ class Controller:
 		self.tickDiffBuffer1 = collections.deque(maxlen=5)
 		self.tickDiffBuffer2 = collections.deque(maxlen=5)
 
-
-	def initNewState(self, t0, tf, state):
-		# Fixing time
-		self.tstart = round(time.time(),2)
-		self.tf = tf
-		self.t0 = t0
-		self.timeout = False
-		
-		# Controller initialization
-		if (state == 1 or state == 4):
-			[P_g, I_g, D_g] = [10, 1, 0.2]
-			[P_r, I_r, D_r] = [10, 1, 0.2]
-		elif(state == 2 or state ==5):
-			[P_g, I_g, D_g] = [10, 1, 0.2]
-			[P_r, I_r, D_r] = [10, 1, 0.2]	
-		if (state == 3 or state == 6):
-			[P_g, I_g, D_g] = [0, 0, 0]
-			[P_r, I_r, D_r] = [10, 1, 0.2]
-
-		self.pid_gantry = PID.PID(P_g, I_g, D_g)
-		self.pid_gantry.setSampleTime(0.1)
-		self.pid_ring = PID.PID(P_r, I_r, D_r)
-		self.pid_ring.setSampleTime(0.1)
-		#print(self.encoder_instance.read_counter_deg(1, self.plc_handler))
-		#print(self.encoder_instance.read_counter_deg(2, self.plc_handler))
-		#self.theta4 = self.encoder_instance.read_counter_deg(RING_ROBOT)
-		#self.r2 = self.encoder_instance.read_counter_deg(GANTRY_ROBOT)
-		self.theta4 = self.theta4_ref					# Only for simulation
-		self.r2 = self.r2_ref 							# Only for simulation
-
-		#elif (state == 3 or state == 6):
-			# don't care about this
-
-		self.dataBuffer[5] = state
 
 
 

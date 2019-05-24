@@ -23,6 +23,19 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 
 	state = 1
 	i = 0
+	continuing = False
+
+	t0 = 0
+	tf = getTf(state, operatingTimeConstant)
+	if (not continuing):
+		if ( not control_instance.getNextTheta4d(state) ):
+			# In case next desired angle is outside working area
+			break
+	continuing = False
+	control_instance.initNewState(t0, tf, state)
+	i = 0 
+
+
 	#while ((not control_instance.timeout) and (stopButtonPressed.value == 0)): # and (not control_instance.isStuck())):# and (not control_instance.ls_instance.anyActive())): # and control_instance.theta4_e > 0.017 and control_instance.r2_e > 0.02): 
 		# Only check time when testing while the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
 	while(1):
@@ -96,6 +109,59 @@ class Controller:
 		self.tickDiffBuffer1 = collections.deque(maxlen=5)
 		self.tickDiffBuffer2 = collections.deque(maxlen=5)
 
+
+	def initNewState(self, t0, tf, state):
+		# Fixing time
+		self.tstart = round(time.time(),2)
+		self.tf = tf
+		self.t0 = t0
+		self.timeout = False
+		
+		# Controller initialization
+		if (state == 1 or state == 4):
+			[P_g, I_g, D_g] = [10, 1, 0.2]
+			[P_r, I_r, D_r] = [10, 1, 0.2]
+		elif(state == 2 or state ==5):
+			[P_g, I_g, D_g] = [10, 1, 0.2]
+			[P_r, I_r, D_r] = [10, 1, 0.2]	
+		if (state == 3 or state == 6):
+			[P_g, I_g, D_g] = [0, 0, 0]
+			[P_r, I_r, D_r] = [10, 1, 0.2]
+
+		self.pid_gantry = PID.PID(P_g, I_g, D_g)
+		self.pid_gantry.setSampleTime(0.1)
+		self.pid_ring = PID.PID(P_r, I_r, D_r)
+		self.pid_ring.setSampleTime(0.1)
+		#print(self.encoder_instance.read_counter_deg(1, self.plc_handler))
+		#print(self.encoder_instance.read_counter_deg(2, self.plc_handler))
+		#self.theta4 = self.encoder_instance.read_counter_deg(RING_ROBOT)
+		#self.r2 = self.encoder_instance.read_counter_deg(GANTRY_ROBOT)
+		self.theta4 = self.theta4_ref					# Only for simulation
+		self.r2 = self.r2_ref 							# Only for simulation
+		
+		if (state == 1 or state == 4):
+			self.theta4_ref = self.theta4d
+			if (state == 1):
+				self.r2_ref = self.r2_max
+				velocityDir = 1
+			elif (state == 4):
+				self.r2_ref = self.r2_min
+				velocityDir = -1
+			velocity = tp.getLSPB_velocity(self.r2, self.r2_ref, self.t0, self.tf, 0.5)
+			[self.A0_gantry, self.A1_gantry, self.A2_gantry, self.tb_gantry] = tp.LSPB(velocity*velocityDir, [self.r2, 0, self.r2_ref, 0], [self.t0, self.tf])
+
+		elif (state == 2 or state == 5):
+			velocity = tp.getLSPB_velocity(self.theta4, self.theta4d, self.t0, self.tf, 0.2)
+			[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocity, [self.theta4, 0, self.theta4d, 0], [t0, tf])
+			if (state == 2):
+				self.r2_ref = self.r2_max
+			elif (state == 5):
+				self.r2_ref = self.r2_min
+
+		#elif (state == 3 or state == 6):
+			# don't care about this
+
+		self.dataBuffer[5] = state
 
 	def getNextTheta4d(self, state):
 		if (state == 2):
@@ -197,3 +263,16 @@ class Controller:
 		self.reference_list_gantry = []
 		self.measurement_list_ring = []
 		self.reference_list_ring = []
+
+
+def getTf(state, timeMultiplier):
+		# timeMultiplier in range [0.5, 1.5]
+	# Want low value to represent low velocity -> high tf
+	if (state == 1 or state == 4):
+		return 20 *abs(timeMultiplier.value -2) 
+	elif (state == 2):
+		return 7 *abs(timeMultiplier.value -2)
+	elif (state == 5):
+		return  4 *abs(timeMultiplier.value -2)
+	elif (state == 3 or state == 6):
+		return -1

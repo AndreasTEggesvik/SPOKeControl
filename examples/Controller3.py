@@ -11,7 +11,8 @@ from multiprocessing import Process, Pipe, Value, Lock
 import SPOKe_IO
 
 
-def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, stopButtonPressed, newButtonData, operatingTimeConstant):
+#def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, stopButtonPressed, newButtonData, operatingTimeConstant):
+def main():
 	# Initializing the robot, guaranteeing a safe starting position
 	control_instance = Controller()
 

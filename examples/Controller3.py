@@ -34,15 +34,11 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 		# Only check time when testing while the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
 	while(1):
 #		control_instance.updatePosition()
-		control_instance.storeData()
 		if (i == 15):
 			#print("r2 value = ", control_instance.r2, " | theta4 value = ", control_instance.theta4)
 			print("Degrees: ", control_instance.encoder_instance.read_counter_deg(1, control_instance.plc_handler), ' ( ', control_instance.encoder_instance.local_counter1, ')' )
 			#print("Ticks: ", control_instance.encoder_instance.readCounterValue(1, control_instance.plc_handler))
-			if (graphPipeSize.value == 0):
-				control_instance.eraseBufferData()
-			control_instance.bufferData()
-			control_instance.eraseData()
+
 #			graphCommunication = Process(target=sendData, args=(control_instance, graphPipe, graphPipeSize, graphLock))
 #			graphCommunication.start()
 			i = 0
@@ -144,27 +140,3 @@ class Controller:
 		return True
 	#	self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0)
 	#	self.motor_control.setMotorSpeed(RING_ROBOT, 0)
-
-	def bufferData(self):
-		self.dataBuffer[0].extend(self.time_list[:])
-		self.dataBuffer[1].extend(self.measurement_list_gantry[:])
-		self.dataBuffer[2].extend(self.reference_list_gantry[:])
-		self.dataBuffer[3].extend(self.measurement_list_ring[:])
-		self.dataBuffer[4].extend(self.reference_list_ring[:])
-
-	def eraseBufferData(self):
-		self.dataBuffer = [[], [], [], [], [], self.dataBuffer[5]]
-
-	def storeData(self):
-		self.time_list.append((round(time.time(),2) - self.run_start_time))
-		self.measurement_list_gantry.append(self.r2)
-		self.reference_list_gantry.append(self.pid_gantry.SetPoint)
-		self.measurement_list_ring.append(self.theta4)
-		self.reference_list_ring.append(self.pid_ring.SetPoint)
-
-	def eraseData(self):
-		self.time_list = []
-		self.measurement_list_gantry = []
-		self.reference_list_gantry = []
-		self.measurement_list_ring = []
-		self.reference_list_ring = []

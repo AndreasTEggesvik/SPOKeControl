@@ -38,9 +38,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 	#while ((not control_instance.timeout) and (stopButtonPressed.value == 0)): # and (not control_instance.isStuck())):# and (not control_instance.ls_instance.anyActive())): # and control_instance.theta4_e > 0.017 and control_instance.r2_e > 0.02): 
 		# Only check time when testing while the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
 	while(1):
-		control_instance.updateTrajectory(state)
 #		control_instance.updatePosition()
-		control_instance.updatePID(state)
 		control_instance.storeData()
 		if (i == 15):
 			#print("r2 value = ", control_instance.r2, " | theta4 value = ", control_instance.theta4)
@@ -177,41 +175,6 @@ class Controller:
 			return self.theta4d
 		else: 
 			return False
-
-	def updateTrajectory(self, state):
-		operation_time = (round(time.time(),2) - self.tstart)
-		if (operation_time > self.tf - 0.1):
-			self.timeout = True
-			return True
-		if (state == 1 or state == 4):
-			self.r2_ref = tp.getLSPB_position(self.A0_gantry, self.A1_gantry, self.A2_gantry, self.tb_gantry, self.tf, operation_time)
-			return True
-		elif (state == 2 or state == 5):
-			self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring, self.tf, operation_time)
-			return True
-		elif (state ==3 or state == 6):
-			return True
-		return False
-
-
-	def updatePID(self, state):
-    	# Necessary to make this return True or False?
-		if (state == 3 or state == 6):
-			self.r2_e = 0
-			self.pid_ring.SetPoint = self.theta4_ref 
-			self.pid_ring.update(self.theta4)
-			self.theta4_e = self.theta4_ref - self.theta4
-			self.pid_gantry.SetPoint = self.r2_ref
-			return True
-		elif (state == 1 or state == 2 or state == 4 or state == 5):
-			self.pid_gantry.SetPoint = self.r2_ref
-			self.pid_gantry.update(self.r2)
-			self.r2_e = self.r2_ref - self.r2
-			self.pid_ring.SetPoint = self.theta4_ref 
-			self.pid_ring.update(self.theta4)
-			self.theta4_e = self.theta4_ref - self.theta4
-			return True
-		return False
 
 	def setOutput(self, state):
 		# Possible to make this return True or False?

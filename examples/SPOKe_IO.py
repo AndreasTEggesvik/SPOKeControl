@@ -46,6 +46,7 @@ class Encoder_input:
 		self.local_counter1 = 0
 		self.last_received1 = 0
 		self.last_tick_diff1 = 0
+		self.last_counter1 = 0
 
 		self.local_counter2 = 0
 		self.last_received2 = 0
@@ -64,14 +65,28 @@ class Encoder_input:
 		# Not finished
 	def receivedIndex1Value(self, channel):
 		#self.local_counter1 * 2 * 3.14 /6000
-		print("INDEX")
-		rest = self.local_counter1 % 500
-		self.local_counter1 -= rest
-		if (rest > 250):
-			self.local_counter1 += 500
-		elif (rest < -250):
-			self.local_counter1 -= 500
-			
+		rest = self.local_counter1 % 10
+		direction = 1
+		if (self.local_counter1 - self.last_counter1 < 0):
+			print('Diff = ',  self.local_counter1, ' - ', self.last_counter1, ' = ', self.local_counter1 - self.last_counter1)
+
+			direction = -1
+		else :
+			print('Diff = ', self.local_counter1, ' - ', self.last_counter1, ' = ', self.local_counter1 - self.last_counter1)
+
+#		self.last_counter1 = self.local_counter1
+		diff = (self.local_counter1 - self.last_counter1) #*direction
+		self.local_counter1 -= diff
+#		if (abs(rest) < 250):
+			#do nothing
+		if (diff >= 3):
+			self.local_counter1 += 10
+		elif (diff <= -3):
+			print("Subtracting")
+			self.local_counter1 -= 10
+		print("REST = ", rest*direction)
+		self.local_counter = (self.local_counter1 // 10)*10
+		self.last_counter1 = self.local_counter1
 #		GPIO.add_event_detect(self.index1SignalPort, GPIO.RISING, callback=self.receivedIndex1Value, bouncetime=2)
 
 
@@ -207,14 +222,14 @@ class Encoder_input:
 	def read_counter_rad(self, counter_identifier, plc_handler):
 		self.update_counter_old(counter_identifier, plc_handler)
 		if (counter_identifier == 1):
-			return self.local_counter1 * 2 * 3.14 /6000 #/ (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
+			return self.local_counter1 * 2 * 3.14 /230 #/ (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		elif (counter_identifier == 2):
 			return self.local_counter2 * 2 * 3.14 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		
 	def read_counter_deg(self, counter_identifier, plc_handler):
 		self.update_counter_old(counter_identifier, plc_handler)
 		if (counter_identifier == 1):
-			return self.local_counter1 # * 360 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
+			return self.local_counter1 * 360 / 230 # * 360 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		elif (counter_identifier == 2):
 			return self.local_counter2  * 360 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 

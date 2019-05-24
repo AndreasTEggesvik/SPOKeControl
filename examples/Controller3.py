@@ -114,7 +114,7 @@ class Controller:
 		# Fixing time
 		self.tstart = round(time.time(),2)
 		self.tf = tf
-		self.t0 = t0
+		self.t0 = t0g
 		self.timeout = False
 		
 		# Controller initialization

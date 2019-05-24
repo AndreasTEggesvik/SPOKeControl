@@ -29,8 +29,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 	tf = getTf(state, operatingTimeConstant)
 	if (not continuing):
 		if ( not control_instance.getNextTheta4d(state) ):
-			# In case next desired angle is outside working area
-			break
+			DoNothing = 1
 	continuing = False
 	control_instance.initNewState(t0, tf, state)
 	i = 0 
@@ -114,7 +113,7 @@ class Controller:
 		# Fixing time
 		self.tstart = round(time.time(),2)
 		self.tf = tf
-		self.t0 = t0g
+		self.t0 = t0
 		self.timeout = False
 		
 		# Controller initialization

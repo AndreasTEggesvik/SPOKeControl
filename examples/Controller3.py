@@ -90,8 +90,8 @@ class Controller:
 		self.theta4_ref = 0
 		#self.theta4_e
 		#self.r2
-		self.r2_max = self.dimensions.r2Max
-		self.r2_min = self.dimensions.r2Min
+#		self.r2_max = self.dimensions.r2Max
+#		self.r2_min = self.dimensions.r2Min
 		self.r2_ref = 0
 		#self.r2_e
 
@@ -128,25 +128,6 @@ class Controller:
 		#self.r2 = self.encoder_instance.read_counter_deg(GANTRY_ROBOT)
 		self.theta4 = self.theta4_ref					# Only for simulation
 		self.r2 = self.r2_ref 							# Only for simulation
-		
-		if (state == 1 or state == 4):
-			self.theta4_ref = self.theta4d
-			if (state == 1):
-				self.r2_ref = self.r2_max
-				velocityDir = 1
-			elif (state == 4):
-				self.r2_ref = self.r2_min
-				velocityDir = -1
-			velocity = tp.getLSPB_velocity(self.r2, self.r2_ref, self.t0, self.tf, 0.5)
-			[self.A0_gantry, self.A1_gantry, self.A2_gantry, self.tb_gantry] = tp.LSPB(velocity*velocityDir, [self.r2, 0, self.r2_ref, 0], [self.t0, self.tf])
-
-		elif (state == 2 or state == 5):
-			velocity = tp.getLSPB_velocity(self.theta4, self.theta4d, self.t0, self.tf, 0.2)
-			[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocity, [self.theta4, 0, self.theta4d, 0], [t0, tf])
-			if (state == 2):
-				self.r2_ref = self.r2_max
-			elif (state == 5):
-				self.r2_ref = self.r2_min
 
 		#elif (state == 3 or state == 6):
 			# don't care about this

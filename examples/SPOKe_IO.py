@@ -147,7 +147,7 @@ class Encoder_input:
 				increase += restOverflow
 				self.last_tick_diff1 = increase
 				self.counterScalingRest1 -= restOverflow * self.counterDownScalingFactor
-				self.local_counter1 +=  increase
+				self.local_counter1 +=  increase // self.counterDownScalingFactor
 
 				self.last_received1 = new_value
 						
@@ -228,18 +228,18 @@ class Encoder_input:
 			self.local_counter2 = 0
 			
 	def read_counter_rad(self, counter_identifier):
-		self.update_counter_old(counter_identifier)
+		self.update_counter(counter_identifier)
 		if (counter_identifier == 1):
-			return self.local_counter1 * 2 * 3.14 /230 #/ (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
+			return self.local_counter1 * 2 * 3.14 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		elif (counter_identifier == 2):
 			return self.local_counter2 * 2 * 3.14 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		
 	def read_counter_deg(self, counter_identifier):
-		self.update_counter_old(counter_identifier)
+		self.update_counter(counter_identifier)
 		if (counter_identifier == 1):
-			return self.local_counter1 * 360 / 230 # * 360 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
+			return self.local_counter1 * 360 * self.counterDownScalingFactor / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		elif (counter_identifier == 2):
-			return self.local_counter2  * 360 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
+			return self.local_counter2  * 360 * self.counterDownScalingFactor / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 
 
 

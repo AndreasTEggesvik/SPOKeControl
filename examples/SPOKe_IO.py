@@ -38,6 +38,16 @@ class Encoder_input:
 		self.last_tick_diff2 = 0
 		self.last_counter2 = 0
 
+		#The monarco counter can only count to 65,536
+		# We can count a total of 46 000 ticks for each rotation.
+		# This gives a precision of 0.0078 degrees
+		# We only need a precision of 0.25 degrees 
+		# We therefore only want to count 1440
+		# We therefore only count every 32th tick.
+		self.counterDownScalingFactor = 32
+		self.counterScalingRest1 = 0
+		self.counterScalingRest2 = 0
+
 		# (counter_identifier, mode, edge_count)
 		GPIO.setmode(GPIO.BOARD)
 
@@ -58,15 +68,7 @@ class Encoder_input:
 
 		
 
-		#The monarco counter can only count to 65,536
-		# We can count a total of 46 000 ticks for each rotation.
-		# This gives a precision of 0.0078 degrees
-		# We only need a precision of 0.25 degrees 
-		# We therefore only want to count 1440
-		# We therefore only count every 32th tick.
-		self.counterDownScalingFactor = 32
-		self.counterScalingRest1 = 0
-		self.counterScalingRest2 = 0
+		
 
 		# Not finished
 	def receivedIndex1Value(self, channel):

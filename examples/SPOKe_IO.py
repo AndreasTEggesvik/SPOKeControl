@@ -28,6 +28,16 @@ class Encoder_input:
 		self.gear_radius1 = dimensions.r_m1
 		self.gear_radius2 = dimensions.r_m2
 
+		self.local_counter1 = 0
+		self.last_received1 = 0
+		self.last_tick_diff1 = 0
+		self.last_counter1 = 0
+
+		self.local_counter2 = 0
+		self.last_received2 = 0
+		self.last_tick_diff2 = 0
+		self.last_counter2 = 0
+
 		# (counter_identifier, mode, edge_count)
 		GPIO.setmode(GPIO.BOARD)
 
@@ -46,14 +56,7 @@ class Encoder_input:
 		# Turning on Encoder power
 		#plc_handler.set_digital_out(plc.DOUT1, plc.LOW)
 
-		self.local_counter1 = 0
-		self.last_received1 = 0
-		self.last_tick_diff1 = 0
-		self.last_counter1 = 0
-
-		self.local_counter2 = 0
-		self.last_received2 = 0
-		self.last_tick_diff2 = 0
+		
 
 		#The monarco counter can only count to 65,536
 		# We can count a total of 46 000 ticks for each rotation.

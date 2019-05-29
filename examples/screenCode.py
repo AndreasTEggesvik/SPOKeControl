@@ -167,8 +167,6 @@ def UpdateGraph(graphPipeParent, graphPipeSize, graphLock, dt):
 
 class MyApp(App):
 	def build(self):
-
-
 		
 	
 		# Create the rest of the UI objects (and bind them to callbacks, if necessary):

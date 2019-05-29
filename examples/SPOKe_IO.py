@@ -14,6 +14,7 @@ user = 'tester'
 class Encoder_input: 
 	# Encoder readings
 	def __init__(self, plc_handler):
+		self.plc_handler = plc_handler
 		#lib_path = '../monarco-c/libmonarco.so'
 		#lib_path = 'monarco-c/libmonarco.so'
 		#self.plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_VERB | plc.MONARCO_DPF_ERROR | plc.MONARCO_DPF_WARNING)
@@ -31,10 +32,12 @@ class Encoder_input:
 		GPIO.setmode(GPIO.BOARD)
 
 		plc_handler.initiate_counter(2, 'QUAD', 'RISE') # Test to write "RISE"
+		self.reset_counter(2)
 		index2SignalPort = 26
 		GPIO.setup(index2SignalPort, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 		plc_handler.initiate_counter(1, 'QUAD', 'NONE') # Test to write "RISE"
+		self.reset_counter(1)
 		self.index1SignalPort = 7
 		GPIO.setup(self.index1SignalPort, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
@@ -90,13 +93,13 @@ class Encoder_input:
 #		GPIO.add_event_detect(self.index1SignalPort, GPIO.RISING, callback=self.receivedIndex1Value, bouncetime=2)
 
 
-	def update_counter(self, counter_identifier, plc_handler):
+	def update_counter(self, counter_identifier):
 #		
 		if (user == 'controller'):
 			if (counter_identifier == 1):
 # new_value ~ new_value - self.last_received1
 
-				new_value = plc_handler.read_counter(1)
+				new_value = self.plc_handler.read_counter(1)
 
 				if abs(new_value) < 23000:
 					# We have moved a reasonable length (a half rotation)
@@ -120,7 +123,7 @@ class Encoder_input:
 				self.last_received1 = new_value
 		elif (user == 'tester'):
 			if (counter_identifier == 1):
-				new_value = plc_handler.read_counter(1)
+				new_value = self.plc_handler.read_counter(1)
 
 				if abs(new_value - self.last_received1) < 23000:
 					# We have moved a reasonable length (a half rotation)
@@ -144,7 +147,7 @@ class Encoder_input:
 				self.last_received1 = new_value
 						
 			elif (counter_identifier == 2):
-				new_value = plc_handler.read_counter(2)			
+				new_value = self.plc_handler.read_counter(2)			
 
 				if abs(new_value - self.last_received2) < 23000: 
 					# We have moved a reasonable length (just over 2 rotations)
@@ -166,17 +169,17 @@ class Encoder_input:
 				self.local_counter2 +=  increase
 
 				self.last_received2 = new_value
-	def readCounterValue(self,counter_identifier, plc_handler):
-		return plc_handler.read_counter(counter_identifier)
+	def readCounterValue(self,counter_identifier):
+		return self.plc_handler.read_counter(counter_identifier)
 
 
 
 		# Not finished
-	def update_counter_old(self, counter_identifier, plc_handler):
+	def update_counter_old(self, counter_identifier):
 #		global plc_handler
 		if (user == 'controller'):
 			if (counter_identifier == 1):
-				new_value = plc_handler.read_counter(1)
+				new_value = self.plc_handler.read_counter(1)
 				if abs(new_value) < 45000:
 					# We have moved a reasonable length (just over 2 rotations)
 					self.local_counter1 +=  new_value
@@ -186,7 +189,7 @@ class Encoder_input:
 				self.last_received1 = new_value
 		elif (user == 'tester'):
 			if (counter_identifier == 1):
-				new_value = plc_handler.read_counter(1)
+				new_value = self.plc_handler.read_counter(1)
 				if abs(new_value - self.last_received1) < 45000:
 					# We have moved a reasonable length (just over 2 rotations)
 					self.local_counter1 +=  - self.last_received1 + new_value
@@ -199,7 +202,7 @@ class Encoder_input:
 				self.last_received1 = new_value
 					
 			elif (counter_identifier == 2):
-				new_value = plc_handler.read_counter(2)			
+				new_value = self.plc_handler.read_counter(2)			
 				if abs(new_value - self.last_received2) < 45000:
 					# We have moved a reasonable length (just over 2 rotations)
 					self.local_counter2 +=  - self.last_received2 + new_value
@@ -211,23 +214,23 @@ class Encoder_input:
 					self.local_counter2 += new_value - self.last_received2 - 65536
 				self.last_received2 = new_value
 
-	def reset_counter(self, counter_identifier, plc_handler):
-		self.update_counter(counter_identifier, plc_handler)
+	def reset_counter(self, counter_identifier):
+		self.update_counter(counter_identifier)
 		
 		if (counter_identifier == 1):
 			self.local_counter1 = 0
 		elif (counter_identifier == 2):
 			self.local_counter2 = 0
 			
-	def read_counter_rad(self, counter_identifier, plc_handler):
-		self.update_counter_old(counter_identifier, plc_handler)
+	def read_counter_rad(self, counter_identifier):
+		self.update_counter_old(counter_identifier)
 		if (counter_identifier == 1):
 			return self.local_counter1 * 2 * 3.14 /230 #/ (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		elif (counter_identifier == 2):
 			return self.local_counter2 * 2 * 3.14 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		
-	def read_counter_deg(self, counter_identifier, plc_handler):
-		self.update_counter_old(counter_identifier, plc_handler)
+	def read_counter_deg(self, counter_identifier):
+		self.update_counter_old(counter_identifier)
 		if (counter_identifier == 1):
 			return self.local_counter1 * 360 / 230 # * 360 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		elif (counter_identifier == 2):

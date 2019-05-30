@@ -50,51 +50,77 @@ class Encoder_input:
 
 		# (counter_identifier, mode, edge_count)
 		GPIO.setmode(GPIO.BOARD)
-
-		plc_handler.initiate_counter(2, 'QUAD', 'RISE') # Test to write "RISE"
-		self.reset_counter(2)
-		index2SignalPort = 26
-		GPIO.setup(index2SignalPort, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-
+		
 		plc_handler.initiate_counter(1, 'QUAD', 'NONE') # Test to write "RISE"
 		self.reset_counter(1)
 		self.index1SignalPort = 7
 		GPIO.setup(self.index1SignalPort, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+		self.firstZTickValue1 = 0
+		self.ZCount1 = 0
 
+
+		plc_handler.initiate_counter(2, 'QUAD', 'RISE') # Test to write "RISE"
+		self.reset_counter(2)
+		self.index2SignalPort = 26
+		GPIO.setup(self.index2SignalPort, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+		self.firstZTickValue2 = 0
+		self.ZCount2 = 0
+
+		
 #		GPIO.add_event_detect(self.index1SignalPort, GPIO.RISING, callback=self.receivedIndex1Value, bouncetime=2)
 		
 		# Turning on Encoder power
 		#plc_handler.set_digital_out(plc.DOUT1, plc.LOW)
 
+	def findFirstZ(self, counter_identifier):
+		if (counter_identifier == 1):
+			if (GPIO.wait_for_edge(self.index1SignalPort, GPIO.RISING, timeout=1000) is not None):
+				self.update_counter(counter_identifier)
+				self.firstZTickValue1 = self.local_counter1
+#				GPIO.add_event_detect(self.index1SignalPort, GPIO.RISING, callback=self.receivedIndex1Value, bouncetime=2)
+				return True
 		
-
+		elif (counter_identifier == 2):
+			if (GPIO.wait_for_edge(self.index2SignalPort, GPIO.RISING, timeout=1000) is not None):
+				self.update_counter(counter_identifier)
+				self.firstZTickValue2 = self.local_counter2
+				return True
+		return False
 		
 
 		# Not finished
 	def receivedIndex1Value(self, channel):
 		#self.local_counter1 * 2 * 3.14 /6000
+		self.update_counter(1)
+
 		rest = self.local_counter1 % 10
 		direction = 1
-		if (self.local_counter1 - self.last_counter1 < 0):
-			print('Diff = ',  self.local_counter1, ' - ', self.last_counter1, ' = ', self.local_counter1 - self.last_counter1)
 
+		diff = self.ZCount1 - self.local_counter1
+
+		if (diff < 0):
 			direction = -1
-		else :
-			print('Diff = ', self.local_counter1, ' - ', self.last_counter1, ' = ', self.local_counter1 - self.last_counter1)
+		print('Diff = ',  self.ZCount1, ' - ', self.local_counter1, ' = ', diff)
+		#else :
+		#	print('Diff = ', self.local_counter1, ' - ', self.last_counter1, ' = ', self.local_counter1 - self.last_counter1)
 
 #		self.last_counter1 = self.local_counter1
-		diff = (self.local_counter1 - self.last_counter1) #*direction
-		self.local_counter1 -= diff
+#		diff = (self.local_counter1 - self.last_counter1) #*direction
+
+#		self.local_counter1 -= diff
 #		if (abs(rest) < 250):
 			#do nothing
-		if (diff >= 3):
-			self.local_counter1 += 10
-		elif (diff <= -3):
-			print("Subtracting")
-			self.local_counter1 -= 10
+		if (diff > 40000):
+			print('Rotation Forwards')
+#			self.local_counter1 += 10
+		elif (diff <= -40000):
+			print("Rotation Backwards")
+#			self.local_counter1 -= 10
+		else: 
+			print('Back again')
 		print("REST = ", rest*direction)
-		self.local_counter = (self.local_counter1 // 10)*10
-		self.last_counter1 = self.local_counter1
+		#self.local_counter = (self.local_counter1 // 10)*10
+		#self.last_counter1 = self.local_counter1
 #		GPIO.add_event_detect(self.index1SignalPort, GPIO.RISING, callback=self.receivedIndex1Value, bouncetime=2)
 
 
@@ -141,7 +167,7 @@ class Encoder_input:
 			self.counterScalingRest2 -= restOverflow * self.counterDownScalingFactor
 			self.local_counter2 +=  increase // self.counterDownScalingFactor
 			self.last_received2 = new_value
-			
+
 	def readCounterValue(self,counter_identifier):
 		return self.plc_handler.read_counter(counter_identifier)
 

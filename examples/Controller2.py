@@ -235,6 +235,20 @@ class controller:
 		self.stop()
 		if (stopButtonPressed.value):
 			return False
+		
+		# Move both r_2 and theta_4 until the first z value is active.
+		self.motor_control.setMotorDirection(GANTRY_ROBOT, 1)
+		if ( not self.encoder_instance.findFirstZ(GANTRY_ROBOT)):
+			self.stop()
+			return False
+		self.stop()
+
+		# Code for the ring robot
+#		self.motor_control.setMotorDirection(RING_ROBOT, 1)
+#		if ( not self.encoder_instance.findFirstZ(RING_ROBOT))
+#			self.stop()
+#			return False
+#		self.stop()
 
 		self.encoder_instance.reset_counter(1)
 		self.encoder_instance.reset_counter(2)
@@ -269,10 +283,11 @@ class controller:
 		self.pid_ring.setSampleTime(0.1)
 		#print(self.encoder_instance.read_counter_deg(1))
 		#print(self.encoder_instance.read_counter_deg(2))
-		self.theta4 = self.encoder_instance.read_counter_deg(RING_ROBOT)
-		self.r2 = self.encoder_instance.read_counter_deg(GANTRY_ROBOT)
-		#self.theta4 = self.theta4_ref					# Only for simulation
-		#self.r2 = self.r2_ref 							# Only for simulation
+		
+		#self.theta4 = self.encoder_instance.read_counter_deg(RING_ROBOT)
+		#self.r2 = self.encoder_instance.read_counter_deg(GANTRY_ROBOT)
+		self.theta4 = self.theta4_ref					# Only for simulation
+		self.r2 = self.r2_ref 							# Only for simulation
 		
 		if (state == 1 or state == 4):
 			self.theta4_ref = self.theta4d

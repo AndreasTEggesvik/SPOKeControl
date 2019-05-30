@@ -221,9 +221,9 @@ class Encoder_input:
 	def read_counter_rad(self, counter_identifier):
 		self.update_counter(counter_identifier)
 		if (counter_identifier == 1):
-			return self.local_counter1 * 2 * 3.14 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
+			return self.local_counter1 * 2 * 3.14 *self.counterDownScalingFactor / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		elif (counter_identifier == 2):
-			return self.local_counter2 * 2 * 3.14 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
+			return self.local_counter2 * 2 * 3.14 *self.counterDownScalingFactor / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		
 	def read_counter_deg(self, counter_identifier):
 		self.update_counter(counter_identifier)

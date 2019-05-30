@@ -44,7 +44,7 @@ class Encoder_input:
 		# We only need a precision of 0.25 degrees 
 		# We therefore only want to count 1440
 		# We therefore only count every 32th tick.
-		self.counterDownScalingFactor = 32
+		self.counterDownScalingFactor = 46
 		self.counterScalingRest1 = 0
 		self.counterScalingRest2 = 0
 
@@ -74,7 +74,7 @@ class Encoder_input:
 
 	def findFirstZ(self, counter_identifier):
 		if (counter_identifier == 1):
-			if (GPIO.wait_for_edge(self.index1SignalPort, GPIO.RISING) is not None):
+			if (GPIO.wait_for_edge(self.index1SignalPort, GPIO.RISING, timeout=10000) is not None):
 				GPIO.remove_event_detect(self.index1SignalPort)
 				self.update_counter(counter_identifier)
 				self.firstZTickValue1 = self.local_counter1
@@ -94,10 +94,10 @@ class Encoder_input:
 		#self.local_counter1 * 2 * 3.14 /6000
 		self.update_counter(1)
 
-		rest = self.local_counter1 % 10
+#		rest = self.local_counter1 % 10
 		direction = 1
 
-		diff = self.ZCount1 - self.local_counter1
+		diff = self.firstZTickValue1 + self.ZCount1*1000 - self.local_counter1
 
 		if (diff < 0):
 			direction = -1
@@ -111,15 +111,17 @@ class Encoder_input:
 #		self.local_counter1 -= diff
 #		if (abs(rest) < 250):
 			#do nothing
-		if (diff > 40000):
+		if (diff > 8000):
 			print('Rotation Forwards')
+			self.ZCount1 +=1
 #			self.local_counter1 += 10
-		elif (diff <= -40000):
+		elif (diff <= -8000):
 			print("Rotation Backwards")
+			self.ZCount1 -=1
 #			self.local_counter1 -= 10
 		else: 
 			print('Back again')
-		print("REST = ", rest*direction)
+#		print("REST = ", rest*direction)
 		#self.local_counter = (self.local_counter1 // 10)*10
 		#self.last_counter1 = self.local_counter1
 #		GPIO.add_event_detect(self.index1SignalPort, GPIO.RISING, callback=self.receivedIndex1Value, bouncetime=2)

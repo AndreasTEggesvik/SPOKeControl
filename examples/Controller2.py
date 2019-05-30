@@ -422,9 +422,10 @@ class controller:
 
 		if (len(self.time_list) > 2):
 			self.timeDiffBuffer.append(self.time_list[-1] - self.time_list[-2])
-		if (len(self.time_list) == 1):
+		elif (len(self.time_list) == 1):
 			# In the case where the data is erased before 
-			self.timeDiffBuffer.append(self.timeDiffBuffer[1])
+#			self.timeDiffBuffer.append(self.timeDiffBuffer[1])
+			self.timeDiffBuffer.append(0)
 		else:
 			self.timeDiffBuffer.append(0)
 

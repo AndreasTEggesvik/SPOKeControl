@@ -123,7 +123,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			# Only check time when testing while the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
 
 			control_instance.updateTrajectory(state)
-#			control_instance.updatePosition()
+			control_instance.updatePosition()
 			control_instance.updatePID(state)
 			control_instance.storeData()
 

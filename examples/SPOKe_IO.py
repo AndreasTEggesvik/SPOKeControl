@@ -74,14 +74,15 @@ class Encoder_input:
 
 	def findFirstZ(self, counter_identifier):
 		if (counter_identifier == 1):
-			if (GPIO.wait_for_edge(self.index1SignalPort, GPIO.RISING, timeout=1000) is not None):
+			if (GPIO.wait_for_edge(self.index1SignalPort, GPIO.RISING) is not None):
+				GPIO.remove_event_detect(self.index1SignalPort)
 				self.update_counter(counter_identifier)
 				self.firstZTickValue1 = self.local_counter1
-#				GPIO.add_event_detect(self.index1SignalPort, GPIO.RISING, callback=self.receivedIndex1Value, bouncetime=2)
+				GPIO.add_event_detect(self.index1SignalPort, GPIO.RISING, callback=self.receivedIndex1Value, bouncetime=2)
 				return True
 		
 		elif (counter_identifier == 2):
-			if (GPIO.wait_for_edge(self.index2SignalPort, GPIO.RISING, timeout=1000) is not None):
+			if (GPIO.wait_for_edge(self.index2SignalPort, GPIO.RISING, timeout=10000) is not None):
 				self.update_counter(counter_identifier)
 				self.firstZTickValue2 = self.local_counter2
 				return True

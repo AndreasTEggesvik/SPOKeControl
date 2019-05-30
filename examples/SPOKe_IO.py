@@ -140,10 +140,13 @@ class Encoder_input:
 				# We have probably passed the storage limit
 				print('Probably moved past storage limit')
 				increase = new_value - self.last_received1 + 65536
+				print(new_value, ' - ', self.last_received1, ' + ', 65536 ' = ', increase)
+
 			elif new_value > self.last_received1:
 				# We have probably went backwards past zero
 				print('Probably moved backwards past zero')
 				increase = new_value - self.last_received1 - 65536
+				print(new_value, ' - ', self.last_received1, ' - ', 65536 ' = ', increase)
 				
 			self.counterScalingRest1 += increase % self.counterDownScalingFactor
 			restOverflow = self.counterScalingRest1 // self.counterDownScalingFactor

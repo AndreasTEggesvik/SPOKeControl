@@ -99,81 +99,49 @@ class Encoder_input:
 
 
 	def update_counter(self, counter_identifier):
-#		
-		if (user == 'controller'):
-			if (counter_identifier == 1):
-# new_value ~ new_value - self.last_received1
+		if (counter_identifier == 1):
+			new_value = self.plc_handler.read_counter(1)
+			if abs(new_value - self.last_received1) < 23000:
+				# We have moved a reasonable length (a half rotation)
+				increase = new_value - self.last_received1
+			elif new_value < self.last_received1:
+				# We have probably passed the storage limit
+				increase = new_value - self.last_received1 + 65536
+			elif new_value > self.last_received1:
+				# We have probably went backwards past zero
+				increase = new_value - self.last_received1 - 65536
+				
+			self.counterScalingRest1 += increase % self.counterDownScalingFactor
+			restOverflow = self.counterScalingRest1 // self.counterDownScalingFactor
+			increase += restOverflow
+			self.last_tick_diff1 = increase
+			self.counterScalingRest1 -= restOverflow * self.counterDownScalingFactor
+			self.local_counter1 +=  increase // self.counterDownScalingFactor
+			self.last_received1 = new_value
+					
+		elif (counter_identifier == 2):
+			new_value = self.plc_handler.read_counter(2)			
+			if abs(new_value - self.last_received2) < 23000: 
+				# We have moved a reasonable length (just over 2 rotations)
+			#	print("The difference between encoder signals are < 3000")
+				increase = new_value - self.last_received2
+			elif new_value < self.last_received2:
+				# We have probably passed the storage  limit
+				increase = new_value - self.last_received2 + 65536
+			#	print("new < last received")
+			elif new_value > self.last_received2:
+				# We have probably went backwards past zero
+				increase = new_value - self.last_received2 - 65536
+			#	print("new > last received")
 
-				new_value = self.plc_handler.read_counter(1)
-
-				if abs(new_value) < 23000:
-					# We have moved a reasonable length (a half rotation)
-					increase = new_value
-
-				elif new_value < 0:
-					# We have probably passed the storage limit
-					increase = new_value + 65536
-
-				elif new_value > 0:
-					# We have probably went backwards past zero
-					increase = new_value - 65536
-
-				self.counterScalingRest1 += increase % self.counterDownScalingFactor
-				restOverflow = self.counterScalingRest1 // self.counterDownScalingFactor
-				increase += restOverflow
-				self.last_tick_diff1 = increase
-				self.counterScalingRest1 -= restOverflow * self.counterDownScalingFactor
-				self.local_counter1 +=  increase
-
-				self.last_received1 = new_value
-		elif (user == 'tester'):
-			if (counter_identifier == 1):
-				new_value = self.plc_handler.read_counter(1)
-
-				if abs(new_value - self.last_received1) < 23000:
-					# We have moved a reasonable length (a half rotation)
-					increase = new_value - self.last_received1
-
-				elif new_value < self.last_received1:
-					# We have probably passed the storage limit
-					increase = new_value - self.last_received1 + 65536
-
-				elif new_value > self.last_received1:
-					# We have probably went backwards past zero
-					increase = new_value - self.last_received1 - 65536
-
-				self.counterScalingRest1 += increase % self.counterDownScalingFactor
-				restOverflow = self.counterScalingRest1 // self.counterDownScalingFactor
-				increase += restOverflow
-				self.last_tick_diff1 = increase
-				self.counterScalingRest1 -= restOverflow * self.counterDownScalingFactor
-				self.local_counter1 +=  increase // self.counterDownScalingFactor
-
-				self.last_received1 = new_value
-						
-			elif (counter_identifier == 2):
-				new_value = self.plc_handler.read_counter(2)			
-
-				if abs(new_value - self.last_received2) < 23000: 
-					# We have moved a reasonable length (just over 2 rotations)
-				#	print("The difference between encoder signals are < 3000")
-					increase = new_value - self.last_received2
-				elif new_value < self.last_received2:
-					# We have probably passed the storage  limit
-					increase = new_value - self.last_received2 + 65536
-				#	print("new < last received")
-				elif new_value > self.last_received2:
-					# We have probably went backwards past zero
-					increase = new_value - self.last_received2 - 65536
-				#	print("new > last received")
-				self.counterScalingRest2 += increase % self.counterDownScalingFactor
-				restOverflow = self.counterScalingRest2 // self.counterDownScalingFactor
-				increase += restOverflow
-				self.last_tick_diff1 = increase
-				self.counterScalingRest2 -= restOverflow * self.counterDownScalingFactor
-				self.local_counter2 +=  increase
-
-				self.last_received2 = new_value
+			self.counterScalingRest2 += increase % self.counterDownScalingFactor
+			restOverflow = self.counterScalingRest2 // self.counterDownScalingFactor
+			increase += restOverflow
+			self.last_tick_diff1 = increase
+			self.counterScalingRest2 -= restOverflow * self.counterDownScalingFactor
+			self.local_counter2 +=  increase // self.counterDownScalingFactor
+			self.last_received2 = new_value
+			
 	def readCounterValue(self,counter_identifier):
 		return self.plc_handler.read_counter(counter_identifier)
 
@@ -182,42 +150,31 @@ class Encoder_input:
 		# Not finished
 	def update_counter_old(self, counter_identifier):
 #		global plc_handler
-		if (user == 'controller'):
-			if (counter_identifier == 1):
-				new_value = self.plc_handler.read_counter(1)
-				if abs(new_value) < 45000:
-					# We have moved a reasonable length (just over 2 rotations)
-					self.local_counter1 +=  new_value
-				else:
-					# We have probably went backwards past zero
-					self.local_counter1 += new_value - 65536
-				self.last_received1 = new_value
-		elif (user == 'tester'):
-			if (counter_identifier == 1):
-				new_value = self.plc_handler.read_counter(1)
-				if abs(new_value - self.last_received1) < 45000:
-					# We have moved a reasonable length (just over 2 rotations)
-					self.local_counter1 +=  - self.last_received1 + new_value
-				elif new_value < self.last_received1:
-					# We have probably passed the storage limit
-					self.local_counter1 += 65536 - self.last_received1 + new_value
-				elif new_value < self.last_received1:
-					# We have probably went backwards past zero
-					self.local_counter1 += new_value - self.last_received1 - 65536
-				self.last_received1 = new_value
-					
-			elif (counter_identifier == 2):
-				new_value = self.plc_handler.read_counter(2)			
-				if abs(new_value - self.last_received2) < 45000:
-					# We have moved a reasonable length (just over 2 rotations)
-					self.local_counter2 +=  - self.last_received2 + new_value
-				elif new_value < self.last_received2:
-					# We have probably passed the storage  limit
-					self.local_counter2 += 65536 - self.last_received2 + new_value
-				elif new_value < self.last_received2:
-					# We have probably went backwards past zero
-					self.local_counter2 += new_value - self.last_received2 - 65536
-				self.last_received2 = new_value
+		if (counter_identifier == 1):
+			new_value = self.plc_handler.read_counter(1)
+			if abs(new_value - self.last_received1) < 45000:
+				# We have moved a reasonable length (just over 2 rotations)
+				self.local_counter1 +=  - self.last_received1 + new_value
+			elif new_value < self.last_received1:
+				# We have probably passed the storage limit
+				self.local_counter1 += 65536 - self.last_received1 + new_value
+			elif new_value < self.last_received1:
+				# We have probably went backwards past zero
+				self.local_counter1 += new_value - self.last_received1 - 65536
+			self.last_received1 = new_value
+				
+		elif (counter_identifier == 2):
+			new_value = self.plc_handler.read_counter(2)			
+			if abs(new_value - self.last_received2) < 45000:
+				# We have moved a reasonable length (just over 2 rotations)
+				self.local_counter2 +=  - self.last_received2 + new_value
+			elif new_value < self.last_received2:
+				# We have probably passed the storage  limit
+				self.local_counter2 += 65536 - self.last_received2 + new_value
+			elif new_value < self.last_received2:
+				# We have probably went backwards past zero
+				self.local_counter2 += new_value - self.last_received2 - 65536
+			self.last_received2 = new_value
 
 	def reset_counter(self, counter_identifier):
 		self.update_counter(counter_identifier)

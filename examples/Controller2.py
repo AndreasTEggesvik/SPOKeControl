@@ -236,8 +236,8 @@ class controller:
 		if (stopButtonPressed.value):
 			return False
 
-#		self.encoder_instance.reset_counter(1)
-#		self.encoder_instance.reset_counter(2)
+		self.encoder_instance.reset_counter(1)
+		self.encoder_instance.reset_counter(2)
 		self.dataBuffer[5] = 0
 		sendData(self, graphPipe, graphPipeSize, graphLock)
 		buttonPipe.send("Init finished")
@@ -269,10 +269,10 @@ class controller:
 		self.pid_ring.setSampleTime(0.1)
 		#print(self.encoder_instance.read_counter_deg(1))
 		#print(self.encoder_instance.read_counter_deg(2))
-		#self.theta4 = self.encoder_instance.read_counter_deg(RING_ROBOT)
-		#self.r2 = self.encoder_instance.read_counter_deg(GANTRY_ROBOT)
-		self.theta4 = self.theta4_ref					# Only for simulation
-		self.r2 = self.r2_ref 							# Only for simulation
+		self.theta4 = self.encoder_instance.read_counter_deg(RING_ROBOT)
+		self.r2 = self.encoder_instance.read_counter_deg(GANTRY_ROBOT)
+		#self.theta4 = self.theta4_ref					# Only for simulation
+		#self.r2 = self.r2_ref 							# Only for simulation
 		
 		if (state == 1 or state == 4):
 			self.theta4_ref = self.theta4d
@@ -352,8 +352,8 @@ class controller:
 	def updatePosition(self):
 		dontcare = 0
 		# Possible to make this return True or False?  
-#		self.r2 = Geometry.rad2r2(self.encoder_instance.read_counter_rad(1))
-#		self.theta4 = Geometry.rad2theta4(self.encoder_instance.read_counter_rad(2))
+		self.r2 = Geometry.rad2r2(self.encoder_instance.read_counter_rad(1))
+		self.theta4 = Geometry.rad2theta4(self.encoder_instance.read_counter_rad(2))
 
 	def updatePID(self, state):
     	# Necessary to make this return True or False?
@@ -378,15 +378,15 @@ class controller:
 		# Possible to make this return True or False?
 		[direction_gantry, PWM_signal_strength_gantry] = PID_to_control_input(self.pid_gantry.output)
 		self.motor_control.setMotorDirection(GANTRY_ROBOT, direction_gantry)
-	#	self.motor_control.setMotorSpeed(GANTRY_ROBOT, PWM_signal_strength_gantry)
+		self.motor_control.setMotorSpeed(GANTRY_ROBOT, PWM_signal_strength_gantry)
 
 		if (state == 3):
 			self.motor_control.setMotorDirection(RING_ROBOT, -1)
-	#		self.motor_control.setMotorSpeed(RING_ROBOT, 0.4)
+			self.motor_control.setMotorSpeed(RING_ROBOT, 0.4)
 			return True
 		elif (state == 6):
 			self.motor_control.setMotorDirection(RING_ROBOT, 1)
-	#		self.motor_control.setMotorSpeed(RING_ROBOT, 0.4)
+			self.motor_control.setMotorSpeed(RING_ROBOT, 0.4)
 			return True
 		
 		[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(self.pid_ring.output)
@@ -396,8 +396,8 @@ class controller:
 	# MUST BE TESTED BEFORE FIRST RUN: is PWM == 0 full throttle or full stop? 
 	def stop(self):
 		return True
-	#	self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0)
-	#	self.motor_control.setMotorSpeed(RING_ROBOT, 0)
+		self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0)
+		self.motor_control.setMotorSpeed(RING_ROBOT, 0)
 	
 	# Could buffer PID signal also
 	def isStuck(self):

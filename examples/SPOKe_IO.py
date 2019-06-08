@@ -86,6 +86,8 @@ class Encoder_input:
 			if (GPIO.wait_for_edge(self.index2SignalPort, GPIO.RISING, timeout=10000) is not None):
 				self.update_counter(counter_identifier)
 				self.firstZTickValue2 = self.local_counter2
+				GPIO.add_event_detect(self.index2SignalPort, GPIO.RISING, callback=self.receivedIndex1Value, bouncetime=2)
+				print('FOUND: ', self.firstZTickValue1)
 				return True
 		return False
 		

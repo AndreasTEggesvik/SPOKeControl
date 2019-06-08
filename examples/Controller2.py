@@ -366,10 +366,10 @@ class controller:
 		return False
 
 	def updatePosition(self):
-		dontcare = 0
 		# Possible to make this return True or False?  
 		self.r2 = Geometry.rad2r2(self.encoder_instance.read_counter_rad(1))
-		self.theta4 = Geometry.rad2theta4(self.encoder_instance.read_counter_rad(2))
+		#self.theta4 = Geometry.rad2theta4(self.encoder_instance.read_counter_rad(2))
+		self.theta4 = self.encoder_instance.read_counter_rad(2)
 
 	def updatePID(self, state):
     	# Necessary to make this return True or False?

@@ -38,12 +38,12 @@ class Encoder_input:
 		self.last_tick_diff2 = 0
 		self.last_counter2 = 0
 
-		#The monarco counter can only count to 65,536
+		#The monarco counter can only count to 65,535
 		# We can count a total of 46 000 ticks for each rotation.
 		# This gives a precision of 0.0078 degrees
-		# We only need a precision of 0.25 degrees 
-		# We therefore only want to count 1440
-		# We therefore only count every 32th tick.
+		# We only need a precision of 0.36 degrees 
+		# We therefore only want to count 1000
+		# We therefore only count every 46th tick.
 		self.counterDownScalingFactor = 46
 		self.counterScalingRest1 = 0
 		self.counterScalingRest2 = 0
@@ -112,6 +112,8 @@ class Encoder_input:
 #		self.local_counter1 -= diff
 #		if (abs(rest) < 250):
 			#do nothing
+		# Vurder å legge til (diff > 1400/self.gear_reduction):
+		#	self.ZCount1 +=2
 		if (diff > 700/self.gear_reduction):
 #			print('Rotation Forwards')
 			self.ZCount1 +=1
@@ -123,7 +125,7 @@ class Encoder_input:
 #		else: 
 #			print('Back again')
 		self.local_counter1 =  self.firstZTickValue1 + self.ZCount1*46000/(self.counterDownScalingFactor * self.gear_reduction)
-		self.ScalingRest1 = 0
+		self.counterScalingRest1 = 0
 #		print("REST = ", rest*direction)
 		#self.local_counter = (self.local_counter1 // 10)*10
 		#self.last_counter1 = self.local_counter1
@@ -159,16 +161,16 @@ class Encoder_input:
 		elif (counter_identifier == 2):
 			new_value = self.plc_handler.read_counter(2)			
 			if abs(new_value - self.last_received2) < 23000: 
-				# We have moved a reasonable length (just over 2 rotations)
+				# We have moved a reasonable length (half a rotation)
 			#	print("The difference between encoder signals are < 3000")
 				increase = new_value - self.last_received2
 			elif new_value < self.last_received2:
 				# We have probably passed the storage  limit
-				increase = new_value - self.last_received2 + 65536
+				increase = new_value - self.last_received2 + 65535
 			#	print("new < last received")
 			elif new_value > self.last_received2:
 				# We have probably went backwards past zero
-				increase = new_value - self.last_received2 - 65536
+				increase = new_value - self.last_received2 - 65535
 			#	print("new > last received")
 
 			self.counterScalingRest2 += increase % self.counterDownScalingFactor
@@ -278,7 +280,7 @@ class Motor_output:
 		
 		# Initialize pwm channels
 		self.plc_handler.set_pwm_frequency(plc.PWM_CHANNEL1, 1000)
-		self.plc_handler.set_pwm_frequency(plc.PWM_CHANNEL2, 1000)
+		self.plc_handler.set_pwm_frequency(plc.PWM_CHANNEL2, 50)
 		self.plc_handler.set_pwm_out(plc.DOUT2, 1) #Assuming 1 is off
 		self.plc_handler.set_pwm_out(plc.DOUT1, 1)
 		self.plc_handler.set_pwm_out(plc.DOUT4, 1)

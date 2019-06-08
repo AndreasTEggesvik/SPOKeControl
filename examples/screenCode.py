@@ -90,8 +90,8 @@ def update_speed(operatingTimeConstant, obj, value):
 class ValueLabel(Label):
 	def update(self, dt):
 		global ring_val_list, gantry_val_list
-		textInput = 'Theta4: ' + str(round(ring_ref_list[-1]*180/3.14, 2)) + 'deg' '\n' 
-		textInput += 'r2: ' + str(round(gantry_ref_list[-1], 2)) + 'm'
+		textInput = 'Theta4: ' + str(round(ring_val_list[-1]*180/3.14, 2)) + 'deg' '\n' 
+		textInput += 'r2: ' + str(round(gantry_val_list[-1], 2)) + 'm'
 		self.text = textInput
 
 class StateLabel(Label):

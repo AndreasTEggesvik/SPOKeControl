@@ -128,8 +128,8 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			control_instance.storeData()
 
 			if (i == 15):
-				#print("r2 value = ", control_instance.r2, " | theta4 value = ", control_instance.theta4)
-				print("Degrees: ", control_instance.encoder_instance.read_counter_deg(1), ' ( ', control_instance.encoder_instance.local_counter1, ')' )
+				print("r2 value = ", control_instance.r2, " | theta4 value = ", control_instance.theta4)
+				#print("Degrees: ", control_instance.encoder_instance.read_counter_deg(1), ' ( ', control_instance.encoder_instance.local_counter1, ')' )
 				#print("Ticks: ", control_instance.encoder_instance.readCounterValue(1))
 				if (graphPipeSize.value == 0):
 					control_instance.eraseBufferData()
@@ -366,10 +366,10 @@ class controller:
 		return False
 
 	def updatePosition(self):
-		dontcare = 0
 		# Possible to make this return True or False?  
 		self.r2 = Geometry.rad2r2(self.encoder_instance.read_counter_rad(1))
-		self.theta4 = Geometry.rad2theta4(self.encoder_instance.read_counter_rad(2))
+		#self.theta4 = Geometry.rad2theta4(self.encoder_instance.read_counter_rad(2))
+		self.theta4 = self.encoder_instance.read_counter_rad(2)
 
 	def updatePID(self, state):
     	# Necessary to make this return True or False?

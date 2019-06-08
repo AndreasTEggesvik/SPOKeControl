@@ -236,6 +236,9 @@ class controller:
 		if (stopButtonPressed.value):
 			return False
 		
+		self.encoder_instance.reset_counter(1)
+		self.encoder_instance.reset_counter(2)
+
 		# Move both r_2 and theta_4 until the first z value is active.
 		self.motor_control.setMotorDirection(GANTRY_ROBOT, 1)
 		if ( not self.encoder_instance.findFirstZ(GANTRY_ROBOT)):
@@ -250,8 +253,6 @@ class controller:
 #			return False
 #		self.stop()
 
-		self.encoder_instance.reset_counter(1)
-		self.encoder_instance.reset_counter(2)
 		self.dataBuffer[5] = 0
 		sendData(self, graphPipe, graphPipeSize, graphLock)
 		buttonPipe.send("Init finished")

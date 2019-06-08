@@ -87,36 +87,18 @@ class Encoder_input:
 				GPIO.remove_event_detect(self.index2SignalPort)
 				self.update_counter(counter_identifier)
 				self.firstZTickValue2 = self.local_counter2
-				GPIO.add_event_detect(self.index2SignalPort, GPIO.RISING, callback=self.receivedIndex1Value, bouncetime=2)
+				GPIO.add_event_detect(self.index2SignalPort, GPIO.RISING, callback=self.receivedIndex2Value, bouncetime=2)
 				print('FOUND: ', self.firstZTickValue2)
 				return True
 		return False
 		
 
-		# Not finished
 	def receivedIndex1Value(self, channel):
-		#self.local_counter1 * 2 * 3.14 /6000
 		self.update_counter(1)
 
-#		rest = self.local_counter1 % 10
-		direction = 1
-
 		diff = self.local_counter1 - self.firstZTickValue1 - self.ZCount1*46000/(self.counterDownScalingFactor * self.gear_reduction)
+		#print('Diff = ', self.local_counter1, ' - ', self.firstZTickValue1, ' - ', self.ZCount1*46000/(self.counterDownScalingFactor * self.gear_reduction), ' = ', diff)
 
-		if (diff < 0):
-			direction = -1
-		print('Diff = ', self.local_counter1, ' - ', self.firstZTickValue1, ' - ', self.ZCount1*46000/(self.counterDownScalingFactor * self.gear_reduction), ' = ', diff)
-		#else :
-		#	print('Diff = ', self.local_counter1, ' - ', self.last_counter1, ' = ', self.local_counter1 - self.last_counter1)
-
-#		self.last_counter1 = self.local_counter1
-#		diff = (self.local_counter1 - self.last_counter1) #*direction
-
-#		self.local_counter1 -= diff
-#		if (abs(rest) < 250):
-			#do nothing
-		# Vurder å legge til (diff > 1400/self.gear_reduction):
-		#	self.ZCount1 +=2
 		if (diff > 700/self.gear_reduction):
 #			print('Rotation Forwards')
 			self.ZCount1 +=1
@@ -129,10 +111,26 @@ class Encoder_input:
 #			print('Back again')
 		self.local_counter1 =  self.firstZTickValue1 + self.ZCount1*46000/(self.counterDownScalingFactor * self.gear_reduction)
 		self.counterScalingRest1 = 0
-#		print("REST = ", rest*direction)
-		#self.local_counter = (self.local_counter1 // 10)*10
-		#self.last_counter1 = self.local_counter1
-#		GPIO.add_event_detect(self.index1SignalPort, GPIO.RISING, callback=self.receivedIndex1Value, bouncetime=2)
+
+	def receivedIndex2Value(self, channel):
+		self.update_counter(1)
+
+		diff = self.local_counter2 - self.firstZTickValue2 - self.ZCount2*46000/(self.counterDownScalingFactor * self.gear_reduction)
+		#print('Diff = ', self.local_counter1, ' - ', self.firstZTickValue1, ' - ', self.ZCount1*46000/(self.counterDownScalingFactor * self.gear_reduction), ' = ', diff)
+
+		if (diff > 700/self.gear_reduction):
+#			print('Rotation Forwards')
+			self.ZCount2 +=1
+#			self.local_counter1 += 10
+		elif (diff < -700/self.gear_reduction):
+#			print("Rotation Backwards")
+			self.ZCount2 -=1
+#			self.local_counter1 -= 10
+#		else: 
+#			print('Back again')
+		self.local_counter2 =  self.firstZTickValue2 + self.ZCount2*46000/(self.counterDownScalingFactor * self.gear_reduction)
+		self.counterScalingRest2 = 0
+
 
 
 	def update_counter(self, counter_identifier):

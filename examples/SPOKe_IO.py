@@ -117,15 +117,15 @@ class Encoder_input:
 		# Vurder å legge til (diff > 1400/self.gear_reduction):
 		#	self.ZCount1 +=2
 		if (diff > 700/self.gear_reduction):
-			print('Rotation Forwards')
+#			print('Rotation Forwards')
 			self.ZCount1 +=1
 #			self.local_counter1 += 10
 		elif (diff < -700/self.gear_reduction):
-			print("Rotation Backwards")
+#			print("Rotation Backwards")
 			self.ZCount1 -=1
 #			self.local_counter1 -= 10
-		else: 
-			print('Back again')
+#		else: 
+#			print('Back again')
 		self.local_counter1 =  self.firstZTickValue1 + self.ZCount1*46000/(self.counterDownScalingFactor * self.gear_reduction)
 		self.counterScalingRest1 = 0
 #		print("REST = ", rest*direction)
@@ -144,13 +144,13 @@ class Encoder_input:
 				# We have probably passed the storage limit
 				print('Probably moved past storage limit')
 				increase = new_value - self.last_received1 + 65536
-				print(new_value, ' - ', self.last_received1, ' + ', 65536 ' = ', increase)
+				print(new_value, ' - ', self.last_received1, ' + ', 65536, ' = ', increase)
 
 			elif new_value > self.last_received1:
 				# We have probably went backwards past zero
 				print('Probably moved backwards past zero')
 				increase = new_value - self.last_received1 - 65536
-				print(new_value, ' - ', self.last_received1, ' - ', 65536 ' = ', increase)
+				print(new_value, ' - ', self.last_received1, ' - ', 65536, ' = ', increase)
 				
 			self.counterScalingRest1 += increase % self.counterDownScalingFactor
 			restOverflow = self.counterScalingRest1 // self.counterDownScalingFactor

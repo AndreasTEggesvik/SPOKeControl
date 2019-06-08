@@ -20,8 +20,8 @@ def rad2theta4(encoder_angle_rad):
 	return encoder_angle_rad * r_gear_rotary / r4
 	
 def rad2r2(encoder_angle_rad):
-	global r_gear_rotary
-	return encoder_angle_rad * r_gear_rotary
+	global r_gear_gantry
+	return encoder_angle_rad * r_gear_gantry
 	
 def phi3(r2):
 	global r1, r3

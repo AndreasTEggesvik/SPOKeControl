@@ -35,11 +35,11 @@ def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPi
 		control_instance.waitForStartSignal(buttonPipe, newButtonData, stopButtonPressed)
 		stopButtonPressed.value = 0
 		return True
-	elif ((state == 3 or state == 6) and control_instance.isStuck()):
+	elif ((state == 3 or state == 6) and True): # Shoud check if the system is stuck
 		print("We are in state ", state, "and are stuck. Proceeding to the state")
 		control_instance.stop()
 		control_instance.motor_control.openGrip()
-		return True
+		return False
 #	elif (control_instance.isStuck()):
 #		print("The robot is stuck. Stopping all motion")
 #		control_instance.stop()
@@ -216,20 +216,20 @@ class controller:
 
 
 		# Moving along the ring until we hit the limit switch
-		while ( not ( self.ls_instance.active(1) or self.ls_instance.active(2) or stopButtonPressed.value )):
-			self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity)
-			if (stopButtonPressed.value):
-				return False
-			time.sleep(0.05)
-		self.stop()
+#		while ( not ( self.ls_instance.active(1) or self.ls_instance.active(2) or stopButtonPressed.value )):
+#			self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity)
+#			if (stopButtonPressed.value):
+#				return False
+#			time.sleep(0.05)
+#		self.stop()
 		
 		# Moving the gantry robot until we hit the limit switch
-		while ( not ( self.ls_instance.active(3) or self.ls_instance.active(4) or stopButtonPressed.value )):
-			self.motor_control.setMotorSpeed(GANTRY_ROBOT, initVelocity)
-			if (stopButtonPressed.value):
-				return False
-			time.sleep(0.05)
-		self.stop()
+#		while ( not ( self.ls_instance.active(3) or self.ls_instance.active(4) or stopButtonPressed.value )):
+#			self.motor_control.setMotorSpeed(GANTRY_ROBOT, initVelocity)
+#			if (stopButtonPressed.value):
+#				return False
+#			time.sleep(0.05)
+#		self.stop()
 		
 		self.encoder_instance.reset_counter(1)
 		self.encoder_instance.reset_counter(2)

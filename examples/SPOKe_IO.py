@@ -100,9 +100,9 @@ class Encoder_input:
 		self.counterScalingRest1 = 0
 
 	def receivedIndex2Value(self, channel):
-		self.update_counter(1)
+		self.update_counter(2)
 		diff = self.local_counter2 - self.firstZTickValue2 - self.ZCount2*46000/(self.counterDownScalingFactor * self.gear_reduction)
-		#print('Diff = ', self.local_counter1, ' - ', self.firstZTickValue1, ' - ', self.ZCount1*46000/(self.counterDownScalingFactor * self.gear_reduction), ' = ', diff)
+		print('Diff = ', self.local_counter2, ' - ', self.firstZTickValue2, ' - ', self.ZCount2*46000/(self.counterDownScalingFactor * self.gear_reduction), ' = ', diff)
 
 		if (diff > 700/self.gear_reduction):
 #			print('Rotation Forwards')
@@ -157,7 +157,7 @@ class Encoder_input:
 			self.counterScalingRest2 += increase % self.counterDownScalingFactor
 			restOverflow = self.counterScalingRest2 // self.counterDownScalingFactor
 			increase += restOverflow
-			self.last_tick_diff1 = increase
+			self.last_tick_diff2 = increase
 			self.counterScalingRest2 -= restOverflow * self.counterDownScalingFactor
 			self.local_counter2 +=  increase // self.counterDownScalingFactor
 			self.last_received2 = new_value

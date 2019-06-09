@@ -214,44 +214,50 @@ class controller:
 		self.motor_control.setMotorDirection(RING_ROBOT, -1)
 		initVelocity = 0.5
 
-		while( not ( self.ls_instance.active(1) or self.ls_instance.active(2) or self.ls_instance.active(3) or self.ls_instance.active(4) or stopButtonPressed.value )):
-	#		self.motor_control.setMotorSpeed(GANTRY_ROBOT, initVelocity)
-	#		self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity)
+
+		# Moving along the ring until we hit the limit switch
+		while ( not ( self.ls_instance.active(1) or self.ls_instance.active(2) or stopButtonPressed.value )):
+			self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity)
+			if (stopButtonPressed.value):
+				return False
 			time.sleep(0.05)
 		self.stop()
-		if (stopButtonPressed.value):
-			return False
-
-#		while ( not ( self.ls_instance.active(1) or self.ls_instance.active(2) or stopButtonPressed.value )):
-#			self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity)
-#			time.sleep(0.05)
-#		self.stop()
-#		if (stopButtonPressed.value):
-#			return False
-
+		
+		# Moving the gantry robot until we hit the limit switch
 		while ( not ( self.ls_instance.active(3) or self.ls_instance.active(4) or stopButtonPressed.value )):
-	#		self.motor_control.setMotorSpeed(GANTRY_ROBOT, initVelocity)
+			self.motor_control.setMotorSpeed(GANTRY_ROBOT, initVelocity)
+			if (stopButtonPressed.value):
+				return False
 			time.sleep(0.05)
 		self.stop()
-		if (stopButtonPressed.value):
-			return False
 		
 		self.encoder_instance.reset_counter(1)
 		self.encoder_instance.reset_counter(2)
 
-		# Move both r_2 and theta_4 until the first z value is active.
+		#################################################################################
+		#																				#
+		#   The follwing code that is comment out is used to initialize the encoder.	#
+		#   Without motor control, the encoders must be moved manually					#
+		#   until the z signal is high. Init fails if this is not done within 10s		#
+		#	This is specified in 'findFirstZ' in SPOKe_IO.py 							#
+		#																				#
+		#################################################################################
+
+		# Move r_2 until the first z value is active.
 #		self.motor_control.setMotorDirection(GANTRY_ROBOT, 1)
+#		self.motor_control.setMotorSpeed(GANTRY_ROBOT, initVelocity/2)
 #		if ( not self.encoder_instance.findFirstZ(GANTRY_ROBOT)):
 #			self.stop()
 #			return False
 #		self.stop()
 
-		# Code for the ring robot
-		self.motor_control.setMotorDirection(RING_ROBOT, 1)
-		if ( not self.encoder_instance.findFirstZ(RING_ROBOT)):
-			self.stop()
-			return False
-		self.stop()
+		#  Move theta_4 until the first z value is active.
+#		self.motor_control.setMotorDirection(RING_ROBOT, 1)
+#		self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity/2)
+#		if ( not self.encoder_instance.findFirstZ(RING_ROBOT)):
+#			self.stop()
+#			return False
+#		self.stop()
 
 		self.dataBuffer[5] = 0
 		sendData(self, graphPipe, graphPipeSize, graphLock)
@@ -261,13 +267,12 @@ class controller:
 
 		
 	def initNewState(self, t0, tf, state):
-		# Fixing time
 		self.tstart = round(time.time(),2)
 		self.tf = tf
 		self.t0 = t0
 		self.timeout = False
 		
-		# Controller initialization
+		# Enables possibility of different PID control for different states
 		if (state == 1 or state == 4):
 			[P_g, I_g, D_g] = [10, 1, 0.2]
 			[P_r, I_r, D_r] = [10, 1, 0.2]
@@ -275,19 +280,18 @@ class controller:
 			[P_g, I_g, D_g] = [10, 1, 0.2]
 			[P_r, I_r, D_r] = [10, 1, 0.2]	
 		if (state == 3 or state == 6):
-			[P_g, I_g, D_g] = [0, 0, 0]
+			[P_g, I_g, D_g] = [0, 0, 0]			# PID controller is not used for gantry in these states
 			[P_r, I_r, D_r] = [10, 1, 0.2]
 
 		self.pid_gantry = PID.PID(P_g, I_g, D_g)
-		self.pid_gantry.setSampleTime(0.1)
+		self.pid_gantry.setSampleTime(0.02)
 		self.pid_ring = PID.PID(P_r, I_r, D_r)
-		self.pid_ring.setSampleTime(0.1)
-		#print(self.encoder_instance.read_counter_deg(1))
-		#print(self.encoder_instance.read_counter_deg(2))
+		self.pid_ring.setSampleTime(0.02)
 		
 		#self.theta4 = self.encoder_instance.read_counter_deg(RING_ROBOT)
 		#self.r2 = self.encoder_instance.read_counter_deg(GANTRY_ROBOT)
-		self.theta4 = self.theta4_ref					# Only for simulation
+
+		self.theta4 = self.theta4_ref					# Only for simulation, these valuas represents position if control is perfect
 		self.r2 = self.r2_ref 							# Only for simulation
 		
 		if (state == 1 or state == 4):
@@ -310,7 +314,7 @@ class controller:
 				self.r2_ref = self.r2_min
 
 		#elif (state == 3 or state == 6):
-			# don't care about this
+			# don't care about this as theta_4 ref is constant and unchanged
 
 		self.dataBuffer[5] = state
 		
@@ -334,6 +338,7 @@ class controller:
 			elif (b == "STOP"):
 				self.stop()
 
+	# Used to set the next reference point for theta_4, based on geometry of the SPOKe cleats
 	def getNextTheta4d(self, state):
 		if (state == 2):
 			self.theta4d = self.theta4d + self.dimensions.alpha1
@@ -366,13 +371,11 @@ class controller:
 		return False
 
 	def updatePosition(self):
-		# Possible to make this return True or False?  
 		self.r2 = Geometry.rad2r2(self.encoder_instance.read_counter_rad(1))
 		#self.theta4 = Geometry.rad2theta4(self.encoder_instance.read_counter_rad(2))
 		self.theta4 = self.encoder_instance.read_counter_rad(2)
 
 	def updatePID(self, state):
-    	# Necessary to make this return True or False?
 		if (state == 3 or state == 6):
 			self.r2_e = 0
 			self.pid_ring.SetPoint = self.theta4_ref 
@@ -391,23 +394,23 @@ class controller:
 		return False
 
 	def setOutput(self, state):
-		# Possible to make this return True or False?
+		# This function updates output for both motors based on PID controller
 		[direction_gantry, PWM_signal_strength_gantry] = PID_to_control_input(self.pid_gantry.output)
 		self.motor_control.setMotorDirection(GANTRY_ROBOT, direction_gantry)
 		self.motor_control.setMotorSpeed(GANTRY_ROBOT, PWM_signal_strength_gantry)
 
 		if (state == 3):
-			self.motor_control.setMotorDirection(RING_ROBOT, -1)
-			self.motor_control.setMotorSpeed(RING_ROBOT, 0.4)
+			self.motor_control.setMotorDirection(GANTRY_ROBOT, -1)
+			self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0.4)
 			return True
 		elif (state == 6):
-			self.motor_control.setMotorDirection(RING_ROBOT, 1)
-			self.motor_control.setMotorSpeed(RING_ROBOT, 0.4)
+			self.motor_control.setMotorDirection(GANTRY_ROBOT, 1)
+			self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0.4)
 			return True
 		
 		[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(self.pid_ring.output)
 		self.motor_control.setMotorDirection(RING_ROBOT, direction_ring)
-	#	self.motor_control.setMotorSpeed(RING_ROBOT, PWM_signal_strength_ring)
+		self.motor_control.setMotorSpeed(RING_ROBOT, PWM_signal_strength_ring)
 
 	# MUST BE TESTED BEFORE FIRST RUN: is PWM == 0 full throttle or full stop? 
 	def stop(self):
@@ -415,43 +418,6 @@ class controller:
 		self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0)
 		self.motor_control.setMotorSpeed(RING_ROBOT, 0)
 	
-	# Could buffer PID signal also
-	def isStuck(self):
-		StuckThreshold = 129/0.5 # = 258 [tick/(s*PWM)]
-		# 129 ticks/s at PWM = 0.5 gives a speed of 258 
-
-		if (len(self.time_list) > 2):
-			self.timeDiffBuffer.append(self.time_list[-1] - self.time_list[-2])
-		elif (len(self.time_list) == 1):
-			# In the case where the data is erased before 
-#			self.timeDiffBuffer.append(self.timeDiffBuffer[1])
-			self.timeDiffBuffer.append(0)
-		else:
-			self.timeDiffBuffer.append(0)
-
-#		self.tickDiffBuffer1.append(self.encoder_instance.last_tick_diff1)
-#		self.tickDiffBuffer1.append(self.encoder_instance.last_tick_diff2)
-
-		return False # Must be removed when testing the stuck function.
-
-		if (len(self.timeDiffBuffer) == 5):
-			velocityEstimate1 = sum(self.tickDiffBuffer1) / sum(self.timeDiffBuffer) # [tick/s]
-			GantryPWMSignal = PID_to_control_input(self.pid_gantry.output)[1]
-			if (GantryPWMSignal == 0): 
-				return False
-			if (velocityEstimate1 / GantryPWMSignal < StuckThreshold ): 
-				return True
-
-			velocityEstimate2 = sum(self.tickDiffBuffer2) / sum(self.timeDiffBuffer)
-			RingPWMSignal = PID_to_control_input(self.pid_ring.output)[1]
-			if (RingPWMSignal == 0):
-				return False
-			if (velocityEstimate2 / RingPWMSignal < StuckThreshold ): 
-				return True
-
-		return False 
-
-
 	def bufferData(self):
 		self.dataBuffer[0].extend(self.time_list[:])
 		self.dataBuffer[1].extend(self.measurement_list_gantry[:])
@@ -475,22 +441,3 @@ class controller:
 		self.reference_list_gantry = []
 		self.measurement_list_ring = []
 		self.reference_list_ring = []
-
-
-import matplotlib as plt
-
-#test = 0
-#if test == 1:
-#	main()
-#	# PLOT: 
-#	plt.figure()
-#	plt.plot(time_list, measurement_list_gantry, 'b')
-#	plt.plot(time_list, reference_list_gantry, 'r')
-#	plt.show()
-#
-#	plt.figure()
-#	plt.plot(time_list, measurement_list_ring, 'b')
-#	plt.plot(time_list, reference_list_ring, 'r')
-#	plt.show()
-	
-	

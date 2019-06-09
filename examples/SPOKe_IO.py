@@ -1,11 +1,7 @@
-test = 0
-
 import pymonarco_hat as plc
 import RPi.GPIO as GPIO
 import time
 import Geometry
-#user = 'controller'
-user = 'tester'
 
 #lib_path = '../../../pymonarco-hat/monarco-c/libmonarco.so'
 #plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_VERB | plc.MONARCO_DPF_ERROR | plc.MONARCO_DPF_WARNING)
@@ -61,16 +57,10 @@ class Encoder_input:
 
 		plc_handler.initiate_counter(2, 'QUAD', 'RISE') # Test to write "RISE"
 		self.reset_counter(2)
-		self.index2SignalPort = 26
+		self.index2SignalPort = 12
 		GPIO.setup(self.index2SignalPort, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 		self.firstZTickValue2 = 0
 		self.ZCount2 = 0
-
-		
-#		GPIO.add_event_detect(self.index1SignalPort, GPIO.RISING, callback=self.receivedIndex1Value, bouncetime=2)
-		
-		# Turning on Encoder power
-		#plc_handler.set_digital_out(plc.DOUT1, plc.LOW)
 
 	def findFirstZ(self, counter_identifier):
 		if (counter_identifier == 1):
@@ -95,42 +85,35 @@ class Encoder_input:
 
 	def receivedIndex1Value(self, channel):
 		self.update_counter(1)
-
 		diff = self.local_counter1 - self.firstZTickValue1 - self.ZCount1*46000/(self.counterDownScalingFactor * self.gear_reduction)
 		#print('Diff = ', self.local_counter1, ' - ', self.firstZTickValue1, ' - ', self.ZCount1*46000/(self.counterDownScalingFactor * self.gear_reduction), ' = ', diff)
 
 		if (diff > 700/self.gear_reduction):
 #			print('Rotation Forwards')
 			self.ZCount1 +=1
-#			self.local_counter1 += 10
 		elif (diff < -700/self.gear_reduction):
-#			print("Rotation Backwards")
+#			print("Back to last position")
 			self.ZCount1 -=1
-#			self.local_counter1 -= 10
 #		else: 
-#			print('Back again')
+#			print('Back to earlier position')
 		self.local_counter1 =  self.firstZTickValue1 + self.ZCount1*46000/(self.counterDownScalingFactor * self.gear_reduction)
 		self.counterScalingRest1 = 0
 
 	def receivedIndex2Value(self, channel):
 		self.update_counter(2)
-
 		diff = self.local_counter2 - self.firstZTickValue2 - self.ZCount2*46000/(self.counterDownScalingFactor * self.gear_reduction)
 		print('Diff = ', self.local_counter2, ' - ', self.firstZTickValue2, ' - ', self.ZCount2*46000/(self.counterDownScalingFactor * self.gear_reduction), ' = ', diff)
 
 		if (diff > 700/self.gear_reduction):
 #			print('Rotation Forwards')
 			self.ZCount2 +=1
-#			self.local_counter1 += 10
 		elif (diff < -700/self.gear_reduction):
 #			print("Rotation Backwards")
 			self.ZCount2 -=1
-#			self.local_counter1 -= 10
-#		else: 
-#			print('Back again')
+#		else:
+#			print("Back to last position")
 		self.local_counter2 =  self.firstZTickValue2 + self.ZCount2*46000/(self.counterDownScalingFactor * self.gear_reduction)
 		self.counterScalingRest2 = 0
-
 
 
 	def update_counter(self, counter_identifier):
@@ -163,16 +146,13 @@ class Encoder_input:
 			new_value = self.plc_handler.read_counter(2)			
 			if abs(new_value - self.last_received2) < 23000: 
 				# We have moved a reasonable length (half a rotation)
-			#	print("The difference between encoder signals are < 3000")
 				increase = new_value - self.last_received2
 			elif new_value < self.last_received2:
 				# We have probably passed the storage  limit
 				increase = new_value - self.last_received2 + 65535
-			#	print("new < last received")
 			elif new_value > self.last_received2:
 				# We have probably went backwards past zero
 				increase = new_value - self.last_received2 - 65535
-			#	print("new > last received")
 
 			self.counterScalingRest2 += increase % self.counterDownScalingFactor
 			restOverflow = self.counterScalingRest2 // self.counterDownScalingFactor
@@ -185,40 +165,8 @@ class Encoder_input:
 	def readCounterValue(self,counter_identifier):
 		return self.plc_handler.read_counter(counter_identifier)
 
-
-
-		# Not finished
-	def update_counter_old(self, counter_identifier):
-#		global plc_handler
-		if (counter_identifier == 1):
-			new_value = self.plc_handler.read_counter(1)
-			if abs(new_value - self.last_received1) < 45000:
-				# We have moved a reasonable length (just over 2 rotations)
-				self.local_counter1 +=  - self.last_received1 + new_value
-			elif new_value < self.last_received1:
-				# We have probably passed the storage limit
-				self.local_counter1 += 65536 - self.last_received1 + new_value
-			elif new_value < self.last_received1:
-				# We have probably went backwards past zero
-				self.local_counter1 += new_value - self.last_received1 - 65536
-			self.last_received1 = new_value
-				
-		elif (counter_identifier == 2):
-			new_value = self.plc_handler.read_counter(2)			
-			if abs(new_value - self.last_received2) < 45000:
-				# We have moved a reasonable length (just over 2 rotations)
-				self.local_counter2 +=  - self.last_received2 + new_value
-			elif new_value < self.last_received2:
-				# We have probably passed the storage  limit
-				self.local_counter2 += 65536 - self.last_received2 + new_value
-			elif new_value < self.last_received2:
-				# We have probably went backwards past zero
-				self.local_counter2 += new_value - self.last_received2 - 65536
-			self.last_received2 = new_value
-
 	def reset_counter(self, counter_identifier):
 		self.update_counter(counter_identifier)
-		
 		if (counter_identifier == 1):
 			self.local_counter1 = 0
 		elif (counter_identifier == 2):
@@ -239,9 +187,6 @@ class Encoder_input:
 			return self.local_counter2  * 360 * self.counterDownScalingFactor / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 
 
-
-
-
 # Robot definition
 ringRobot = 1
 gantryRobot = 2
@@ -257,7 +202,6 @@ limitSwitchPin2 = 33
 limitSwitchPin3 = 36
 limitSwitchPin4 = 35
 
-
 class Motor_output:
 	def __init__(self, plc_handler):
 		self.plc_handler = plc_handler
@@ -270,14 +214,6 @@ class Motor_output:
 		GPIO.setup(motor1Pin2, GPIO.OUT, initial = 0)
 		GPIO.setup(motor2Pin1, GPIO.OUT, initial = 0)
 		GPIO.setup(motor2Pin2, GPIO.OUT, initial = 0)
-		
-		# Set voltage switching ground and 3.7V
-		#groundPin = 32
-		#GPIO.setup(groundPin, GPIO.OUT, initial = 0)
-		#GPIO.output(groundPin, GPIO.LOW)
-		#referenceVoltagePin = 35
-		#GPIO.setup(referenceVoltagePin, GPIO.OUT, initial = 0)
-		#GPIO.output(referenceVoltagePin, GPIO.HIGH)
 		
 		# Initialize pwm channels
 		self.plc_handler.set_pwm_frequency(plc.PWM_CHANNEL1, 1000)
@@ -325,12 +261,15 @@ class Motor_output:
 			return False
 		
 	def closeGrip(self):
+		# Not implemented
 		return False
 
 	def openGrip(self):
+		# Not implemented
 		return False
 
 def invert_PWM(pwm_in):
+	# Required as pwm = 1 is off, while pwm = 0 is off, and we want the opposite
 	return abs(pwm_in - 1)
 
 class LimitSwitch():
@@ -338,7 +277,7 @@ class LimitSwitch():
 	# Assuming low represents active switch
 	def __init__(self):
 		GPIO.setmode(GPIO.BOARD) # Use the physical naming convention
-		GPIO.setup(limitSwitchPin1, GPIO.IN, pull_up_down = GPIO.PUD_UP) # or PUD_UP
+		GPIO.setup(limitSwitchPin1, GPIO.IN, pull_up_down = GPIO.PUD_UP) 
 		GPIO.setup(limitSwitchPin2, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 		GPIO.setup(limitSwitchPin3, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 		GPIO.setup(limitSwitchPin4, GPIO.IN, pull_up_down = GPIO.PUD_UP)
@@ -360,68 +299,3 @@ class LimitSwitch():
 		
 	def anyActive(self):
 		return not bool(GPIO.input(32) and GPIO.input(33) and GPIO.input(35) and GPIO.input(36)) 
-
-
-###################### TESTS ###########################
-import Geometry as geo
-
-
-#test = 2
-
-if (test == 1):
-	# Reads counter2 and angle in rad
-	encoder_instance = Encoder_input()
-	while (1):
-		print("DI1-4:", plc_handler.get_digital_in(plc.DIN1), " | Counter 2 [deg]:", encoder_instance.read_counter_deg(2), " | R2 [m]: ", geo.rad2r2(encoder_instance.read_counter_rad(2)))
-		time.sleep(1)
-	
-elif (test == 2):
-	# Reads Counter 1 and Counter 2 and angle in deg, resets every 20 count
-	encoder_instance = Encoder_input()
-	while (1):
-		encoder_instance.reset_counter(1)
-		encoder_instance.reset_counter(2)
-
-		for i in range (0,1000):
-			encoder_instance.update_counter(1)
-			encoder_instance.update_counter(2)
-			if (not i % 10):
-				print("DI1-4:", plc_handler.get_digital_in(plc.DIN1), plc_handler.get_digital_in(plc.DIN2), plc_handler.get_digital_in(plc.DIN3), plc_handler.get_digital_in(plc.DIN4) ,
-				" |  Counter 1:", plc_handler.read_counter(1), " (", encoder_instance.read_counter_deg(1), ") |  Counter 2:", plc_handler.read_counter(2), " (", encoder_instance.read_counter_deg(2), ")")
-			time.sleep(0.1)
-		
-elif (test == 3):
-	# Reads Counter 1 and Counter 2 and position, resets every 20 count
-	encoder_instance = Encoder_input()
-	while (1):
-		for i in range (0,1000):
-			encoder_instance.update_counter(1)
-			encoder_instance.update_counter(2)
-			if (not i % 10):
-				print("DI1-4:", plc_handler.get_digital_in(plc.DIN1), plc_handler.get_digital_in(plc.DIN2), plc_handler.get_digital_in(plc.DIN3), plc_handler.get_digital_in(plc.DIN4) ,
-				" |  Counter 1:", plc_handler.read_counter(1), " (", geo.rad2r2(encoder_instance.read_counter_rad(1)), ") |  Counter 2:", plc_handler.read_counter(2), " (", geo.rad2theta4(encoder_instance.read_counter_rad(2)), ")")
-			time.sleep(0.1)
-		encoder_instance.reset_counter(1)
-		encoder_instance.reset_counter(2)
-
-
-elif (test == 4):
-	# Testing motor direction
-	iterator = 0.25
-	while 1:
-		# Run forwars
-		print("Running forwards")
-		setMotorDirection(ringRobot, 1)
-		time.sleep(1)
-	 
-		
-		# Stop
-		print("Stopping")
-		setMotorDirection(ringRobot, 0)
-		time.sleep(1)
-	  
-		
-		# Run Backwards
-		print("Running backwards")
-		setMotorDirection(ringRobot, -1)
-		time.sleep(1)

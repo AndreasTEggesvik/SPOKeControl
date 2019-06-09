@@ -1,4 +1,4 @@
-﻿Time;GantryValue;GantryRef;RingValue;RingRef
+﻿Time,GantryValue,GantryRef,RingValue,RingRef
 0.0,0.0,0.0,0.0,1e-06
 0.029999971389770508,0.0,8.99998283387e-06,0.0,1e-06
 0.04999995231628418,0.0,2.49999523163e-05,0.0,1e-06

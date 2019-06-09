@@ -40,24 +40,42 @@ ring_ref_list = [0]
 plt.plot(time_list, gantry_ref_list, 'r')
 graph = FigureCanvasKivyAgg(plt.gcf())
 
-def press_callback(startButton, buttonPipeParent, stopButtonPressed, newButtonData, obj):
+#def press_callback(startButton, buttonPipeParent, stopButtonPressed, newButtonData, obj):
+#	if obj.text == 'STOP':
+#		buttonPipeParent.send("STOP")
+#		stopButtonPressed.value = 1
+#		print("Stop button pressed")
+#		startButton.text = "START"
+#		startButton.background_color = [0, 0.7, 0, 1]
+	
+	
+
+def screenPress(data, obj):
 	if obj.text == 'STOP':
+		[startButton, buttonPipeParent, stopButtonPressed, newButtonData] = data
 		buttonPipeParent.send("STOP")
 		stopButtonPressed.value = 1
 		print("Stop button pressed")
-
 		startButton.text = "START"
 		startButton.background_color = [0, 0.7, 0, 1]
 
+	if obj.text == 'INIT':
+		buttonPipeParent = data
+		buttonPipeParent.send("INIT")
+		obj.background_color = [0, 0.3, 0, 1]
+
+	elif obj.text == 'START':
+		buttonPipeParent = data
+		buttonPipeParent.send("START")
 
 class StartButton(Button):
-	def buttonPressed(self, buttonPipeParent, obj):
-		print(type(self), " | ", type(obj)," | ", type(buttonPipeParent))
-		if self.text == 'INIT':
-			buttonPipeParent.send("INIT")
-			self.background_color = [0, 0.3, 0, 1]
-		elif self.text == 'START':
-			buttonPipeParent.send("START")
+#	def buttonPressed(self, buttonPipeParent, obj):
+#		print(type(self), " | ", type(obj)," | ", type(buttonPipeParent))
+#		if self.text == 'INIT':
+#			buttonPipeParent.send("INIT")
+#			self.background_color = [0, 0.3, 0, 1]
+#		elif self.text == 'START':
+#			buttonPipeParent.send("START")
 
 	def updateStartButton(self, buttonPipeParent, newButtonData, superBox, dt):
 		# Code for taking screenshot
@@ -79,9 +97,9 @@ class StartButton(Button):
 			print("Received message: ", b)
 
 # This is called when the slider is updated:
-def update_speed(operatingTimeConstant, obj, value):
+def screenSwipe(operatingTimeConstant, obj, value):
 	operatingTimeConstant.value = obj.value
-	print("Updating speed to:" + str(operatingTimeConstant.value))
+	print("Speed is now:" + str(operatingTimeConstant.value))
 #	print("Should be: " + str(obj.value))
 #	print("Or: " + str(value))
 	global speed
@@ -187,12 +205,6 @@ class MyApp(App):
 		self.p = Process(target=Controller2.main, args=(graphPipeChild, graphPipeParent, buttonPipeChild, graphPipeSize, graphLock, stopButtonPressed, newButtonData, operatingTimeConstant))
 		self.p.start()
 		
-		#import IO_test
-		#self.p = Process(target=IO_test.main)
-		#self.p.start()
-
-		#beepButton = Button(text="BEEP!")
-		#beepButton.bind(on_press=press_callback)
 
 		superBox = BoxLayout()
 
@@ -208,23 +220,24 @@ class MyApp(App):
 		# startButton.i = 0
 		startButton.background_normal = ''
 		startButton.background_color = [0, 0.7, 0, 1]
-		startButton.bind(on_press=(partial(startButton.buttonPressed, buttonPipeParent)))
-		#Clock.schedule_interval(partial(startButton.updateStartButton, buttonPipeParent, newButtonData), 0.6)
+		#startButton.bind(on_press=(partial(startButton.buttonPressed, buttonPipeParent))) # Working
+		
+		startButton.bind(on_press=(partial(screenPress, buttonPipeParent)))
 		Clock.schedule_interval(partial(startButton.updateStartButton, buttonPipeParent, newButtonData, superBox), 0.6)
 
 		
 		stopButton = Button(text = "STOP")
 		stopButton.background_normal = ''
 		stopButton.background_color = [0.7, 0, 0, 1]
-		stopButton.bind(on_press=(partial(press_callback, startButton, buttonPipeParent, stopButtonPressed, newButtonData)))
+		#stopButton.bind(on_press=(partial(press_callback, startButton, buttonPipeParent, stopButtonPressed, newButtonData))) # Working
+		stopButton.bind(on_press=(partial(screenPress, [startButton, buttonPipeParent, stopButtonPressed, newButtonData])))
 
 		wimg = Image(source='Prototype1.png')
 
 		speedSlider = Slider(orientation='vertical', min=0.5, max=1.5, value=speed)
 		#speedSlider.bind(on_touch_move=update_speed)
-		speedSlider.bind(on_touch_move=partial(update_speed, operatingTimeConstant))
+		speedSlider.bind(on_touch_move=partial(screenSwipe, operatingTimeConstant))
 		speedSlider.size_hint_x=(0.2)
-		# on_touch_down=update_speed,
 		
 		#superBox = BoxLayout()
 

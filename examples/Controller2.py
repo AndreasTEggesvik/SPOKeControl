@@ -248,7 +248,7 @@ class controller:
 
 		# Code for the ring robot
 		self.motor_control.setMotorDirection(RING_ROBOT, 1)
-		if ( not self.encoder_instance.findFirstZ(RING_ROBOT))
+		if ( not self.encoder_instance.findFirstZ(RING_ROBOT)):
 			self.stop()
 			return False
 		self.stop()

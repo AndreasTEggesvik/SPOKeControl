@@ -80,7 +80,8 @@ def screenPress(data, obj):
 		buttonPipeParent = data
 		buttonPipeParent.send("START")
 
-#class StartButton(Button):
+
+class StartButton(Button):
 #	def updateStartButton(self, buttonPipeParent, newButtonData, superBox, dt):
 		# Code for taking screenshot
 		#if (self.i > 100):
@@ -89,16 +90,16 @@ def screenPress(data, obj):
 		#	self.i = 0
 		#self.i += 1
 
-#		if (newButtonData.value):
-#			b = buttonPipeParent.recv()
-#			if (b == "Init finished"):
-#				self.text = "START"
-#				self.background_color = [0, 0.7, 0, 1]
-#				newButtonData.value -= 1
-#			elif (b == "Starting"):
-#				self.background_color = [0, 0.3, 0, 1]
-#				newButtonData.value -= 1
-#			print("Received message: ", b)
+		if (newButtonData.value):
+			b = buttonPipeParent.recv()
+			if (b == "Init finished"):
+				self.text = "START"
+				self.background_color = [0, 0.7, 0, 1]
+				newButtonData.value -= 1
+			elif (b == "Starting"):
+				self.background_color = [0, 0.3, 0, 1]
+				newButtonData.value -= 1
+			print("Received message: ", b)
 
 # This is called when the slider is updated:
 def screenSwipe(operatingTimeConstant, obj, value):
@@ -214,7 +215,7 @@ class DisplayApp(App):
 		Clock.schedule_interval(valueLabel.update, 0.5)
 		Clock.schedule_interval(partial(UpdateGraph, graphPipeParent, graphPipeSize, graphLock), 0.2)
 
-		startButton = Button(text = "INIT")
+		startButton = StartButton(text = "INIT")
 		startButton.background_normal = ''
 		startButton.background_color = [0, 0.7, 0, 1]
 		#startButton.bind(on_press=(partial(startButton.buttonPressed, buttonPipeParent))) # Working

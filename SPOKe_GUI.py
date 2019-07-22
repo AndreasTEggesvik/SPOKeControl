@@ -82,14 +82,13 @@ def screenPress(data, obj):
 
 
 class StartButton(Button):
-#	def updateStartButton(self, buttonPipeParent, newButtonData, superBox, dt):
 		# Code for taking screenshot
 		#if (self.i > 100):
 		#	superBox.export_to_png("Screenshot.png")
 		#	print("Took screenshot")
 		#	self.i = 0
 		#self.i += 1
-
+	def updateStartButton(self, buttonPipeParent, newButtonData, superBox, dt):
 		if (newButtonData.value):
 			b = buttonPipeParent.recv()
 			if (b == "Init finished"):

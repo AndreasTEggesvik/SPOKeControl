@@ -80,7 +80,7 @@ def screenPress(data, obj):
 		buttonPipeParent = data
 		buttonPipeParent.send("START")
 
-class StartButton(Button):
+#class StartButton(Button):
 #	def updateStartButton(self, buttonPipeParent, newButtonData, superBox, dt):
 		# Code for taking screenshot
 		#if (self.i > 100):

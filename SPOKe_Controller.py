@@ -164,7 +164,7 @@ class controller:
 		self.dataBuffer = [self.time_list[:], self.measurement_list_gantry[:], self.reference_list_gantry[:], self.measurement_list_ring[:], self.reference_list_ring[:], -1]
 
 		import pymonarco_hat as plc
-		lib_path = 'pymonarco-hat/monarco-c/libmonarco.so'
+		lib_path = '../pymonarco-hat/monarco-c/libmonarco.so'
 		self.plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_WARNING)	
 
 		self.encoder_instance = SPOKe_IO.Encoder_input(self.plc_handler)

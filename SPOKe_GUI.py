@@ -202,7 +202,7 @@ class DisplayApp(App):
 		operatingTimeConstant = Value('d', 1.0)
 
 		# Running the main looop  'Controller.py' as a separate process
-		self.p = Process(target=Controller2.main, args=(graphPipeChild, graphPipeParent, buttonPipeChild, graphPipeSize, graphLock, stopButtonPressed, newButtonData, operatingTimeConstant))
+		self.p = Process(target=SPOKe_Controller.main, args=(graphPipeChild, graphPipeParent, buttonPipeChild, graphPipeSize, graphLock, stopButtonPressed, newButtonData, operatingTimeConstant))
 		self.p.start()
 		
 		superBox = BoxLayout()
@@ -214,7 +214,7 @@ class DisplayApp(App):
 		Clock.schedule_interval(valueLabel.update, 0.5)
 		Clock.schedule_interval(partial(UpdateGraph, graphPipeParent, graphPipeSize, graphLock), 0.2)
 
-		startButton = StartButton(text = "INIT")
+		startButton = Button(text = "INIT")
 		startButton.background_normal = ''
 		startButton.background_color = [0, 0.7, 0, 1]
 		#startButton.bind(on_press=(partial(startButton.buttonPressed, buttonPipeParent))) # Working

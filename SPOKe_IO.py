@@ -14,7 +14,7 @@ class Encoder_input:
 		self.encoder_precision = 500 
 		self.tickMultiplier = 4 
 
-		dimensions = Geometry.Dimensions()
+		dimensions = SPOKe_Geometry.Dimensions()
 
 		self.gear_radius1 = dimensions.r_m1
 		self.gear_radius2 = dimensions.r_m2

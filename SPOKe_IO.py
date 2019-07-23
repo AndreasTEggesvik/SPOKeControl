@@ -213,7 +213,7 @@ class Motor_output:
 		self.plc_handler.set_pwm_frequency(plc.PWM_CHANNEL2, 50)
 		self.plc_handler.set_pwm_out(plc.DOUT2, 1) #Assuming 1 is off
 		self.plc_handler.set_pwm_out(plc.DOUT1, 1)
-		self.plc_handler.set_pwm_out(plc.DOUT4, 1)
+		self.openGrip()
 
 		
 		
@@ -247,18 +247,18 @@ class Motor_output:
 		speedValue = invert_PWM(speedValue)
 
 		if (motorNumber == 1):
-			self.plc_handler.set_pwm_out(plc.DOUT2, speedValue)
+			self.plc_handler.set_pwm_out(plc.DOUT1, speedValue)
 		elif (motorNumber == 2):
-			self.plc_handler.set_pwm_out(plc.DOUT4, speedValue)
+			self.plc_handler.set_pwm_out(plc.DOUT2, speedValue)
 		else:
 			return False
 		
 	def closeGrip(self):
-		# Not implemented
+		self.plc_handler.set_pwm_out(plc.DOUT4, 0.98)
 		return False
 
 	def openGrip(self):
-		# Not implemented
+		self.plc_handler.set_pwm_out(plc.DOUT4, 0.95)
 		return False
 
 def invert_PWM(pwm_in):

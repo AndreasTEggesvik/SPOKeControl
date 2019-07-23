@@ -276,12 +276,14 @@ class controller:
 		if (state == 1 or state == 4):
 			[P_g, I_g, D_g] = [10, 1, 0.2]
 			[P_r, I_r, D_r] = [10, 1, 0.2]
+			self.motor_control.openGrip()
 		elif(state == 2 or state ==5):
 			[P_g, I_g, D_g] = [10, 1, 0.2]
 			[P_r, I_r, D_r] = [10, 1, 0.2]	
 		if (state == 3 or state == 6):
 			[P_g, I_g, D_g] = [0, 0, 0]			# PID controller is not used for gantry in these states
 			[P_r, I_r, D_r] = [10, 1, 0.2]
+		
 
 		self.pid_gantry = PID.PID(P_g, I_g, D_g)
 		self.pid_gantry.setSampleTime(0.02)
@@ -402,10 +404,12 @@ class controller:
 		if (state == 3):
 			self.motor_control.setMotorDirection(GANTRY_ROBOT, -1)
 			self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0.4)
+			self.motor_control.closeGrip()
 			return True
 		elif (state == 6):
 			self.motor_control.setMotorDirection(GANTRY_ROBOT, 1)
 			self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0.4)
+			self.motor_control.closeGrip()
 			return True
 		
 		[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(self.pid_ring.output)

@@ -142,7 +142,7 @@ class Encoder_input:
 			if abs(new_value - self.last_received2) < 23000: 
 				# We have moved a reasonable length (half a rotation)
 				increase = new_value - self.last_received2
-				print('Increase in counter 2 is ', increase)
+				#print('Increase in counter 2 is ', increase)
 			elif new_value < self.last_received2:
 				# We have probably passed the storage  limit
 				print('Probably moved past storage limit ring')

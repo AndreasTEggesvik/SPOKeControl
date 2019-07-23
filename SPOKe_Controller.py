@@ -243,20 +243,20 @@ class controller:
 		#################################################################################
 
 		# Move r_2 until the first z value is active.
-#		self.motor_control.setMotorDirection(GANTRY_ROBOT, 1)
-#		self.motor_control.setMotorSpeed(GANTRY_ROBOT, initVelocity/2)
-#		if ( not self.encoder_instance.findFirstZ(GANTRY_ROBOT)):
-#			self.stop()
-#			return False
-#		self.stop()
+		self.motor_control.setMotorDirection(GANTRY_ROBOT, 1)
+		self.motor_control.setMotorSpeed(GANTRY_ROBOT, initVelocity/2)
+		if ( not self.encoder_instance.findFirstZ(GANTRY_ROBOT)):
+			self.stop()
+			return False
+		self.stop()
 
 		#  Move theta_4 until the first z value is active.
-#		self.motor_control.setMotorDirection(RING_ROBOT, 1)
-#		self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity/2)
-#		if ( not self.encoder_instance.findFirstZ(RING_ROBOT)):
-#			self.stop()
-#			return False
-#		self.stop()
+		self.motor_control.setMotorDirection(RING_ROBOT, 1)
+		self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity/2)
+		if ( not self.encoder_instance.findFirstZ(RING_ROBOT)):
+			self.stop()
+			return False
+		self.stop()
 
 		self.dataBuffer[5] = 0
 		sendData(self, graphPipe, graphPipeSize, graphLock)

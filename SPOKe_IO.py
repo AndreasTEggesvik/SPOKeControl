@@ -44,7 +44,7 @@ class Encoder_input:
 		
 		plc_handler.initiate_counter(1, 'QUAD', 'NONE') # Test to write "RISE"
 		self.reset_counter(1)
-		self.index1SignalPort = 7
+		self.index1SignalPort = 12
 		GPIO.setup(self.index1SignalPort, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 		self.firstZTickValue1 = 0
 		self.ZCount1 = 0
@@ -52,7 +52,7 @@ class Encoder_input:
 
 		plc_handler.initiate_counter(2, 'QUAD', 'RISE') # Test to write "RISE"
 		self.reset_counter(2)
-		self.index2SignalPort = 12
+		self.index2SignalPort = 7
 		GPIO.setup(self.index2SignalPort, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 		self.firstZTickValue2 = 0
 		self.ZCount2 = 0
@@ -81,7 +81,7 @@ class Encoder_input:
 	def receivedIndex1Value(self, channel):
 		self.update_counter(1)
 		diff = self.local_counter1 - self.firstZTickValue1 - self.ZCount1*46000/(self.counterDownScalingFactor * self.gear_reduction)
-		#print('Diff = ', self.local_counter1, ' - ', self.firstZTickValue1, ' - ', self.ZCount1*46000/(self.counterDownScalingFactor * self.gear_reduction), ' = ', diff)
+		print('Diff1 = ', self.local_counter1, ' - ', self.firstZTickValue1, ' - ', self.ZCount1*46000/(self.counterDownScalingFactor * self.gear_reduction), ' = ', diff)
 
 		if (diff > 700/self.gear_reduction):
 #			print('Rotation Forwards')
@@ -97,7 +97,7 @@ class Encoder_input:
 	def receivedIndex2Value(self, channel):
 		self.update_counter(2)
 		diff = self.local_counter2 - self.firstZTickValue2 - self.ZCount2*46000/(self.counterDownScalingFactor * self.gear_reduction)
-		print('Diff = ', self.local_counter2, ' - ', self.firstZTickValue2, ' - ', self.ZCount2*46000/(self.counterDownScalingFactor * self.gear_reduction), ' = ', diff)
+		print('Diff2 = ', self.local_counter2, ' - ', self.firstZTickValue2, ' - ', self.ZCount2*46000/(self.counterDownScalingFactor * self.gear_reduction), ' = ', diff)
 
 		if (diff > 700/self.gear_reduction):
 #			print('Rotation Forwards')

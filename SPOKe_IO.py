@@ -67,14 +67,14 @@ class Encoder_input:
 				print('FOUND: ', self.firstZTickValue1)
 				return True
 		
-		elif (counter_identifier == 2):
-			if (GPIO.wait_for_edge(self.index2SignalPort, GPIO.RISING, timeout=10000) is not None):
-				GPIO.remove_event_detect(self.index2SignalPort)
-				self.update_counter(counter_identifier)
-				self.firstZTickValue2 = self.local_counter2
-				GPIO.add_event_detect(self.index2SignalPort, GPIO.RISING, callback=self.receivedIndex2Value, bouncetime=2)
-				print('FOUND: ', self.firstZTickValue2)
-				return True
+#		elif (counter_identifier == 2):
+#			if (GPIO.wait_for_edge(self.index2SignalPort, GPIO.RISING, timeout=10000) is not None):
+#				GPIO.remove_event_detect(self.index2SignalPort)
+#				self.update_counter(counter_identifier)
+#				self.firstZTickValue2 = self.local_counter2
+#				GPIO.add_event_detect(self.index2SignalPort, GPIO.RISING, callback=self.receivedIndex2Value, bouncetime=2)
+#				print('FOUND: ', self.firstZTickValue2)
+#				return True
 		return False
 		
 

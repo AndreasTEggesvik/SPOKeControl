@@ -36,7 +36,7 @@ def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPi
 		stopButtonPressed.value = 0
 		return True
 	elif ((state == 3 or state == 6) and True): # Shoud check if the system is stuck
-		print("We are in state ", state, "and are stuck. Proceeding to the state")
+		print("We are in state ", state, "and are stuck. Proceeding to the next state")
 		control_instance.stop()
 		control_instance.motor_control.openGrip()
 		return False
@@ -142,8 +142,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			time.sleep(0.02)
 
 		if (reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData)):
-			if (state != 3 or state != 6):
-				state -= 1
+			state -= 1
 			continuing = True
 		if (state < 6):
 			state += 1

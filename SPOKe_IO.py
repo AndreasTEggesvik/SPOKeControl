@@ -119,13 +119,13 @@ class Encoder_input:
 				increase = new_value - self.last_received1
 			elif new_value < self.last_received1:
 				# We have probably passed the storage limit
-				print('Probably moved past storage limit')
+				print('Probably moved past storage limit gantry')
 				increase = new_value - self.last_received1 + 65536
 				print(new_value, ' - ', self.last_received1, ' + ', 65536, ' = ', increase)
 
 			elif new_value > self.last_received1:
 				# We have probably went backwards past zero
-				print('Probably moved backwards past zero')
+				print('Probably moved backwards past zero gantry')
 				increase = new_value - self.last_received1 - 65536
 				print(new_value, ' - ', self.last_received1, ' - ', 65536, ' = ', increase)
 				
@@ -144,9 +144,11 @@ class Encoder_input:
 				increase = new_value - self.last_received2
 			elif new_value < self.last_received2:
 				# We have probably passed the storage  limit
+				print('Probably moved past storage limit ring')
 				increase = new_value - self.last_received2 + 65535
 			elif new_value > self.last_received2:
 				# We have probably went backwards past zero
+				print('Probably moved backwards past zero ring')
 				increase = new_value - self.last_received2 - 65535
 
 			self.counterScalingRest2 += increase % self.counterDownScalingFactor

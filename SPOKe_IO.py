@@ -136,9 +136,9 @@ class Encoder_input:
 			self.counterScalingRest1 -= restOverflow * self.counterDownScalingFactor
 			self.local_counter1 +=  increase // self.counterDownScalingFactor
 			self.last_received1 = new_value
-					
+
 		elif (counter_identifier == 2):
-			new_value = self.plc_handler.read_counter(2)			
+			new_value = self.plc_handler.read_counter(2)
 			if abs(new_value - self.last_received2) < 23000: 
 				# We have moved a reasonable length (half a rotation)
 				increase = new_value - self.last_received2
@@ -151,14 +151,32 @@ class Encoder_input:
 				# We have probably went backwards past zero
 				print('Probably moved backwards past zero ring')
 				increase = new_value - self.last_received2 - 65535
-
-			self.counterScalingRest2 += increase % self.counterDownScalingFactor
-			restOverflow = self.counterScalingRest2 // self.counterDownScalingFactor
-			increase += restOverflow
 			self.last_tick_diff2 = increase
-			self.counterScalingRest2 -= restOverflow * self.counterDownScalingFactor
-			self.local_counter2 +=  increase // self.counterDownScalingFactor
+			self.local_counter2 +=  increase
 			self.last_received2 = new_value
+
+#		elif (counter_identifier == 2):
+#			new_value = self.plc_handler.read_counter(2)			
+#			if abs(new_value - self.last_received2) < 23000: 
+#				# We have moved a reasonable length (half a rotation)
+#				increase = new_value - self.last_received2
+#				#print('Increase in counter 2 is ', increase)
+#			elif new_value < self.last_received2:
+#				# We have probably passed the storage  limit
+#				print('Probably moved past storage limit ring')
+#				increase = new_value - self.last_received2 + 65535
+#			elif new_value > self.last_received2:
+#				# We have probably went backwards past zero
+#				print('Probably moved backwards past zero ring')
+#				increase = new_value - self.last_received2 - 65535
+#
+#			self.counterScalingRest2 += increase % self.counterDownScalingFactor
+#			restOverflow = self.counterScalingRest2 // self.counterDownScalingFactor
+#			increase += restOverflow
+#			self.last_tick_diff2 = increase
+#			self.counterScalingRest2 -= restOverflow * self.counterDownScalingFactor
+#			self.local_counter2 +=  increase // self.counterDownScalingFactor
+#			self.last_received2 = new_value
 
 	def readCounterValue(self,counter_identifier):
 		return self.plc_handler.read_counter(counter_identifier)
@@ -175,14 +193,14 @@ class Encoder_input:
 		if (counter_identifier == 1):
 			return self.local_counter1 * 2 * 3.14 *self.counterDownScalingFactor / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		elif (counter_identifier == 2):
-			return self.local_counter2 * 2 * 3.14 *self.counterDownScalingFactor / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
+			return self.local_counter2 * 2 * 3.14  / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		
 	def read_counter_deg(self, counter_identifier):
 		self.update_counter(counter_identifier)
 		if (counter_identifier == 1):
 			return self.local_counter1 * 360 * self.counterDownScalingFactor / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		elif (counter_identifier == 2):
-			return self.local_counter2  * 360 * self.counterDownScalingFactor / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
+			return self.local_counter2  * 360 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 
 
 # Robot definition

@@ -106,24 +106,28 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			time.sleep(0.5)
 	
 	control_instance.waitForStartSignal(buttonPipe, newButtonData, stopButtonPressed)
+	print("Done waiting for start signal")
 	control_instance.run_start_time = round(time.time(),2)
 	state = 1
 	continuing = False
 
 	while(True):
+		print("Inside while loop")
 		t0 = 0
 		tf = getTf(state, operatingTimeConstant)
 		if (not continuing):
+			print( "Not continuing")
 			if ( not control_instance.getNextTheta4d(state) ):
 				# In case next desired angle is outside working area, breaking the while loop
 				break
 		continuing = False
+		print("initializing new state")
 		control_instance.initNewState(t0, tf, state)
 		i = 0 
-
+		print("Entering the control loop")
 		while ((not control_instance.timeout) and (stopButtonPressed.value == 0)):# and (not control_instance.ls_instance.anyActive())): # and (not control_instance.isStuck())): # and control_instance.theta4_e > 0.017 and control_instance.r2_e > 0.02): 
 			# Only check time when testing while the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
-
+			
 			control_instance.updateTrajectory(state)
 			control_instance.updatePosition()
 			control_instance.updatePID(state)

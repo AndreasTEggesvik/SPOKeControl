@@ -358,7 +358,7 @@ class controller:
 	# Used to set the next reference point for theta_4, based on geometry of the SPOKe cleats
 	def getNextTheta4d(self, state):
 		if (state == 1 or state == 4):
-			if (theta4d == self.dimensions.theta4Min):
+			if (self.theta4d == self.dimensions.theta4Min):
 				self.theta4d = self.dimensions.theta4Min
 			else: 
 				self.theta4d = self.theta4d + self.dimensions.angularMovementState_1_4
@@ -367,8 +367,8 @@ class controller:
 		elif (state == 2 or state == 5): 
 			if (self.theta4d > self.dimensions.theta4Max):
 				return False
-			elif (theta4d == self.dimensions.theta4Min):
-				self.theta4d = self.dimensions.
+			elif (self.theta4d == self.dimensions.theta4Min):
+				self.theta4d = self.dimensions.initialAngularMovement
 			else:
 				self.theta4d = self.theta4d + self.dimensions.angularMovementState_2_5
 			return self.theta4d

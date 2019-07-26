@@ -303,6 +303,7 @@ class controller:
 		self.dataBuffer[5] = state
 
 	def calculateTrajectory(self, state):
+		print("Calculating trajectory")
 		if (state == 1 or state == 4):
 			if (state == 1):
 				self.r2_ref = self.r2_max

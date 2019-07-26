@@ -57,9 +57,9 @@ def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPi
 		sendData(control_instance, graphPipe, graphPipeSize, graphLock)
 		print("The robot has touched limit switch. Stopping all motion")
 		control_instance.stop()
-		while(1):
-			print("Limit switch active: ", int(control_instance.ls_instance.active(1)), int(control_instance.ls_instance.active(2)), int(control_instance.ls_instance.active(3)), int(control_instance.ls_instance.active(4)))
-			time.sleep(4)
+		print("Limit switch active: ", int(control_instance.ls_instance.active(1)), int(control_instance.ls_instance.active(2)), int(control_instance.ls_instance.active(3)), int(control_instance.ls_instance.active(4)))
+		time.sleep(4)
+		control_instance.waitForStartSignal(buttonPipe, newButtonData, stopButtonPressed)
 		return True
 	return False
 

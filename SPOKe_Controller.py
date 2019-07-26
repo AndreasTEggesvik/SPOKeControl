@@ -194,7 +194,7 @@ class controller:
 		# Position parameters
 		#self.theta4
 		self.theta4d = self.dimensions.theta4Min
-		self.theta4_ref = 0
+		self.theta4_ref = self.dimensions.theta4Min
 		#self.theta4_e
 		#self.r2
 		self.r2_max = self.dimensions.r2Max

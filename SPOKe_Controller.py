@@ -66,7 +66,7 @@ def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPi
 
 
 def getTf(state, timeMultiplier):
-	# timeMultiplier in range [0.5, 1.5]
+	# timeMultiplier in range [0.5, 1.5], received from the slider on the touch screen
 	# Want low value to represent low velocity -> high tf
 	if (state == 1 or state == 4):
 		return 20 *abs(timeMultiplier.value -2) 
@@ -75,7 +75,8 @@ def getTf(state, timeMultiplier):
 	elif (state == 5):
 		return  4 *abs(timeMultiplier.value -2)
 	elif (state == 3 or state == 6):
-		return -1
+		# return -1 # This should be used when the system has a stuck detection, as the state 3 and 6 don't have a trajectory to follow
+		return 3
 
 def sendData(data_storage, graphPipe,graphPipeSize, graphLock):
 	graphLock.acquire()
@@ -175,32 +176,35 @@ class controller:
 		self.ls_instance = SPOKe_IO.LimitSwitch()			
 
 		self.dimensions = SPOKe_Geometry.Dimensions()
-		#self.tstart
-		#self.tf
-		#self.timeout 
-		#self.pid_gantry
-		#self.pid_ring
 
-		# Trajectory parameters:
-		#self.A0_gantry
-		#self.A1_gantry
-		#self.A2_gantry
-		#self.tb_gantry
-		#self.A0_ring
-		#self.A1_ring
-		#self.A2_ring
-		#self.tb_ring
+		#####################################################
+		# Other local variables for the class 'controller':	#
+		#	tstart											#
+		#	tf												#
+		#	timeout 										#
+		#	pid_gantry										#
+		#	pid_ring										#
+		#	A0_gantry										#
+		#	A1_gantry										#
+		#	A2_gantry										#
+		#	tb_gantry										#
+		#	A0_ring											#
+		#	A1_ring											#
+		#	A2_ring											#
+		#	tb_ring											#
+		#	theta4											#
+		#	theta4_e										#
+		#	r2												#
+		#	r2_e											#
+		#####################################################
 
 		# Position parameters
-		#self.theta4
 		self.theta4d = self.dimensions.theta4Min
 		self.theta4_ref = self.dimensions.theta4Min
-		#self.theta4_e
-		#self.r2
+
 		self.r2_max = self.dimensions.r2Max
 		self.r2_min = self.dimensions.r2Min
 		self.r2_ref = 0
-		#self.r2_e
 
 		self.timeDiffBuffer = collections.deque(maxlen=5)
 		self.tickDiffBuffer1 = collections.deque(maxlen=5)
@@ -227,12 +231,12 @@ class controller:
 #		self.stop()
 		
 		# Moving the gantry robot until we hit the limit switch
-#		while ( not ( self.ls_instance.active(3) or self.ls_instance.active(4) or stopButtonPressed.value )):
-#			self.motor_control.setMotorSpeed(GANTRY_ROBOT, initVelocity)
-#			if (stopButtonPressed.value):
-#				return False
-#			time.sleep(0.05)
-#		self.stop()
+		while ( not ( self.ls_instance.active(3) or self.ls_instance.active(4) or stopButtonPressed.value )):
+			self.motor_control.setMotorSpeed(GANTRY_ROBOT, initVelocity)
+			if (stopButtonPressed.value):
+				return False
+			time.sleep(0.05)
+		self.stop()
 		
 		self.encoder_instance.reset_counter(1)
 		self.encoder_instance.reset_counter(2)

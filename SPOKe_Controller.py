@@ -454,9 +454,9 @@ class controller:
 
 	# MUST BE TESTED BEFORE FIRST RUN: is PWM == 0 full throttle or full stop? 
 	def stop(self):
-		return True
 		self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0)
 		self.motor_control.setMotorSpeed(RING_ROBOT, 0)
+		return True
 	
 	def bufferData(self):
 		self.dataBuffer[0].extend(self.time_list[:])

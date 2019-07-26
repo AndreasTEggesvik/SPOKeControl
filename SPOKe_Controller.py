@@ -316,12 +316,15 @@ class controller:
 			# We want the angle to move as the middle third of the movement:
 			
 			stateRunTime = self.tf - self.t0
-			velocityAngular = tp.getLSPB_velocity(self.theta4, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.5)
-			print("Calculating desired velocity: ", self.theta4, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.2, " |  => ", velocityAngular)
+			if (self.theta4d == self.dimensions.theta4Min):
+				# If statement is true the first time state 1 is run
+				[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = [0, 0, 0, 0]
+			else: 
+				velocityAngular = tp.getLSPB_velocity(self.theta4, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.5)
+				print("Calculating desired velocity: ", self.theta4, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.2, " |  => ", velocityAngular)
 												#       0          -0.08             6.666                       13.333                              -0.014
-
-			[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocityAngular * -1 , [self.theta4, 0, self.theta4d, 0], [0, stateRunTime/3])
-			print("Vectors calculated to be: ", self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring)
+				[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocityAngular * -1 , [self.theta4, 0, self.theta4d, 0], [0, stateRunTime/3])
+				print("Vectors calculated to be: ", self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring)
 		
 
 		elif (state == 2 or state == 5):
@@ -365,28 +368,18 @@ class controller:
 			return self.theta4d
 
 		elif (state == 2 or state == 5): 
-			if (self.theta4d > self.dimensions.theta4Max):
-				return False
-			elif (self.theta4d == self.dimensions.theta4Min):
+			if (self.theta4d == self.dimensions.theta4Min):
 				self.theta4d = self.dimensions.initialAngularMovement
 			else:
 				self.theta4d = self.theta4d + self.dimensions.angularMovementState_2_5
+			if (self.theta4d > self.dimensions.theta4Max):
+				return False
 			return self.theta4d
 		elif (state == 3 or state == 6):
 			return self.theta4d
 		else: 
 			return False
-#		if (state == 2):
-#			self.theta4d = self.theta4d + self.dimensions.alpha1
-#			if (self.theta4d > self.dimensions.theta4Max):
-#				return False
-#			return self.theta4d
-#		elif (state == 5):
-#			self.theta4d = self.theta4d + self.dimensions.alpha2
-#			if (self.theta4d > self.dimensions.theta4Max):
-#				return False
-#			return self.theta4d
-#		elif (state == 1 or state == 3 or state == 4 or state == 6):
+
 		
 
 	def updateTrajectory(self, state):
@@ -398,7 +391,9 @@ class controller:
 			self.r2_ref = tp.getLSPB_position(self.A0_gantry, self.A1_gantry, self.A2_gantry, self.t0, self.tb_gantry, self.tf, operation_time)
 
 			stateRunTime = self.tf - self.t0
-			if (operation_time < stateRunTime/3):
+			if (self.theta4d == self.dimensions.theta4Min): # For the first time state 1 is excecuted
+				self.theta4_ref = self.theta4d
+			elif (operation_time < stateRunTime/3):
 				# This is a way to have constant desired theta4 until the trajectory is supposed to begin
 				self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.t0, self.tb_ring, stateRunTime/3, 0)
 			else: 

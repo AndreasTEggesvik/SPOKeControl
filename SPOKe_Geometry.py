@@ -79,6 +79,9 @@ class Dimensions:
 		self.alpha1 = self.l1/self.r4 # Read thise values in Controller
 		self.alpha2 = self.l2/self.r4
 
+		self.angularMovementState_2_5 = 0.1588 # Distance from one clam to the next
+		self.angularMovementState_1_4 = - 0.5 * 0.1588
+
 	
 ##########################################
 

@@ -127,7 +127,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 		print("Entering the control loop")
 		while ((not control_instance.timeout) and (stopButtonPressed.value == 0)):# and (not control_instance.ls_instance.anyActive())): # and (not control_instance.isStuck())): # and control_instance.theta4_e > 0.017 and control_instance.r2_e > 0.02): 
 			# Only check time when testing while the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
-			
+
 			control_instance.updateTrajectory(state)
 			control_instance.updatePosition()
 			control_instance.updatePID(state)
@@ -356,6 +356,7 @@ class controller:
 
 	# Used to set the next reference point for theta_4, based on geometry of the SPOKe cleats
 	def getNextTheta4d(self, state):
+		print("Getting next theta4 in state ", state)
 		if (state == 1 or state == 4):
 			self.theta4d = self.theta4d + self.dimensions.angularMovementState_1_4
 		elif (state == 2 or state == 5): 
@@ -363,7 +364,10 @@ class controller:
 			if (self.theta4d > self.dimensions.theta4Max):
 				return False
 			return self.theta4d
-
+		elif (state == 3 or state == 6):
+			return self.theta4d
+		else: 
+			return False
 #		if (state == 2):
 #			self.theta4d = self.theta4d + self.dimensions.alpha1
 #			if (self.theta4d > self.dimensions.theta4Max):
@@ -375,10 +379,7 @@ class controller:
 #				return False
 #			return self.theta4d
 #		elif (state == 1 or state == 3 or state == 4 or state == 6):
-		elif (state == 3 or state == 6):
-			return self.theta4d
-		else: 
-			return False
+		
 
 	def updateTrajectory(self, state):
 		operation_time = (round(time.time(),2) - self.tstart)

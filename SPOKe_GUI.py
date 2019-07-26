@@ -3,7 +3,8 @@
 #   TEMP FIX: In order to receive data from the encoders, the Monarco must be initialized. 			#
 #             This is done by running the code sudo ./monarco-complex-demo which can be found in 	#
 #             https://github.com/monarco/monarco-hat-driver-c/tree/master/examples 					#
-#             after running the make file. 															#
+#             after running the make file. This fix is needed as the pymonarco library				#
+# 			  currently does not initiade quadrature encoding.										#
 #   																								#
 #   Start the program using the command 'sudo python3 SPOKe_GUI' 									#
 #   This code runs the main loop, and starts the main loop in 'Controller.py'						#
@@ -12,9 +13,9 @@
 #####################################################################################################
 
 
-# In order to fix error message 'Minnesegmentsfeil' in kivy
+
 import os
-os.environ['KIVY_GL_BACKEND'] = 'gl'
+os.environ['KIVY_GL_BACKEND'] = 'gl' # In order to fix error message 'Minnesegmentsfeil' in kivy
 
 import kivy
 from kivy.uix.button import Button, Label
@@ -139,6 +140,8 @@ class StateLabel(Label):
 			self.text = "State: 6 \nTighten rope"
 		elif (state == 50):
 			self.text = "State: \nStuck"
+		elif (state == 51):
+			self.text = "State: \nLimit switch hit"
 		elif (state == 100):
 			self.text = "State: \nStop button pressed"
 
@@ -167,11 +170,11 @@ def UpdateGraph(graphPipeParent, graphPipeSize, graphLock, dt):
 		
 		plt.clf()
 		plotLen = min(len(time_list), 2000) # Only plotting the latest 2000 data points
-		plt.plot(time_list[-plotLen:], gantry_ref_list[-plotLen:], '--r', time_list[-plotLen:], gantry_val_list[-plotLen:], 'r', time_list[-plotLen:], ring_ref_list[-plotLen:], '--b')
+		plt.plot(time_list[-plotLen:], gantry_ref_list[-plotLen:], '--r', time_list[-plotLen:], gantry_val_list[-plotLen:], 'r', time_list[-plotLen:], ring_ref_list[-plotLen:], '--b', time_list[-plotLen:], ring_val_list[-plotLen:], 'b')
 		graph.draw()
 
-		# In order to not run out of memory, arrays are 'scaled down' once they reach size of 5000
-		# Before arrays are 'scaled down', the data about to be deleted is added to the text file 'SPOKeRunData.csv'
+		# In order to not run out of memory, arrays are reduced to only the latest data once they reach size of 5000
+		# Before the size is reduced, the data about to be deleted is added to the text file 'SPOKeRunData.csv'
 		if (len(time_list) > 5000):
 			with open('SPOKeRunData.csv', 'a') as csvFile:
 				writer = csv.writer(csvFile)

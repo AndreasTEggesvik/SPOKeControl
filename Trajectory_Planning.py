@@ -36,15 +36,23 @@ def calculateTrajectory(constraints, t):
     a = M_inv.dot(b)
     return a
 
-# mergingValue in range [0-1]
-# Quick acceleration for low value, slow acceleration for high value
+#######################################################################################################
+# Helper function that calculates the desired constant velocity based on desired distance and time.   #
+# mergingValue in range [0-1]                                                                         #
+# Quick acceleration for low return value, slow acceleration for high return value                    #
+#######################################################################################################
 def getLSPB_velocity(q0, qf, t0, tf, mergingValue):
     return abs((1 + mergingValue) * (qf-q0)/(tf-t0))
 
 
-# constraints = [q(t0), d(q(t0)), q(tf), d(q(tf))], t = [t0, tf]
-# (0.2, [0, 0, 2, 0], [0, 5])
-# LSPB = linear segment 
+#########################################################################
+# Calculates a LSPB given a set of constraints.                         #
+# The trajectory is given by three matricies containing the constants   #
+#   for a polynomial funcuion describing position over time             #
+# constraints = [q(t0), d(q(t0)), q(tf), d(q(tf))], t = [t0, tf]        #
+#   example on set of valid arguments (0.2, [0, 0, 2, 0], [0, 5])       #
+# LSPB = linear segment with parabolic blends                           #
+#########################################################################
 def LSPB(V, constraints, t):
     [q0, dq0, qf, dqf] = constraints
     [t0, tf] = t
@@ -67,7 +75,11 @@ def LSPB(V, constraints, t):
     return [A0, A1, A2, tb]
 
 
-# t is integer
+####################################################################
+# Calculates the desired poisition of a trajectory at a given time #
+# A is a square matrix                                             #
+# t is integer                                                     #
+####################################################################
 def getTrajectoryPosition(A, t):
     
     if (A.shape[0] == 2):
@@ -80,8 +92,15 @@ def getTrajectoryPosition(A, t):
         return False
     return A.dot(timeVector)
 
-def getLSPB_position(A0, A1, A2, tb, tf, t):
-    if (0 <= t <= tb):
+#########################################################
+# Calculates the desired position for a LSPB trajectory #
+#   at a given time                                     #
+#
+#########################################################
+def getLSPB_position(A0, A1, A2, t0, tb, tf, t):
+    if (t < 0):
+        return False
+    elif (0 <= t <= tb):
         return getTrajectoryPosition(A0, t)
     elif (tb < t < tf - tb):
         return getTrajectoryPosition(A1, t)

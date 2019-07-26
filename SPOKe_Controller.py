@@ -52,13 +52,15 @@ def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPi
 #			print("In error, robot stuck detected")
 #			time.sleep(4)
 #		return True
-#	elif(control_instance.ls_instance.anyActive()):
-#		print("The robot has touched limit switch. Stopping all motion")
-#		control_instance.stop()
-#		while(1):
-#			print("Limit switch active: ", int(control_instance.ls_instance.active(1)), int(control_instance.ls_instance.active(2)), int(control_instance.ls_instance.active(3)), int(control_instance.ls_instance.active(4)))
-#			time.sleep(4)
-#		return True
+	elif(control_instance.ls_instance.anyActive()):
+		control_instance.dataBuffer[5] = 51
+		sendData(control_instance, graphPipe, graphPipeSize, graphLock)
+		print("The robot has touched limit switch. Stopping all motion")
+		control_instance.stop()
+		while(1):
+			print("Limit switch active: ", int(control_instance.ls_instance.active(1)), int(control_instance.ls_instance.active(2)), int(control_instance.ls_instance.active(3)), int(control_instance.ls_instance.active(4)))
+			time.sleep(4)
+		return True
 	return False
 
 
@@ -113,13 +115,13 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 		tf = getTf(state, operatingTimeConstant)
 		if (not continuing):
 			if ( not control_instance.getNextTheta4d(state) ):
-				# In case next desired angle is outside working area
+				# In case next desired angle is outside working area, breaking the while loop
 				break
 		continuing = False
 		control_instance.initNewState(t0, tf, state)
 		i = 0 
 
-		while ((not control_instance.timeout) and (stopButtonPressed.value == 0)): # and (not control_instance.isStuck())):# and (not control_instance.ls_instance.anyActive())): # and control_instance.theta4_e > 0.017 and control_instance.r2_e > 0.02): 
+		while ((not control_instance.timeout) and (stopButtonPressed.value == 0) and (not control_instance.ls_instance.anyActive()): # and (not control_instance.isStuck())): # and control_instance.theta4_e > 0.017 and control_instance.r2_e > 0.02): 
 			# Only check time when testing while the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
 
 			control_instance.updateTrajectory(state)
@@ -297,20 +299,27 @@ class controller:
 		self.theta4 = self.theta4_ref					# Only for simulation, these valuas represents position if control is perfect
 		self.r2 = self.r2_ref 							# Only for simulation
 		
+		self.calculateTrajectory(state)
+		self.dataBuffer[5] = state
+
+	def calculateTrajectory(self, state):
 		if (state == 1 or state == 4):
-			self.theta4_ref = self.theta4d
 			if (state == 1):
 				self.r2_ref = self.r2_max
 				velocityDir = 1
 			elif (state == 4):
 				self.r2_ref = self.r2_min
 				velocityDir = -1
-			velocity = tp.getLSPB_velocity(self.r2, self.r2_ref, self.t0, self.tf, 0.5)
+			velocity = tp.getLSPB_velocity(self.r2, self.r2_ref, self.t0, self.tf, 0.5) 
 			[self.A0_gantry, self.A1_gantry, self.A2_gantry, self.tb_gantry] = tp.LSPB(velocity*velocityDir, [self.r2, 0, self.r2_ref, 0], [self.t0, self.tf])
+
+			# We want the angle to move as the middle third of the movement:
+			stateRunTime = self.tf - self.t0
+			[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocity, [self.theta4, 0, self.theta4d, 0], [self.t0 + stateRunTime/3, self.tf - stateRunTime/3])
 
 		elif (state == 2 or state == 5):
 			velocity = tp.getLSPB_velocity(self.theta4, self.theta4d, self.t0, self.tf, 0.2)
-			[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocity, [self.theta4, 0, self.theta4d, 0], [t0, tf])
+			[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocity, [self.theta4, 0, self.theta4d, 0], [self.t0, self.tf])
 			if (state == 2):
 				self.r2_ref = self.r2_max
 			elif (state == 5):
@@ -319,8 +328,6 @@ class controller:
 		#elif (state == 3 or state == 6):
 			# don't care about this as theta_4 ref is constant and unchanged
 
-		self.dataBuffer[5] = state
-		
 
 	def waitForInitSignal(self, buttonPipe):
 		while(True):
@@ -343,17 +350,26 @@ class controller:
 
 	# Used to set the next reference point for theta_4, based on geometry of the SPOKe cleats
 	def getNextTheta4d(self, state):
-		if (state == 2):
-			self.theta4d = self.theta4d + self.dimensions.alpha1
+		if (state == 1 or state == 4):
+			self.theta4d = self.theta4d + self.dimensions.angularMovementState_1_4
+		elif (state == 2 or state == 5): 
+			self.theta4d = self.theta4d + self.dimensions.angularMovementState_2_5
 			if (self.theta4d > self.dimensions.theta4Max):
 				return False
 			return self.theta4d
-		elif (state == 5):
-			self.theta4d = self.theta4d + self.dimensions.alpha2
-			if (self.theta4d > self.dimensions.theta4Max):
-				return False
-			return self.theta4d
-		elif (state == 1 or state == 3 or state == 4 or state == 6):
+
+#		if (state == 2):
+#			self.theta4d = self.theta4d + self.dimensions.alpha1
+#			if (self.theta4d > self.dimensions.theta4Max):
+#				return False
+#			return self.theta4d
+#		elif (state == 5):
+#			self.theta4d = self.theta4d + self.dimensions.alpha2
+#			if (self.theta4d > self.dimensions.theta4Max):
+#				return False
+#			return self.theta4d
+#		elif (state == 1 or state == 3 or state == 4 or state == 6):
+		elif (state == 3 or state == 6):
 			return self.theta4d
 		else: 
 			return False
@@ -364,20 +380,21 @@ class controller:
 			self.timeout = True
 			return True
 		if (state == 1 or state == 4):
-			self.r2_ref = tp.getLSPB_position(self.A0_gantry, self.A1_gantry, self.A2_gantry, self.tb_gantry, self.tf, operation_time)
+			self.r2_ref = tp.getLSPB_position(self.A0_gantry, self.A1_gantry, self.A2_gantry, self.t0, self.tb_gantry, self.tf, operation_time)
+			self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.t0, self.tb_ring, self.tf, operation_time)
 			return True
 		elif (state == 2 or state == 5):
-			self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring, self.tf, operation_time)
+			self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.t0,  self.tb_ring, self.tf, operation_time)
 			return True
 		elif (state ==3 or state == 6):
 			return True
 		return False
 
 	def updatePosition(self):
-		#self.r2 = SPOKe_Geometry.rad2r2(self.encoder_instance.read_counter_rad(1))
-		#self.theta4 = Geometry.rad2theta4(self.encoder_instance.read_counter_rad(2))
-		self.r2 =  self.encoder_instance.read_counter_rad(1)
-		self.theta4 = self.encoder_instance.read_counter_rad(2)
+		self.r2 = SPOKe_Geometry.rad2r2(self.encoder_instance.read_counter_rad(1))
+		self.theta4 = SPOKe_Geometry.rad2theta4(self.encoder_instance.read_counter_rad(2))
+		#self.r2 =  self.encoder_instance.read_counter_rad(1)
+		#self.theta4 = self.encoder_instance.read_counter_rad(2) 
 
 	def updatePID(self, state):
 		if (state == 3 or state == 6):

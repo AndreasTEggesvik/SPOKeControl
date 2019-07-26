@@ -235,7 +235,7 @@ class Motor_output:
 		self.plc_handler.set_pwm_frequency(plc.PWM_CHANNEL2, 50)
 		self.plc_handler.set_pwm_out(plc.DOUT2, 1) #Assuming 1 is off
 		self.plc_handler.set_pwm_out(plc.DOUT1, 1)
-		self.openGrip()
+		self.closeGrip()
 
 		
 		
@@ -277,11 +277,11 @@ class Motor_output:
 		
 	def closeGrip(self):
 		self.plc_handler.set_pwm_out(plc.DOUT4, 0.98)
-		return False
+		return True
 
 	def openGrip(self):
 		self.plc_handler.set_pwm_out(plc.DOUT4, 0.95)
-		return False
+		return True
 
 def invert_PWM(pwm_in):
 	# Required as pwm = 1 is off, while pwm = 0 is off, and we want the opposite

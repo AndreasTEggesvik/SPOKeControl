@@ -290,6 +290,7 @@ class controller:
 		if (state == 3 or state == 6):
 			[P_g, I_g, D_g] = [0, 0, 0]			# PID controller is not used for gantry in these states
 			[P_r, I_r, D_r] = [10, 1, 0.2]
+			self.motor_control.closeGrip()
 		
 
 		self.pid_gantry = PID.PID(P_g, I_g, D_g)
@@ -325,10 +326,7 @@ class controller:
 				[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = [0, 0, 0, 0]
 			else: 
 				velocityAngular = tp.getLSPB_velocity(self.theta4, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.5)
-				print("Calculating desired velocity: ", self.theta4, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.2, " |  => ", velocityAngular)
-												#       0          -0.08             6.666                       13.333                              -0.014
 				[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocityAngular * -1 , [self.theta4, 0, self.theta4d, 0], [0, stateRunTime/3])
-				print("Vectors calculated to be: ", self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring)
 		
 
 		elif (state == 2 or state == 5):
@@ -444,12 +442,12 @@ class controller:
 		if (state == 3):
 			self.motor_control.setMotorDirection(GANTRY_ROBOT, -1)
 			self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0.4)
-			self.motor_control.closeGrip()
+			#self.motor_control.closeGrip()
 			return True
 		elif (state == 6):
 			self.motor_control.setMotorDirection(GANTRY_ROBOT, 1)
 			self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0.4)
-			self.motor_control.closeGrip()
+			#self.motor_control.closeGrip()
 			return True
 		
 		[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(self.pid_ring.output)

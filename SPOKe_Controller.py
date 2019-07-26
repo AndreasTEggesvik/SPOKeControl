@@ -120,7 +120,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 		continuing = False
 		control_instance.initNewState(t0, tf, state)
 		i = 0 
-		while ((not control_instance.timeout) and (stopButtonPressed.value == 0)):# and (not control_instance.ls_instance.anyActive())): # and (not control_instance.isStuck())): # and control_instance.theta4_e > 0.017 and control_instance.r2_e > 0.02): 
+		while ((not control_instance.timeout) and (stopButtonPressed.value == 0) and (not control_instance.ls_instance.anyActive())): # and (not control_instance.isStuck())): # and control_instance.theta4_e > 0.017 and control_instance.r2_e > 0.02): 
 			# Only check time when testing while the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
 
 			control_instance.updateTrajectory(state)
@@ -310,13 +310,13 @@ class controller:
 			elif (state == 4):
 				self.r2_ref = self.r2_min
 				velocityDir = -1
-			velocity = tp.getLSPB_velocity(self.r2, self.r2_ref, self.t0, self.tf, 0.5) 
+			velocity = tp.getLSPB_velocity(self.r2, self.r2_ref, self.t0, self.tf, 0.6) 
 			[self.A0_gantry, self.A1_gantry, self.A2_gantry, self.tb_gantry] = tp.LSPB(velocity*velocityDir, [self.r2, 0, self.r2_ref, 0], [self.t0, self.tf])
 
 			# We want the angle to move as the middle third of the movement:
 			
 			stateRunTime = self.tf - self.t0
-			velocityAngular = tp.getLSPB_velocity(self.theta4, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.2)
+			velocityAngular = tp.getLSPB_velocity(self.theta4, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.5)
 			print("Calculating desired velocity: ", self.theta4, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.2, " |  => ", velocityAngular)
 												#       0          -0.08             6.666                       13.333                              -0.014
 
@@ -325,7 +325,7 @@ class controller:
 		
 
 		elif (state == 2 or state == 5):
-			velocity = tp.getLSPB_velocity(self.theta4, self.theta4d, self.t0, self.tf, 0.2)
+			velocity = tp.getLSPB_velocity(self.theta4, self.theta4d, self.t0, self.tf, 0.5)
 			[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocity, [self.theta4, 0, self.theta4d, 0], [self.t0, self.tf])
 			if (state == 2):
 				self.r2_ref = self.r2_max

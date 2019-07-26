@@ -67,7 +67,7 @@ class Dimensions:
 		#self.r2Max = self.r3*math.cos(self.phi1)*math.sqrt(self.r3**2*math.cos(self.phi1)**2 - r3**2 + r4**2)
 		self.r2Max = 1.5
 		self.theta4Min = 0.000001
-		self.theta4Max = math.pi/2
+		self.theta4Max = 8 * 0.1588
 
 		# Motor gears: 
 		self.r_m1 = 0.10 

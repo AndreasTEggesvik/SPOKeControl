@@ -303,7 +303,6 @@ class controller:
 		self.dataBuffer[5] = state
 
 	def calculateTrajectory(self, state):
-		print("Calculating trajectory")
 		if (state == 1 or state == 4):
 			if (state == 1):
 				self.r2_ref = self.r2_max
@@ -318,6 +317,7 @@ class controller:
 			
 			stateRunTime = self.tf - self.t0
 			velocityAngular = tp.getLSPB_velocity(self.theta4, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.2)
+			print("Calculating desired velocity: ", self.theta4, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.2, " |  => ", velocityAngular)
 			[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocityAngular, [self.theta4, 0, self.theta4d, 0], [self.t0 + stateRunTime/3, self.tf - stateRunTime/3])
 
 		elif (state == 2 or state == 5):

@@ -283,6 +283,14 @@ class Motor_output:
 		self.plc_handler.set_pwm_out(plc.DOUT4, 0.95)
 		return True
 
+# Test code for grip motor:
+#import pymonarco_hat as plc
+#lib_path = '../pymonarco-hat/monarco-c/libmonarco.so'
+#plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_WARNING)
+#plc_handler.set_pwm_frequency(plc.PWM_CHANNEL2, 50)
+#plc_handler.set_pwm_out(plc.DOUT4, 0.98)
+
+
 def invert_PWM(pwm_in):
 	# Required as pwm = 1 is off, while pwm = 0 is off, and we want the opposite
 	return abs(pwm_in - 1)

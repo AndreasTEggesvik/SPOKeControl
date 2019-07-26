@@ -4,7 +4,7 @@ import math
 
 r3 = 0.5 
 r4 = 2 
-l_total = 1.64 # This value is too low
+l_total = 1.61 # This value is too low
 r_gear_gantry = 28.6 / 1000 # 2.86 cm is an estimate based on test
 r_gear_rotary = 19 / 1000
 

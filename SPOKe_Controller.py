@@ -152,6 +152,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			state += 1
 		else: 
 			state = 1
+	print("Finished")
 	control_instance.stop()
 
 

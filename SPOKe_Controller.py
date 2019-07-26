@@ -320,7 +320,7 @@ class controller:
 			print("Calculating desired velocity: ", self.theta4, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.2, " |  => ", velocityAngular)
 												#       0          -0.08             6.666                       13.333                              -0.014
 
-			[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocityAngular * -1 , [self.theta4, 0, self.theta4d, 0], [self.t0 + stateRunTime/3, self.tf - stateRunTime/3])
+			[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocityAngular * -1 , [self.theta4, 0, self.theta4d, 0], [0, stateRunTime/3])
 			print("Vectors calculated to be: ", self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring)
 		
 
@@ -389,9 +389,16 @@ class controller:
 			return True
 		if (state == 1 or state == 4):
 			self.r2_ref = tp.getLSPB_position(self.A0_gantry, self.A1_gantry, self.A2_gantry, self.t0, self.tb_gantry, self.tf, operation_time)
-			self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.t0, self.tb_ring, self.tf, operation_time)
+
+			stateRunTime = self.tf - self.t0
+			if (operation_time < stateRunTime/3):
+				# This is a way to have constant desired theta4 until the trajectory is supposed to begin
+				self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.t0, self.tb_ring, stateRunTime/3, 0)
+			else: 
+				self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.t0, self.tb_ring, stateRunTime/3, operation_time - stateRunTime/3)
 			return True
 		elif (state == 2 or state == 5):
+
 			self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.t0,  self.tb_ring, self.tf, operation_time)
 			return True
 		elif (state ==3 or state == 6):

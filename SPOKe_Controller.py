@@ -321,6 +321,7 @@ class controller:
 												#       0          -0.08             6.666                       13.333                              -0.014
 
 			[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocityAngular * -1 , [self.theta4, 0, self.theta4d, 0], [self.t0 + stateRunTime/3, self.tf - stateRunTime/3])
+			print("Vectors calculated to be: ", self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring)
 		
 
 		elif (state == 2 or state == 5):

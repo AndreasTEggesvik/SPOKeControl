@@ -42,7 +42,7 @@ def calculateTrajectory(constraints, t):
 # Quick acceleration for low return value, slow acceleration for high return value                    #
 #######################################################################################################
 def getLSPB_velocity(q0, qf, t0, tf, mergingValue):
-    return (1 + mergingValue) * (qf-q0)/(tf-t0)
+    return abs((1 + mergingValue) * (qf-q0)/(tf-t0))
 
 
 #########################################################################

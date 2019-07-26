@@ -318,7 +318,10 @@ class controller:
 			stateRunTime = self.tf - self.t0
 			velocityAngular = tp.getLSPB_velocity(self.theta4, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.2)
 			print("Calculating desired velocity: ", self.theta4, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.2, " |  => ", velocityAngular)
+												#       0          -0.08             6.666                       13.333                              -0.014
+
 			[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocityAngular * -1 , [self.theta4, 0, self.theta4d, 0], [self.t0 + stateRunTime/3, self.tf - stateRunTime/3])
+		
 
 		elif (state == 2 or state == 5):
 			velocity = tp.getLSPB_velocity(self.theta4, self.theta4d, self.t0, self.tf, 0.2)

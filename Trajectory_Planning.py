@@ -77,11 +77,10 @@ def LSPB(V, constraints, t):
 
 ####################################################################
 # Calculates the desired poisition of a trajectory at a given time #
-# A is a square matrix                                             #
+# A is a vector                                                    #
 # t is integer                                                     #
 ####################################################################
 def getTrajectoryPosition(A, t):
-    
     if (A.shape[0] == 2):
         timeVector = np.array([1, t])
     elif (A.shape[0] == 3):
@@ -100,7 +99,9 @@ def getTrajectoryPosition(A, t):
 def getLSPB_position(A0, A1, A2, t0, tb, tf, t):
     if (t < 0):
         return False
-    elif (0 <= t <= tb):
+    elif (t < t0):
+        return getTrajectoryPosition(A0, t0)
+    elif (t0 <= t <= tb):
         return getTrajectoryPosition(A0, t)
     elif (tb < t < tf - tb):
         return getTrajectoryPosition(A1, t)

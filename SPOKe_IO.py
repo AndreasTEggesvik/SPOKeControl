@@ -42,18 +42,12 @@ class Encoder_input:
 		# (counter_identifier, mode, edge_count)
 		GPIO.setmode(GPIO.BOARD)
 		
-		#plc_handler.initiate_counter(1, 'QUAD', 'NONE') # Test to write "RISE"
-		print('Before encoder init')
-		plc_handler.initiate_counters_quad()
-		print('After encoder init')
 		self.reset_counter(1)
 		self.index1SignalPort = 7
 		GPIO.setup(self.index1SignalPort, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 		self.firstZTickValue1 = 0
 		self.ZCount1 = 0
 
-
-		#plc_handler.initiate_counter(2, 'QUAD', 'RISE') # Test to write "RISE"
 		self.reset_counter(2)
 		self.index2SignalPort = 12
 		GPIO.setup(self.index2SignalPort, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
@@ -214,8 +208,8 @@ ringRobot = 2
 # Define the pins
 motor1Pin1 = 15
 motor1Pin2 = 22
-motor2Pin1 = 13
-motor2Pin2 = 11
+motor2Pin1 = 11
+motor2Pin2 = 13
 
 limitSwitchPin1 = 32
 limitSwitchPin2 = 33
@@ -235,7 +229,6 @@ class Motor_output:
 		
 		# Initialize pwm channels
 		self.plc_handler.set_pwm_frequency(plc.PWM_CHANNEL1, 50)
-#		self.plc_handler.set_pwm_frequency(plc.PWM_CHANNEL2, 50)
 		self.plc_handler.set_pwm_out(plc.DOUT1, 1)
 		self.plc_handler.set_pwm_out(plc.DOUT2, 1) #Assuming 1 is off
 		self.openGrip()
@@ -285,13 +278,6 @@ class Motor_output:
 	def openGrip(self):
 		self.plc_handler.set_pwm_out(plc.DOUT3, 0.95)
 		return True
-
-# Test code for grip motor:
-#import pymonarco_hat as plc
-#lib_path = '../pymonarco-hat/monarco-c/libmonarco.so'
-#plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_WARNING)
-#plc_handler.set_pwm_frequency(plc.PWM_CHANNEL2, 50)
-#plc_handler.set_pwm_out(plc.DOUT4, 0.98)
 
 
 def invert_PWM(pwm_in):

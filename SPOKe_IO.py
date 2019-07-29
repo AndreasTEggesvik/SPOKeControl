@@ -260,7 +260,7 @@ class Motor_output:
 		else:
 			GPIO.output(pin1, GPIO.LOW)
 			GPIO.output(pin2, GPIO.LOW)
-		return True;
+		return True
 		
 		
 	# motor number [1,2], speedValue in range [-1, 1]

@@ -59,6 +59,8 @@ def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPi
 		print("r2 = ", control_instance.r2, " | counter 1 = ", control_instance.encoder_instance.local_counter1)
 		control_instance.stop()
 		print("Limit switch active: ", int(control_instance.ls_instance.active(1)), int(control_instance.ls_instance.active(2)), int(control_instance.ls_instance.active(3)), int(control_instance.ls_instance.active(4)))
+		buttonPipe.send("Ready to continue")
+		newButtonData.value += 1
 		time.sleep(4)
 		control_instance.waitForStartSignal(buttonPipe, newButtonData, stopButtonPressed)
 		return True

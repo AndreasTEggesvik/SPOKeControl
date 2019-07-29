@@ -241,7 +241,7 @@ class controller:
 		
 		self.encoder_instance.reset_counter(1)
 		self.encoder_instance.reset_counter(2)
-
+		print('Encoder initiated')
 		#################################################################################
 		#																				#
 		#   The follwing code that is comment out is used to initialize the encoder.	#
@@ -259,6 +259,8 @@ class controller:
 			return False
 		self.stop()
 
+		print('Found gantry z')
+
 		#  Move theta_4 until the first z value is active.
 		self.motor_control.setMotorDirection(RING_ROBOT, 1)
 		self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity/2)
@@ -266,6 +268,7 @@ class controller:
 			self.stop()
 			return False
 		self.stop()
+		print('found ring z')
 
 		self.dataBuffer[5] = 0
 		sendData(self, graphPipe, graphPipeSize, graphLock)

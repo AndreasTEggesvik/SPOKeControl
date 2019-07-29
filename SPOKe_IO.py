@@ -208,8 +208,8 @@ class Encoder_input:
 
 
 # Robot definition
-ringRobot = 1
-gantryRobot = 2
+gantryRobot = 1
+ringRobot = 2
 
 # Define the pins
 motor1Pin1 = 15
@@ -244,7 +244,7 @@ class Motor_output:
 		
 	# motor number [1,2], direction [-1, 0, 1]
 	def setMotorDirection(self, motorNumber, direction):
-		if (motorNumber == ringRobot):
+		if (motorNumber == gantryRobot):
 			pin1 = motor1Pin1
 			pin2 = motor1Pin2
 		elif (motorNumber == ringRobot):

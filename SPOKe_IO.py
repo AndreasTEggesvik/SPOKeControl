@@ -42,9 +42,9 @@ class Encoder_input:
 		# (counter_identifier, mode, edge_count)
 		GPIO.setmode(GPIO.BOARD)
 		
-		#plc_handler.initiate_counter(1, 'QUAD', 'NONE') # Test to write "RISE"
+#		plc_handler.initiate_counter(1, 'QUAD', 'NONE') # Test to write "RISE"
 		print('Before encoder init')
-		plc_handler.initiate_counters_quad()
+#		plc_handler.initiate_counters_quad()
 		print('After encoder init')
 		self.reset_counter(1)
 		self.index1SignalPort = 7
@@ -53,7 +53,7 @@ class Encoder_input:
 		self.ZCount1 = 0
 
 
-		#plc_handler.initiate_counter(2, 'QUAD', 'RISE') # Test to write "RISE"
+#		plc_handler.initiate_counter(2, 'QUAD', 'RISE') # Test to write "RISE"
 		self.reset_counter(2)
 		self.index2SignalPort = 12
 		GPIO.setup(self.index2SignalPort, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)

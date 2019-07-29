@@ -234,11 +234,11 @@ class Motor_output:
 		GPIO.setup(motor2Pin2, GPIO.OUT, initial = 0)
 		
 		# Initialize pwm channels
-		self.plc_handler.set_pwm_frequency(plc.PWM_CHANNEL1, 1000)
-		self.plc_handler.set_pwm_frequency(plc.PWM_CHANNEL2, 50)
-		self.plc_handler.set_pwm_out(plc.DOUT2, 1) #Assuming 1 is off
+		self.plc_handler.set_pwm_frequency(plc.PWM_CHANNEL1, 50)
+#		self.plc_handler.set_pwm_frequency(plc.PWM_CHANNEL2, 50)
 		self.plc_handler.set_pwm_out(plc.DOUT1, 1)
-		self.closeGrip()
+		self.plc_handler.set_pwm_out(plc.DOUT2, 1) #Assuming 1 is off
+		self.openGrip()
 
 		
 		
@@ -279,11 +279,11 @@ class Motor_output:
 			return False
 		
 	def closeGrip(self):
-		self.plc_handler.set_pwm_out(plc.DOUT4, 0.98)
+		self.plc_handler.set_pwm_out(plc.DOUT3, 0.98)
 		return True
 
 	def openGrip(self):
-		self.plc_handler.set_pwm_out(plc.DOUT4, 0.95)
+		self.plc_handler.set_pwm_out(plc.DOUT3, 0.95)
 		return True
 
 # Test code for grip motor:

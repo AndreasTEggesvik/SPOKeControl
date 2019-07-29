@@ -84,8 +84,6 @@ class Dimensions:
 		self.initialAngularMovement = 0.1358 # Distance to move from the limit switch to the middle of the first two clams
 		
 
-	
-##########################################
 
 def getSPOKeCoordinates(encoderInput):
 	[encoder_angle_rad_rotary, encoder_angle_rad_gantry] = encoderInput

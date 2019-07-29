@@ -251,7 +251,7 @@ class controller:
 		#																				#
 		#################################################################################
 
-		# Move r_2 until the first z value is active.
+		# Move r_2 until the first z value is active and limit switch is no longer active
 		self.motor_control.setMotorDirection(GANTRY_ROBOT, 1)
 		self.motor_control.setMotorSpeed(GANTRY_ROBOT, initVelocity/2)
 		if ( not self.encoder_instance.findFirstZ(GANTRY_ROBOT)):

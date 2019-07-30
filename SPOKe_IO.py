@@ -249,8 +249,8 @@ class Motor_output:
 	# motor number [1,2], direction [-1, 0, 1]
 	def setMotorDirection(self, motorNumber, direction):
 		if (motorNumber == gantryRobot):
-			pin1 = motor1Pin1
-			pin2 = motor1Pin2
+			pin1 = motor1Pin2
+			pin2 = motor1Pin1
 		elif (motorNumber == ringRobot):
 			pin1 = motor2Pin1
 			pin2 = motor2Pin2

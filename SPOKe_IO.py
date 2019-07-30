@@ -208,8 +208,8 @@ ringRobot = 2
 # Define the pins
 motor1Pin1 = 15
 motor1Pin2 = 22
-motor2Pin1 = 11
-motor2Pin2 = 13
+motor2Pin1 = 13
+motor2Pin2 = 11
 
 limitSwitchPin1 = 32
 limitSwitchPin2 = 33

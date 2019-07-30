@@ -431,7 +431,8 @@ class controller:
 		# This function updates output for both motors based on PID controller
 		[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(self.pid_ring.output)
 		self.motor_control.setMotorDirection(RING_ROBOT, direction_ring)
-		self.motor_control.setMotorSpeed(RING_ROBOT, PWM_signal_strength_ring)
+		#self.motor_control.setMotorSpeed(RING_ROBOT, PWM_signal_strength_ring)
+		self.motor_control.setMotorSpeed(2, 0.3)
 		
 
 		if (state == 3):

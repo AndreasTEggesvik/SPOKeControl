@@ -102,8 +102,8 @@ class controller:
 
 	def setOutput(self, motorNumber):
 		[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(self.pid.output)
-		self.motor_control.setMotorDirection(1, direction_ring)
-		self.motor_control.setMotorSpeed(1, PWM_signal_strength_ring)
+		self.motor_control.setMotorDirection(motorNumber, direction_ring)
+		self.motor_control.setMotorSpeed(motorNumber, PWM_signal_strength_ring)
 			
 	def storeData(self):
 		self.time_list.append((round(time.time(),2) - self.startTime))

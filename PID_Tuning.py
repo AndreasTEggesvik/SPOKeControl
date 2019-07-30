@@ -50,7 +50,8 @@ def main():
 		control_instance.storeData()
 
 		if (i == 15):
-			print("Position: ", control_instance.position, " | Reference: ", control_instance.reference ," | PID output: ", control_instance.pid.output)
+			[d, pidPower] = PID_to_control_input(control_instance.pid.output)
+			print("Position: ", control_instance.position, " | Reference: ", control_instance.reference ," | PID output: ", pidPower)
 			i = 0
 		i += 1
 

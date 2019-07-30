@@ -21,7 +21,7 @@ def PID_to_control_input(pid_output):
 	else:
 		direction = -1
 	pid_output = abs(pid_output)/20
-	return [direction, min(pid_output, 1)]
+	return [direction, min(pid_output, 0.5)]
 
 
 
@@ -304,11 +304,11 @@ class controller:
 		self.pid_ring = PID.PID(P_r, I_r, D_r)
 		self.pid_ring.setSampleTime(0.02)
 		
-		#self.theta4 = self.encoder_instance.read_counter_deg(RING_ROBOT)
-		#self.r2 = self.encoder_instance.read_counter_deg(GANTRY_ROBOT)
+		self.theta4 = self.encoder_instance.read_counter_deg(RING_ROBOT)
+		self.r2 = self.encoder_instance.read_counter_deg(GANTRY_ROBOT)
 
 		self.theta4 = self.theta4_ref					# Only for simulation, these valuas represents position if control is perfect
-		self.r2 = self.r2_ref 							# Only for simulation
+#		self.r2 = self.r2_ref 							# Only for simulation
 		
 		self.calculateTrajectory(state)
 		self.dataBuffer[5] = state
@@ -447,12 +447,12 @@ class controller:
 
 		if (state == 3):
 			self.motor_control.setMotorDirection(GANTRY_ROBOT, -1)
-			self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0.4)
+			self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0.3)
 			#self.motor_control.closeGrip()
 			return True
 		elif (state == 6):
 			self.motor_control.setMotorDirection(GANTRY_ROBOT, 1)
-			self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0.4)
+			self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0.3)
 			#self.motor_control.closeGrip()
 			return True
 		

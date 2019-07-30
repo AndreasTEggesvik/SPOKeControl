@@ -224,16 +224,24 @@ class controller:
 
 		self.motor_control.setMotorDirection(GANTRY_ROBOT, -1)
 		self.motor_control.setMotorDirection(RING_ROBOT, -1)
-		initVelocity = 0.5
+		initVelocity = 27
 
 
 		# Moving along the ring until we hit the limit switch
-#		while ( not ( self.ls_instance.active(1) or self.ls_instance.active(2) or stopButtonPressed.value )):
-#			self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity)
-#			if (stopButtonPressed.value):
-#				return False
-#			time.sleep(0.05)
-#		self.stop()
+		while ( not ( self.ls_instance.anyActive or stopButtonPressed.value )): # self.ls_instance.active(1) or self.ls_instance.active(2)
+			self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity)
+			if (stopButtonPressed.value):
+				return False
+			time.sleep(0.05)
+		self.stop()
+
+		self.motor_control.setMotorDirection(RING_ROBOT, 1)
+		while (self.ls_instance.anyActive):
+			self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity)
+			if (stopButtonPressed.value):
+				return False
+			time.sleep(0.05)
+		self.stop()
 		
 		# Moving the gantry robot until we hit the limit switch
 		while ( not ( self.ls_instance.active(3) or self.ls_instance.active(4) or stopButtonPressed.value )):
@@ -266,13 +274,13 @@ class controller:
 		print('Found gantry z')
 
 		#  Move theta_4 until the first z value is active.
-		self.motor_control.setMotorDirection(RING_ROBOT, 1)
-		self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity/2)
-		if ( not self.encoder_instance.findFirstZ(RING_ROBOT)):
-			self.stop()
-			return False
-		self.stop()
-		print('found ring z')
+#		self.motor_control.setMotorDirection(RING_ROBOT, 1)
+#		self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity/2)
+#		if ( not self.encoder_instance.findFirstZ(RING_ROBOT)):
+#			self.stop()
+#			return False
+#		self.stop()
+#		print('found ring z')
 
 		self.dataBuffer[7] = 0
 		sendData(self, graphPipe, graphPipeSize, graphLock)

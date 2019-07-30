@@ -9,6 +9,7 @@ import collections
 import SPOKe_Geometry
 from multiprocessing import Process, Pipe, Value, Lock
 import SPOKe_IO
+import math
 
 
 GANTRY_ROBOT = 1
@@ -21,7 +22,11 @@ def PID_to_control_input(pid_output):
 	else:
 		direction = -1
 	pid_output = abs(pid_output)
-	return [direction, min(pid_output, 50)]
+	if (pid_output < 22):
+		pid_output = 0
+	else: 
+		pid_output = 20 + 6 * math.sqrt(pid_output-15)
+	return [direction, min(pid_output, 100)]
 
 
 
@@ -279,14 +284,14 @@ class controller:
 		# Enables possibility of different PID control for different states
 		if (state == 1 or state == 4):
 			[P_g, I_g, D_g] = [10, 1, 0.2]
-			[P_r, I_r, D_r] = [150, 20, 2]
+			[P_r, I_r, D_r] = [400, 533, 200]
 			self.motor_control.openGrip()
 		elif(state == 2 or state ==5):
 			[P_g, I_g, D_g] = [10, 1, 0.2]
-			[P_r, I_r, D_r] = [150, 20, 2]	
+			[P_r, I_r, D_r] = [400, 533, 200]	
 		if (state == 3 or state == 6):
 			[P_g, I_g, D_g] = [0, 0, 0]			# PID controller is not used for gantry in these states
-			[P_r, I_r, D_r] = [150, 20, 2]
+			[P_r, I_r, D_r] = [400, 533, 200]
 			self.motor_control.closeGrip()
 		
 

@@ -234,7 +234,7 @@ class controller:
 				return False
 			time.sleep(0.05)
 		self.stop()
-
+		print ("not (", self.ls_instance.anyActive, " or ", stopButtonPressed.value, ") = ", not ( self.ls_instance.anyActive or stopButtonPressed.value ))
 		print("Hit limit switch!")
 
 		self.motor_control.setMotorDirection(RING_ROBOT, 1)

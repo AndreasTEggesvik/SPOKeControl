@@ -235,6 +235,8 @@ class controller:
 			time.sleep(0.05)
 		self.stop()
 
+		print("Hit limit switch!")
+
 		self.motor_control.setMotorDirection(RING_ROBOT, 1)
 		while (self.ls_instance.anyActive):
 			self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity)
@@ -243,6 +245,8 @@ class controller:
 			time.sleep(0.05)
 		self.stop()
 		
+		print("Got off of limit switch!")
+
 		# Moving the gantry robot until we hit the limit switch
 		while ( not ( self.ls_instance.active(3) or self.ls_instance.active(4) or stopButtonPressed.value )):
 			self.motor_control.setMotorSpeed(GANTRY_ROBOT, initVelocity)

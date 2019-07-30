@@ -1,5 +1,6 @@
 import pymonarco_hat as plc
 import RPi.GPIO as GPIO
+
 import time
 import SPOKe_Geometry
 
@@ -216,6 +217,9 @@ limitSwitchPin2 = 33
 limitSwitchPin3 = 36
 limitSwitchPin4 = 35
 
+motor1pwmPin = 18
+motor2pwmPin = 16
+
 class Motor_output:
 	def __init__(self, plc_handler):
 		self.plc_handler = plc_handler
@@ -228,9 +232,16 @@ class Motor_output:
 		GPIO.setup(motor2Pin2, GPIO.OUT, initial = 0)
 		
 		# Initialize pwm channels
+		GPIO.setup(motor1pwmPin, GPIO.OUT, initial = 0)
+		GPIO.setup(motor2pwmPin, GPIO.OUT, initial = 0)
+		self.M1 = GPIO.PWM(motor1pwmPin, 100)
+		self.M1.start(0) # 0 % duty cycle
+		self.M2 = GPIO.PWM(motor2pwmPin, 100)
+		self.M2.start(0) # 0 % duty cycle
+
 		self.plc_handler.set_pwm_frequency(plc.PWM_CHANNEL1, 50)
-		self.plc_handler.set_pwm_out(plc.DOUT1, 1)
-		self.plc_handler.set_pwm_out(plc.DOUT2, 1) #Assuming 1 is off
+		#self.plc_handler.set_pwm_out(plc.DOUT1, 1)
+		#self.plc_handler.set_pwm_out(plc.DOUT2, 1) #Assuming 1 is off
 		self.openGrip()
 
 		
@@ -258,16 +269,18 @@ class Motor_output:
 		return True
 		
 		
-	# motor number [1,2], speedValue in range [-1, 1]
+	# motor number [1,2], speedValue in range [0, 100]
 	def setMotorSpeed(self, motorNumber, speedValue):
-		if (1 < speedValue or speedValue < -1):
+		if (100 < speedValue or speedValue < 0):
 			return False 
-		speedValue = invert_PWM(speedValue)
+#		speedValue = invert_PWM(speedValue)
 
 		if (motorNumber == 1):
-			self.plc_handler.set_pwm_out(plc.DOUT1, speedValue)
+			self.M1.ChangeDutyCycle(speedValue)
+#			self.plc_handler.set_pwm_out(plc.DOUT1, speedValue)
 		elif (motorNumber == 2):
-			self.plc_handler.set_pwm_out(plc.DOUT2, speedValue)
+			self.M2.ChangeDutyCycle(speedValue)
+#			self.plc_handler.set_pwm_out(plc.DOUT2, speedValue)
 		else:
 			return False
 		

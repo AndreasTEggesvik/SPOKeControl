@@ -20,8 +20,8 @@ def PID_to_control_input(pid_output):
 		direction = 1
 	else:
 		direction = -1
-	pid_output = abs(pid_output)/20
-	return [direction, min(pid_output, 0.5)]
+	pid_output = abs(pid_output)
+	return [direction, min(pid_output, 50)]
 
 
 

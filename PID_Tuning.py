@@ -110,3 +110,6 @@ class controller:
 		self.measurement_list.append(self.position)
 		self.reference_list.append(self.reference)
 		self.pid_list.append(self.pid.output)
+
+
+main()

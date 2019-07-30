@@ -12,7 +12,7 @@
 
 #### Changable Variables ####
 							#
-[P, I, D] = [10, 0, 0]		#
+[P, I, D] = [400, 0, 0]		#
 motorNumber = 2				#
 reference = 5 * 3.14/180 	# 
 							#

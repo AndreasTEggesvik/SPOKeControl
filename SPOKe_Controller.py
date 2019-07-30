@@ -305,7 +305,7 @@ class controller:
 		self.pid_ring.setSampleTime(0.02)
 		
 		self.theta4 = self.encoder_instance.read_counter_deg(RING_ROBOT)
-		self.r2 = self.encoder_instance.read_counter_deg(GANTRY_ROBOT)
+		self.r2 = SPOKe_Geometry.rad2r2(self.encoder_instance.read_counter_rad(GANTRY_ROBOT))
 
 		self.theta4 = self.theta4_ref					# Only for simulation, these valuas represents position if control is perfect
 #		self.r2 = self.r2_ref 							# Only for simulation

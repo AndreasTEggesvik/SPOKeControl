@@ -133,11 +133,10 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			control_instance.storeData()
 
 			if (i == 15):
-#				print("counter1 value = ", control_instance.encoder_instance.local_counter1, " | counter2 value = ", control_instance.encoder_instance.local_counter2)
-#				print("r2 value = ", control_instance.r2, " | theta4 value = ", control_instance.theta4)
-				#print("Degrees1: ", control_instance.encoder_instance.read_counter_deg(1), ' ( ', control_instance.encoder_instance.local_counter1, ')' )
-				#print("Degrees2: ", control_instance.encoder_instance.read_counter_deg(2), ' ( ', control_instance.encoder_instance.local_counter2, ')' )
-				#print("Ticks: ", control_instance.encoder_instance.readCounterValue(1))
+
+				[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(control_instance.pid_ring.output)
+				print("Motor control signals: DIRECTION = ", direction_ring, " | POWER = ", PWM_signal_strength_ring)
+
 				if (graphPipeSize.value == 0):
 					control_instance.eraseBufferData()
 				control_instance.bufferData()
@@ -416,10 +415,8 @@ class controller:
 		return False
 
 	def updatePosition(self):
-		self.r2 = SPOKe_Geometry.rad2r2(self.encoder_instance.read_counter_rad(1))
-		self.theta4 = SPOKe_Geometry.rad2theta4(self.encoder_instance.read_counter_rad(2))
-		#self.r2 =  self.encoder_instance.read_counter_rad(1)
-		#self.theta4 = self.encoder_instance.read_counter_rad(2) 
+		self.r2 = SPOKe_Geometry.rad2r2(self.encoder_instance.read_counter_rad(GANTRY_ROBOT))
+		self.theta4 = SPOKe_Geometry.rad2theta4(self.encoder_instance.read_counter_rad(RING_ROBOT))
 
 	def updatePID(self, state):
 		if (state == 3 or state == 6):
@@ -441,26 +438,25 @@ class controller:
 
 	def setOutput(self, state):
 		# This function updates output for both motors based on PID controller
-		[direction_gantry, PWM_signal_strength_gantry] = PID_to_control_input(self.pid_gantry.output)
-		self.motor_control.setMotorDirection(GANTRY_ROBOT, direction_gantry)
-		self.motor_control.setMotorSpeed(GANTRY_ROBOT, PWM_signal_strength_gantry)
+		[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(self.pid_ring.output)
+		self.motor_control.setMotorDirection(RING_ROBOT, direction_ring)
+		self.motor_control.setMotorSpeed(RING_ROBOT, PWM_signal_strength_ring)
+		
 
 		if (state == 3):
 			self.motor_control.setMotorDirection(GANTRY_ROBOT, -1)
 			self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0.3)
-			#self.motor_control.closeGrip()
 			return True
 		elif (state == 6):
 			self.motor_control.setMotorDirection(GANTRY_ROBOT, 1)
 			self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0.3)
-			#self.motor_control.closeGrip()
 			return True
 		
-		[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(self.pid_ring.output)
-		self.motor_control.setMotorDirection(RING_ROBOT, direction_ring)
-		self.motor_control.setMotorSpeed(RING_ROBOT, PWM_signal_strength_ring)
+		[direction_gantry, PWM_signal_strength_gantry] = PID_to_control_input(self.pid_gantry.output)
+		self.motor_control.setMotorDirection(GANTRY_ROBOT, direction_gantry)
+		self.motor_control.setMotorSpeed(GANTRY_ROBOT, PWM_signal_strength_gantry)
+		
 
-	# MUST BE TESTED BEFORE FIRST RUN: is PWM == 0 full throttle or full stop? 
 	def stop(self):
 		self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0)
 		self.motor_control.setMotorSpeed(RING_ROBOT, 0)

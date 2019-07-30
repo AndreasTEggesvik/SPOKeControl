@@ -4,6 +4,7 @@ import RPi.GPIO as GPIO
 import time
 import SPOKe_Geometry
 
+GPIO.setwarnings(False)
 
 		
 class Encoder_input: 

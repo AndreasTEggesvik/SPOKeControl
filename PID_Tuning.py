@@ -12,7 +12,7 @@
 
 #### Changable Variables ####
 							#
-[P, I, D] = [400, 0, 0]		#
+[P, I, D] = [400, 533, 200]		#
 motorNumber = 2				#
 reference = 5 * 3.14/180 	# 
 							#
@@ -23,6 +23,7 @@ import time
 import SPOKe_Geometry
 import SPOKe_IO
 import csv 
+import math
 
 def PID_to_control_input(pid_output):
 	if pid_output >= 0:
@@ -30,8 +31,10 @@ def PID_to_control_input(pid_output):
 	else:
 		direction = -1
 	pid_output = abs(pid_output)
-	if (pid_output < 15):
+	if (pid_output < 22):
 		pid_output = 0
+	else:
+		pid_output = 13 + 6*math.sqrt(pid_output-20)
 	return [direction, min(pid_output, 100)]
 
 
@@ -40,7 +43,7 @@ def main():
 	global motorNumber, reference
 	control_instance = controller(reference, startTime)
 	i = 0
-	while ((round(time.time(),2) - startTime) < 20):
+	while ((round(time.time(),2) - startTime) < 10):
 		control_instance.updatePosition(motorNumber)
 		control_instance.updatePID()
 		control_instance.setOutput(motorNumber)

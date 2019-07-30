@@ -469,8 +469,10 @@ class controller:
 		self.time_list.append((round(time.time(),2) - self.run_start_time))
 		self.measurement_list_gantry.append(self.r2)
 		self.reference_list_gantry.append(self.pid_gantry.SetPoint)
+		self.pid_list_gantry.append(self.pid_gantry.output)
 		self.measurement_list_ring.append(self.theta4)
 		self.reference_list_ring.append(self.pid_ring.SetPoint)
+		self.pid_list_ring.append(self.pid_ring.output)
 
 	def eraseData(self):
 		self.time_list = []

@@ -274,13 +274,13 @@ class controller:
 		print('Found gantry z')
 
 		#  Move theta_4 until the first z value is active.
-		self.motor_control.setMotorDirection(RING_ROBOT, 1)
-		self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity/2)
-		if ( not self.encoder_instance.findFirstZ(RING_ROBOT)):
-			self.stop()
-			return False
-		self.stop()
-		print('found ring z')
+#		self.motor_control.setMotorDirection(RING_ROBOT, 1)
+#		self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity/2)
+#		if ( not self.encoder_instance.findFirstZ(RING_ROBOT)):
+#			self.stop()
+#			return False
+#		self.stop()
+#		print('found ring z')
 
 		self.dataBuffer[7] = 0
 		sendData(self, graphPipe, graphPipeSize, graphLock)

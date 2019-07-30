@@ -46,9 +46,11 @@ state = -1 					# Used to display the state of the controller
 time_list = [0]				
 measurement_list = [0]		
 gantry_val_list = [0]	
-gantry_ref_list = [0]		
+gantry_ref_list = [0]	
+gantry_pid_list	= [0]
 ring_val_list = [0]		
 ring_ref_list = [0]	
+ring_pid_list = [0]
 
 plt.plot(time_list, gantry_ref_list, 'r')
 graph = FigureCanvasKivyAgg(plt.gcf())
@@ -151,7 +153,7 @@ class StateLabel(Label):
 			self.text = "State: \nStop button pressed"
 
 def UpdateGraph(graphPipeParent, graphPipeSize, graphLock, dt):
-	global time_list, measurement_list, gantry_val_list, gantry_ref_list, ring_val_list, ring_ref_list, state
+	global time_list, measurement_list, gantry_val_list, gantry_ref_list, gantry_pid_list, ring_val_list, ring_ref_list, ring_pid_list, state
 
 	graphLock.acquire() 
 	if (graphPipeSize.value > 1):
@@ -161,7 +163,7 @@ def UpdateGraph(graphPipeParent, graphPipeSize, graphLock, dt):
 			graphPipeSize.value = graphPipeSize.value - 1
 
 	if (graphPipeSize.value == 1):
-		[timeD, gantryM, gantryR, ringM, ringR, systemState] = graphPipeParent.recv()  
+		[timeD, gantryM, gantryR, gantryPID, ringM, ringR, ringPID, systemState] = graphPipeParent.recv()  
 		state = systemState
 
 		graphPipeSize.value = graphPipeSize.value - 1
@@ -169,9 +171,12 @@ def UpdateGraph(graphPipeParent, graphPipeSize, graphLock, dt):
 		# size of received arrays will depend on how many times the loop in 'Controller.py' runs between each run of "UpdateGraph"
 		time_list.extend(timeD)
 		gantry_val_list.extend(gantryM)										
-		gantry_ref_list.extend(gantryR)										
+		gantry_ref_list.extend(gantryR)
+		gantry_pid_list.extend(gantryPID)						
+
 		ring_val_list.extend(ringM)											
-		ring_ref_list.extend(ringR)											
+		ring_ref_list.extend(ringR)
+		ring_pid_list.extend(ringPID)											
 		
 		plt.clf()
 		plotLen = min(len(time_list), 2000) # Only plotting the latest 2000 data points
@@ -184,14 +189,16 @@ def UpdateGraph(graphPipeParent, graphPipeSize, graphLock, dt):
 			with open('SPOKeRunData.csv', 'a') as csvFile:
 				writer = csv.writer(csvFile)
 				for i in range( len(time_list) - 2000 ):
-					writer.writerow([time_list[i], gantry_val_list[i], gantry_ref_list[i], ring_val_list[i], ring_ref_list[i]])
+					writer.writerow([time_list[i], gantry_val_list[i], gantry_ref_list[i], gantry_pid_list[i] ,ring_val_list[i], ring_ref_list[i], ring_pid_list[i] ])
 			csvFile.close
 
 			time_list = time_list[-2000:]
 			gantry_val_list = gantry_val_list[-2000:]
 			gantry_ref_list = gantry_ref_list[-2000:]
+			gantry_pid_list = gantry_pid_list[-2000:]
 			ring_val_list = ring_val_list[-2000:]
 			ring_ref_list = ring_ref_list[-2000:]
+			ring_pid_list = ring_pid_list[-2000:]
 	graphLock.release()
 
 

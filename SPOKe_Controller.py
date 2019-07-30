@@ -28,7 +28,7 @@ def PID_to_control_input(pid_output):
 def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData):
 	if (stopButtonPressed.value == 1):
 		control_instance.stop()
-		control_instance.dataBuffer[5] = 100
+		control_instance.dataBuffer[7] = 100
 		sendData(control_instance, graphPipe, graphPipeSize, graphLock)
 		print("In error state button pressed")
 		time.sleep(4)
@@ -43,7 +43,7 @@ def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPi
 #	elif (control_instance.isStuck()):
 #		print("The robot is stuck. Stopping all motion")
 #		control_instance.stop()
-#		control_instance.dataBuffer[5] = 50
+#		control_instance.dataBuffer[7] = 50
 #		sendData(control_instance, graphPipe, graphPipeSize, graphLock)
 #		print("In error stuck")
 #		time.sleep(4)
@@ -53,7 +53,7 @@ def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPi
 #			time.sleep(4)
 #		return True
 	elif(control_instance.ls_instance.anyActive()):
-		control_instance.dataBuffer[5] = 51
+		control_instance.dataBuffer[7] = 51
 		sendData(control_instance, graphPipe, graphPipeSize, graphLock)
 		print("The robot has touched limit switch. Stopping all motion")
 		print("theta4 = ", control_instance.theta4, " | counter 2 = ", control_instance.encoder_instance.local_counter2)
@@ -92,17 +92,6 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 	run_start_time = round(time.time(),2)
 	control_instance = controller(run_start_time)
 	control_instance.waitForInitSignal(buttonPipe)
-
-	#control_instance.dataBuffer[5] = -1
-	#sendData(control_instance, graphPipe, graphPipeSize, graphLock)
-	#time.sleep(4)
-	#control_instance.encoder_instance.reset_counter(1)
-	#control_instance.encoder_instance.reset_counter(2)
-	#control_instance.dataBuffer[5] = 0
-	#sendData(control_instance, graphPipe, graphPipeSize, graphLock)
-	#buttonPipe.send("Init finished")
-	#newButtonData.value += 1
-
 
 	if (control_instance.initialize(buttonPipe, newButtonData, stopButtonPressed, graphPipe, graphPipeSize, graphLock) == False):
 		print("Stop button is pressed during init, looping forever")
@@ -165,9 +154,11 @@ class controller:
 		self.time_list = [0, 0]
 		self.measurement_list_gantry = [0, 0]  
 		self.reference_list_gantry = [0, 0]    
+		self.pid_list_gantry = [0, 0]
 		self.measurement_list_ring = [0, 0]
 		self.reference_list_ring = [0, 0]
-		self.dataBuffer = [self.time_list[:], self.measurement_list_gantry[:], self.reference_list_gantry[:], self.measurement_list_ring[:], self.reference_list_ring[:], -1]
+		self.pid_list_ring = [0, 0]
+		self.dataBuffer = [self.time_list[:], self.measurement_list_gantry[:], self.reference_list_gantry[:], self.pid_list_gantry[:], self.measurement_list_ring[:], self.reference_list_ring[:], self.pid_list_ring[:], -1]
 
 		import pymonarco_hat as plc
 		lib_path = '../pymonarco-hat/monarco-c/libmonarco.so'
@@ -216,7 +207,7 @@ class controller:
 		# Storage lists
 	def initialize(self, buttonPipe, newButtonData,  stopButtonPressed, graphPipe, graphPipeSize, graphLock):
 		
-		self.dataBuffer[5] = -1
+		self.dataBuffer[7] = -1
 		sendData(self, graphPipe, graphPipeSize, graphLock)
 
 		self.motor_control.setMotorDirection(GANTRY_ROBOT, -1)
@@ -271,7 +262,7 @@ class controller:
 		self.stop()
 		print('found ring z')
 
-		self.dataBuffer[5] = 0
+		self.dataBuffer[7] = 0
 		sendData(self, graphPipe, graphPipeSize, graphLock)
 		buttonPipe.send("Init finished")
 		newButtonData.value += 1
@@ -310,7 +301,7 @@ class controller:
 		self.r2 = self.r2_ref 							# Only for simulation
 		
 		self.calculateTrajectory(state)
-		self.dataBuffer[5] = state
+		self.dataBuffer[7] = state
 
 	def calculateTrajectory(self, state):
 		if (state == 1 or state == 4):
@@ -466,11 +457,13 @@ class controller:
 		self.dataBuffer[0].extend(self.time_list[:])
 		self.dataBuffer[1].extend(self.measurement_list_gantry[:])
 		self.dataBuffer[2].extend(self.reference_list_gantry[:])
-		self.dataBuffer[3].extend(self.measurement_list_ring[:])
-		self.dataBuffer[4].extend(self.reference_list_ring[:])
+		self.dataBuffer[3].extend(self.pid_list_gantry[:])
+		self.dataBuffer[4].extend(self.measurement_list_ring[:])
+		self.dataBuffer[5].extend(self.reference_list_ring[:])
+		self.dataBuffer[6].extend(self.pid_list_ring[:])
 
 	def eraseBufferData(self):
-		self.dataBuffer = [[], [], [], [], [], self.dataBuffer[5]]
+		self.dataBuffer = [[], [], [], [], [], [], [], self.dataBuffer[7]]
 
 	def storeData(self):
 		self.time_list.append((round(time.time(),2) - self.run_start_time))
@@ -483,5 +476,7 @@ class controller:
 		self.time_list = []
 		self.measurement_list_gantry = []
 		self.reference_list_gantry = []
+		self.pid_list_gantry = []
 		self.measurement_list_ring = []
 		self.reference_list_ring = []
+		self.pid_list_ring = []

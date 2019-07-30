@@ -71,8 +71,6 @@ class controller:
 		self.measurement_list = [0, 0]  
 		self.reference_list = [0, 0]    
 		self.pid_list = [0, 0]
-		
-		self.dataBuffer = [self.time_list[:], self.measurement_list[:], self.reference_list[:], self.pid_list[:]]
 
 		
 

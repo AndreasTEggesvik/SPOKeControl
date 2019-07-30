@@ -322,8 +322,8 @@ class controller:
 				self.r2_ref = self.r2_min
 				velocityDir = -1
 			velocity = tp.getLSPB_velocity(self.r2, self.r2_ref, self.t0, self.tf, 0.6) 
+			print("Calculating trajectory for gantry robot with r2 = ", self.r2, " | r2_ref = ", self.r2_ref, " | velocity = ", velocity)
 			[self.A0_gantry, self.A1_gantry, self.A2_gantry, self.tb_gantry] = tp.LSPB(velocity*velocityDir, [self.r2, 0, self.r2_ref, 0], [self.t0, self.tf])
-
 			# We want the angle to move as the middle third of the movement:
 			
 			stateRunTime = self.tf - self.t0

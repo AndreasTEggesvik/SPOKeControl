@@ -16,16 +16,22 @@ GANTRY_ROBOT = 1
 RING_ROBOT = 2
 
 
-def PID_to_control_input(pid_output):
+def PID_to_control_input(pid_output, motor):
 	if pid_output >= 0:
 		direction = 1
 	else:
 		direction = -1
 	pid_output = abs(pid_output)
-	if (pid_output < 22):
-		pid_output = 0
-	else: 
-		pid_output = 20 + 6 * math.sqrt(pid_output-15)
+	if (motor == RING_ROBOT):
+		if (pid_output < 22):
+			pid_output = 0
+		else: 
+			pid_output = 20 + 6 * math.sqrt(pid_output-15)
+	elif(motor == GANTRY_ROBOT):
+		if (pid_output < 15):
+			pid_output = 0
+		else: 
+			pid_output = 35 + 6 * math.sqrt(pid_output-15)
 	return [direction, min(pid_output, 100)]
 
 
@@ -129,7 +135,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 
 			if (i == 15):
 
-				[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(control_instance.pid_ring.output)
+				[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(control_instance.pid_ring.output, 2)
 				print("Motor control signals: DIRECTION = ", direction_ring, " | POWER = ", PWM_signal_strength_ring)
 
 				if (graphPipeSize.value == 0):
@@ -435,7 +441,7 @@ class controller:
 
 	def setOutput(self, state):
 		# This function updates output for both motors based on PID controller
-		[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(self.pid_ring.output)
+		[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(self.pid_ring.output, RING_ROBOT)
 		self.motor_control.setMotorDirection(RING_ROBOT, direction_ring)
 		self.motor_control.setMotorSpeed(RING_ROBOT, PWM_signal_strength_ring)
 		#self.motor_control.setMotorSpeed(2, 0.3)
@@ -450,7 +456,7 @@ class controller:
 			self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0.3)
 			return True
 		
-		[direction_gantry, PWM_signal_strength_gantry] = PID_to_control_input(self.pid_gantry.output)
+		[direction_gantry, PWM_signal_strength_gantry] = PID_to_control_input(self.pid_gantry.output, GANTRY_ROBOT)
 		self.motor_control.setMotorDirection(GANTRY_ROBOT, direction_gantry)
 		self.motor_control.setMotorSpeed(GANTRY_ROBOT, PWM_signal_strength_gantry)
 		

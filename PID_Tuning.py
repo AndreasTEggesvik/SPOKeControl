@@ -12,9 +12,9 @@
 
 #### Changable Variables ####
 							#
-[P, I, D] = [400, 533, 200]		#
-motorNumber = 2				#
-reference = 5 * 3.14/180 	# 
+[P, I, D] = [400, 0, 0]	#
+motorNumber = 1				#
+reference = 10 				# 
 							#
 #############################
 
@@ -31,10 +31,10 @@ def PID_to_control_input(pid_output):
 	else:
 		direction = -1
 	pid_output = abs(pid_output)
-	if (pid_output < 22):
+	if (pid_output < 15):
 		pid_output = 0
 	else:
-		pid_output = 13 + 6*math.sqrt(pid_output-20)
+		pid_output = 35 + 6*math.sqrt(pid_output-20)
 	return [direction, min(pid_output, 100)]
 
 

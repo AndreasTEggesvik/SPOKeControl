@@ -37,10 +37,10 @@ def PID_to_control_input(pid_output):
 
 def main():
 	startTime = round(time.time(),2)
+	global motorNumber, reference
+	control_instance = controller(reference, startTime)
 	i = 0
 	while ((round(time.time(),2) - startTime) < 20):
-		global motorNumber, reference
-		control_instance = controller(reference, startTime)
 		control_instance.updatePosition(motorNumber)
 		control_instance.updatePID()
 		control_instance.setOutput(motorNumber)
@@ -110,3 +110,5 @@ class controller:
 		self.measurement_list.append(self.position)
 		self.reference_list.append(self.reference)
 		self.pid_list.append(self.pid.output)
+
+main()

@@ -518,7 +518,8 @@ def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPi
 			time.sleep(0.05)
 		control_instance.stop()
 
-		control_instance.r2 = 1.54
+		control_instance.r2 = control_instance.r2_max
+		control_instance.encoder_instance.set_position(GANTRY_ROBOT, control_instance.r2_max)
 		return True
 
 	elif (state == 4 and control_instance.ls_instance.active(3)):
@@ -536,6 +537,7 @@ def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPi
 			time.sleep(0.05)
 		control_instance.stop()
 		control_instance.r2 = 0
+		control_instance.encoder_instance.set_position(GANTRY_ROBOT, 0)
 		return True
 
 	elif(control_instance.ls_instance.anyActive()):

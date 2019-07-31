@@ -17,6 +17,12 @@ def rad2theta4(encoder_angle_rad):
 def rad2r2(encoder_angle_rad):
 	global r_gear_gantry
 	return encoder_angle_rad * r_gear_gantry
+
+def theta4TOrad(theta4):
+	return theta4 * r4 /r_gear_rotary
+
+def r2TOrad(r2):
+	return r2 /r_gear_gantry
 	
 
 class Dimensions:

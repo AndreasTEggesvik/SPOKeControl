@@ -1,5 +1,6 @@
 import pymonarco_hat as plc
 import RPi.GPIO as GPIO
+import SPOKe_Geometry
 
 import time
 
@@ -182,6 +183,12 @@ class Encoder_input:
 			self.local_counter1 = 0
 		elif (counter_identifier == 2):
 			self.local_counter2 = 0
+
+	def set_position(self, counter_identifier, value):
+		if (counter_identifier == 1):
+			self.local_counter1 = SPOKe_Geometry.r2TOrad(value) * self.gear_reduction * self.encoder_precision * self.tickMultiplier / (2 * 3.14 *self.counterDownScalingFactor)
+		elif (counter_identifier == 2):
+			self.local_counter2 = SPOKe_Geometry.theta4TOrad(value) * self.gear_reduction * self.encoder_precision * self.tickMultiplier / (2*3.14)
 			
 	def read_counter_rad(self, counter_identifier):
 		self.update_counter(counter_identifier)

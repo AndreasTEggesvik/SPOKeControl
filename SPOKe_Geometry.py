@@ -5,7 +5,7 @@ import math
 r4 = 1.966 
 l_total = 1.56
 r_gear_gantry = 26.1 / 1000 # 2.86 cm is an estimate based on test
-r_gear_rotary = 19 / 1000
+r_gear_rotary = 20 / 1000
 
 
 ########### Helper functions ############
@@ -48,5 +48,5 @@ class Dimensions:
 
 		self.angularMovementState_1_4 = - 0.5 * 0.1588
 		self.angularMovementState_2_5 = 0.1588 # Distance from one clam to the next
-		self.initialAngularMovement = 0.1358 # Distance to move from the limit switch to the middle of the first two clams
+		self.initialAngularMovement = 0.135 #0.1358 # Distance to move from the limit switch to the middle of the first two clams
 		

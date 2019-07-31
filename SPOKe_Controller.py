@@ -59,8 +59,8 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 		continuing = False
 		control_instance.initNewState(t0, tf, state)
 		i = 0 
-		while ((not control_instance.timeout) and (stopButtonPressed.value == 0) and (not control_instance.ls_instance.anyActive()) and control_instance.theta4_e > 0.017 and control_instance.r2_e > 0.009): # and (not control_instance.isStuck())): 
-			# Only check time when testing while the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
+		while ((not control_instance.timeout or (control_instance.theta4_e > 0.017 or control_instance.r2_e > 0.009)) and (stopButtonPressed.value == 0) and (not control_instance.ls_instance.anyActive())): # and (not control_instance.isStuck())): 
+			# Only continue when the trajectory is still moving, theta4_e < 1 deg, r2_e < 9 mm and no stop button or limit switch is hit.
 
 			control_instance.updateTrajectory(state)
 			control_instance.updatePosition()

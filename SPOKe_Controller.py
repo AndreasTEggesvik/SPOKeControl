@@ -22,29 +22,15 @@ def PID_to_control_input(pid_output, motor, encoder):
 	else:
 		direction = -1
 	pid_output = abs(pid_output)
-	if (motor == RING_ROBOT):
-		if (pid_output < 22):
-			pid_output = 0
-		else: 
-			pid_output = 20 + 6 * math.sqrt(pid_output-15)
-	elif(motor == GANTRY_ROBOT):
-		if (pid_output < 15):
-			pid_output = 0
-		elif (abs(encoder.last_tick_diff1) < 2):
-			pid_output = 80
-		else: 
-			pid_output = 35 + 6 * math.sqrt(pid_output-15)
+	if (pid_output < 15):
+		pid_output = 0
+	elif (motor == RING_ROBOT and abs(encoder.last_tick_diff2) < 2):
+		pid_output = 70
+	elif (motor == GANTRY_ROBOT and abs(encoder.last_tick_diff1) < 2):
+		pid_output = 70
+	else: 
+		pid_output = 15 + 6 * math.sqrt(pid_output-15)
 	return [direction, min(pid_output, 100)]
-
-#def kickStartMovement(motor_control, motorNumber, control_signal):
-#	if (control_signal > 0):
-#		motor_control.setMotorDirection(motorNumber, 1)
-#	if (control_signal <= 0):
-#		motor_control.setMotorDirection(motorNumber, -1)	
-#
-#	motor_control.setMotorSpeed(motorNumber, 80)
-#	time.sleep(0.2)
-
 
 
 def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, stopButtonPressed, newButtonData, operatingTimeConstant):
@@ -73,7 +59,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 		continuing = False
 		control_instance.initNewState(t0, tf, state)
 		i = 0 
-		while ((not control_instance.timeout) and (stopButtonPressed.value == 0) and (not control_instance.ls_instance.anyActive())): # and (not control_instance.isStuck())): # and control_instance.theta4_e > 0.017 and control_instance.r2_e > 0.02): 
+		while ((not control_instance.timeout) and (stopButtonPressed.value == 0) and (not control_instance.ls_instance.anyActive()) and control_instance.theta4_e > 0.017 and control_instance.r2_e > 0.009): # and (not control_instance.isStuck())): 
 			# Only check time when testing while the trajectory is still moving, theta4_e < 1 deg, r2_e < 2 cm.
 
 			control_instance.updateTrajectory(state)
@@ -174,11 +160,16 @@ class controller:
 		self.motor_control.setMotorDirection(GANTRY_ROBOT, -1)
 		self.motor_control.setMotorDirection(RING_ROBOT, -1)
 
-		initVelocity = 30
-		self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity)
+		initVelocity = 15
+		self.encoder_instance.reset_counter(2)
+		self.updatePosition()
 		# Moving along the ring until we hit the limit switch
 		while ( not ( self.ls_instance.anyActive() or stopButtonPressed.value )): # self.ls_instance.active(1) or self.ls_instance.active(2)
-			self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity*0.8)
+			self.updatePosition()
+			if (abs(self.encoder_instance.last_tick_diff2) < 2):
+				self.motor_control.setMotorSpeed(RING_ROBOT, 40) 
+			else:
+				self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity) 
 			if (stopButtonPressed.value):
 				return False
 			time.sleep(0.05)
@@ -189,7 +180,10 @@ class controller:
 
 		self.motor_control.setMotorDirection(RING_ROBOT, 1)
 		while (self.ls_instance.anyActive()):
-			self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity*0.8) 
+			self.updatePosition()
+			if (abs(self.encoder_instance.last_tick_diff2) < 2):
+				pid_output = 40
+			self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity) 
 			if (stopButtonPressed.value):
 				return False
 			time.sleep(0.05)
@@ -249,14 +243,14 @@ class controller:
 		
 		# Enables possibility of different PID control for different states
 		if (state == 1 or state == 4):
-			[P_g, I_g, D_g] = [120, 100, 74]
+			[P_g, I_g, D_g] = [120, 60, 84]
 			[P_r, I_r, D_r] = [400, 533, 200]
 			self.motor_control.openGrip()
 		elif(state == 2 or state ==5):
-			[P_g, I_g, D_g] = [120, 100, 74]
+			[P_g, I_g, D_g] = [120, 60, 84]
 			[P_r, I_r, D_r] = [400, 533, 200]	
 		if (state == 3 or state == 6):
-			[P_g, I_g, D_g] = [120, 100, 74]			# PID controller is not used for gantry in these states
+			[P_g, I_g, D_g] = [120, 60, 84]			# PID controller is not used for gantry in these states
 			[P_r, I_r, D_r] = [400, 533, 200]
 			self.motor_control.closeGrip()
 		
@@ -403,7 +397,7 @@ class controller:
 
 			self.theta4_e = self.theta4_ref - self.theta4
 			# To eliminate windup effecting us badly: 
-			if (abs(self.theta4_e) < 1*3.14/180): # 1 deg
+			if (abs(self.theta4_e) < 0.5*3.14/180): # 1 deg
 				self.pid_ring.setWindup(0)
 			else: 
 				self.pid_ring.setWindup(20)

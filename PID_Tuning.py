@@ -14,7 +14,7 @@
 							#
 [P, I, D] = [600, 0, 0]	#
 motorNumber = 1				#
-reference = 0.10 				# 
+reference = 0.20 				# 
 							#
 #############################
 
@@ -34,7 +34,7 @@ def PID_to_control_input(pid_output):
 	if (pid_output < 15):
 		pid_output = 0
 	else:
-		pid_output = 35 + 6*math.sqrt(pid_output-20)
+		pid_output = 35 + 6*math.sqrt(max(pid_output-20, 0))
 	return [direction, min(pid_output, 100)]
 
 

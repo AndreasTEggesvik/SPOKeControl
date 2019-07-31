@@ -160,19 +160,18 @@ class controller:
 		self.motor_control.setMotorDirection(GANTRY_ROBOT, -1)
 		self.motor_control.setMotorDirection(RING_ROBOT, -1)
 
-		initVelocity = 15
 		self.encoder_instance.reset_counter(2)
 		self.updatePosition()
+
 		# Moving along the ring until we hit the limit switch
-		while ( not ( self.ls_instance.anyActive() or stopButtonPressed.value )): # self.ls_instance.active(1) or self.ls_instance.active(2)
+		while ( not ( self.ls_instance.anyActive() or stopButtonPressed.value )):
 			self.updatePosition()
 			if (abs(self.encoder_instance.last_tick_diff2) < 400):
 				self.motor_control.setMotorSpeed(RING_ROBOT, 80) 
-				print("motor speed 80! ")
 			elif (abs(self.encoder_instance.last_tick_diff2) < 600):
 				self.motor_control.setMotorSpeed(RING_ROBOT, 50)
 			else:
-				self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity) 
+				self.motor_control.setMotorSpeed(RING_ROBOT, 15) 
 			if (stopButtonPressed.value):
 				return False
 			time.sleep(0.05)
@@ -183,7 +182,7 @@ class controller:
 
 		self.motor_control.setMotorDirection(RING_ROBOT, 1)
 		while (self.ls_instance.anyActive()):
-			self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity) 
+			self.motor_control.setMotorSpeed(RING_ROBOT, 15) 
 			if (stopButtonPressed.value):
 				return False
 			time.sleep(0.05)
@@ -211,7 +210,7 @@ class controller:
 
 		# Move r_2 until the first z value is active and limit switch is no longer active
 		self.motor_control.setMotorDirection(GANTRY_ROBOT, 1)
-		self.motor_control.setMotorSpeed(GANTRY_ROBOT, initVelocity*2)
+		self.motor_control.setMotorSpeed(GANTRY_ROBOT, 30)
 		if ( not self.encoder_instance.findFirstZ(GANTRY_ROBOT)):
 			self.stop()
 			return False

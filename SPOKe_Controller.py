@@ -242,15 +242,15 @@ class controller:
 		
 		# Enables possibility of different PID control for different states
 		if (state == 1 or state == 4):
-			[P_g, I_g, D_g] = [120, 60, 84]
-			[P_r, I_r, D_r] = [400, 533, 200]
+			[P_g, I_g, D_g] = [430, 60, 94]
+			[P_r, I_r, D_r] = [700, 433, 350]
 			self.motor_control.openGrip()
 		elif(state == 2 or state ==5):
-			[P_g, I_g, D_g] = [120, 60, 84]
-			[P_r, I_r, D_r] = [400, 533, 200]	
+			[P_g, I_g, D_g] = [430, 60, 94]
+			[P_r, I_r, D_r] = [700, 433, 350]	
 		if (state == 3 or state == 6):
-			[P_g, I_g, D_g] = [120, 60, 84]			# PID controller is not used for gantry in these states
-			[P_r, I_r, D_r] = [400, 533, 200]
+			[P_g, I_g, D_g] = [430, 60, 94]			# PID controller is not used for gantry in these states
+			[P_r, I_r, D_r] = [700, 433, 350]
 			self.motor_control.closeGrip()
 		
 

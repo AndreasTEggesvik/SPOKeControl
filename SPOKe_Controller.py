@@ -16,7 +16,7 @@ GANTRY_ROBOT = 1
 RING_ROBOT = 2
 
 
-def PID_to_control_input(pid_output, motor):
+def PID_to_control_input(pid_output, motor, encoder):
 	if pid_output >= 0:
 		direction = 1
 	else:
@@ -30,11 +30,20 @@ def PID_to_control_input(pid_output, motor):
 	elif(motor == GANTRY_ROBOT):
 		if (pid_output < 15):
 			pid_output = 0
+		elif (abs(encoder.last_tick_diff1) < 2):
+			pid_output = 80
 		else: 
 			pid_output = 35 + 6 * math.sqrt(pid_output-15)
 	return [direction, min(pid_output, 100)]
 
-
+#def kickStartMovement(motor_control, motorNumber, control_signal):
+#	if (control_signal > 0):
+#		motor_control.setMotorDirection(motorNumber, 1)
+#	if (control_signal <= 0):
+#		motor_control.setMotorDirection(motorNumber, -1)	
+#
+#	motor_control.setMotorSpeed(motorNumber, 80)
+#	time.sleep(0.2)
 
 
 
@@ -75,7 +84,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 
 			if (i == 15):
 
-				[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(control_instance.pid_ring.output, 2)
+				[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(control_instance.pid_ring.output, 2, control_instance.encoder_instance)
 				print("Motor control signals: DIRECTION = ", direction_ring, " | POWER = ", PWM_signal_strength_ring)
 
 				if (graphPipeSize.value == 0):
@@ -175,6 +184,9 @@ class controller:
 			time.sleep(0.05)
 		self.stop()
 
+		self.encoder_instance.reset_counter(2)
+		print('Ring encoder initiated')
+
 		self.motor_control.setMotorDirection(RING_ROBOT, 1)
 		while (self.ls_instance.anyActive()):
 			self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity*0.8) 
@@ -182,18 +194,17 @@ class controller:
 				return False
 			time.sleep(0.05)
 		self.stop()
-		self.encoder_instance.reset_counter(2)
+		
 
 		# Moving the gantry robot until we hit the limit switch
 		while ( not ( self.ls_instance.active(3) or self.ls_instance.active(4) or stopButtonPressed.value )):
-			self.motor_control.setMotorSpeed(GANTRY_ROBOT, initVelocity)
+#			self.motor_control.setMotorSpeed(GANTRY_ROBOT, initVelocity)
 			if (stopButtonPressed.value):
 				return False
 			time.sleep(0.05)
 		self.stop()
 		
 		self.encoder_instance.reset_counter(1)
-#		self.encoder_instance.reset_counter(2)
 		print('Encoder initiated')
 		#################################################################################
 		#																				#
@@ -238,14 +249,14 @@ class controller:
 		
 		# Enables possibility of different PID control for different states
 		if (state == 1 or state == 4):
-			[P_g, I_g, D_g] = [10, 1, 0.2]
+			[P_g, I_g, D_g] = [120, 100, 74]
 			[P_r, I_r, D_r] = [400, 533, 200]
 			self.motor_control.openGrip()
 		elif(state == 2 or state ==5):
-			[P_g, I_g, D_g] = [10, 1, 0.2]
+			[P_g, I_g, D_g] = [120, 100, 74]
 			[P_r, I_r, D_r] = [400, 533, 200]	
 		if (state == 3 or state == 6):
-			[P_g, I_g, D_g] = [0, 0, 0]			# PID controller is not used for gantry in these states
+			[P_g, I_g, D_g] = [120, 100, 74]			# PID controller is not used for gantry in these states
 			[P_r, I_r, D_r] = [400, 533, 200]
 			self.motor_control.closeGrip()
 		
@@ -272,7 +283,7 @@ class controller:
 			elif (state == 4):
 				self.r2_ref = self.r2_min
 				velocityDir = -1
-			velocity = tp.getLSPB_velocity(self.r2, self.r2_ref, self.t0, self.tf, 0.6) 
+			velocity = tp.getLSPB_velocity(self.r2, self.r2_ref, self.t0, self.tf, 0.3) 
 			print("Calculating trajectory for gantry robot with r2 = ", self.r2, " | r2_ref = ", self.r2_ref, " | velocity = ", velocity)
 			[self.A0_gantry, self.A1_gantry, self.A2_gantry, self.tb_gantry] = tp.LSPB(velocity*velocityDir, [self.r2, 0, self.r2_ref, 0], [self.t0, self.tf])
 			# We want the angle to move as the middle third of the movement:
@@ -379,18 +390,35 @@ class controller:
 			self.pid_gantry.SetPoint = self.r2_ref
 			return True
 		elif (state == 1 or state == 2 or state == 4 or state == 5):
+			self.r2_e = self.r2_ref - self.r2
+
+			# To eliminate windup effecting us badly: 
+			if (abs(self.r2_e) < 0.005): # 5 mm
+				self.pid_gantry.setWindup(0)
+			else: 
+				self.pid_gantry.setWindup(20)
+
 			self.pid_gantry.SetPoint = self.r2_ref
 			self.pid_gantry.update(self.r2)
-			self.r2_e = self.r2_ref - self.r2
+
+			self.theta4_e = self.theta4_ref - self.theta4
+			# To eliminate windup effecting us badly: 
+			if (abs(self.theta4_e) < 1*3.14/180): # 1 deg
+				self.pid_ring.setWindup(0)
+			else: 
+				self.pid_ring.setWindup(20)
+			
 			self.pid_ring.SetPoint = self.theta4_ref 
 			self.pid_ring.update(self.theta4)
-			self.theta4_e = self.theta4_ref - self.theta4
+			
+
+			
 			return True
 		return False
 
 	def setOutput(self, state):
 		# This function updates output for both motors based on PID controller
-		[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(self.pid_ring.output, RING_ROBOT)
+		[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(self.pid_ring.output, RING_ROBOT, self.encoder_instance)
 		self.motor_control.setMotorDirection(RING_ROBOT, direction_ring)
 		self.motor_control.setMotorSpeed(RING_ROBOT, PWM_signal_strength_ring)
 		#self.motor_control.setMotorSpeed(2, 0.3)
@@ -405,7 +433,7 @@ class controller:
 			self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0.3)
 			return True
 		
-		[direction_gantry, PWM_signal_strength_gantry] = PID_to_control_input(self.pid_gantry.output, GANTRY_ROBOT)
+		[direction_gantry, PWM_signal_strength_gantry] = PID_to_control_input(self.pid_gantry.output, GANTRY_ROBOT, self.encoder_instance)
 		self.motor_control.setMotorDirection(GANTRY_ROBOT, direction_gantry)
 		self.motor_control.setMotorSpeed(GANTRY_ROBOT, PWM_signal_strength_gantry)
 		

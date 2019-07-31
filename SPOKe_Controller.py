@@ -15,6 +15,9 @@ import math
 GANTRY_ROBOT = 1
 RING_ROBOT = 2
 
+# State = [init, stopButtonPressed, errorLimitSwitch, stuck, moveAlongRing, moveInwards, moveOutwards, tightenRopeInwards, tightenRopeOutwards]
+#stateToRevertBackTo = [moveAlongRing, moveInwards, moveOutwards, tightenRopeInwards, tightenRopeOutwards]
+stateToRevertBackTo = "moveAlongRing" # Only used when in an error state
 
 def PID_to_control_input(pid_output, motor, encoder):
 	if pid_output >= 0:
@@ -46,8 +49,8 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 	
 	control_instance.waitForStartSignal(buttonPipe, newButtonData, stopButtonPressed)
 	control_instance.run_start_time = round(time.time(),2)
-	state = 1
 	continuing = False
+	state = "moveOutwards"
 
 	while(True):
 		t0 = 0
@@ -82,14 +85,10 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 				i = 0
 			i += 1
 			time.sleep(0.02)
-
-		if (reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData)):
-			state -= 1
+		state = transitionState(state, control_instance, stopButtonPressed)
+		if (state == "stopButtonPressed" or state == "errorLimitSwitch" or state == "stuck"):
+			state = reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData)
 			continuing = True
-		if (state < 6):
-			state += 1
-		else: 
-			state = 1
 	print("Finished")
 	control_instance.stop()
 
@@ -164,7 +163,7 @@ class controller:
 		# Moving along the ring until we hit the limit switch
 		self.encoder_instance.reset_counter(2)
 		self.updatePosition()
-		while ( not ( self.ls_instance.active(2) or self.ls_instance.active(4) or stopButtonPressed.value )):
+		while ( not ( self.ls_instance.active(2) or self.ls_instance.active(4) or stopButtonPressed.value)):
 			self.updatePosition()
 			if (abs(self.encoder_instance.last_tick_diff2) < 400):
 				self.motor_control.setMotorSpeed(RING_ROBOT, 90) 
@@ -181,7 +180,7 @@ class controller:
 		print('Ring encoder initiated')
 		
 		self.motor_control.setMotorDirection(RING_ROBOT, 1)
-		while (self.ls_instance.anyActive()):
+		while (self.ls_instance.active(2) or self.ls_instance.active(4)):
 			self.motor_control.setMotorSpeed(RING_ROBOT, 30) 
 			if (stopButtonPressed.value):
 				return False
@@ -192,7 +191,7 @@ class controller:
 		# Moving the gantry robot until we hit the limit switch
 		self.encoder_instance.reset_counter(1)
 		self.updatePosition()
-		while ( not ( self.ls_instance.active(1) or self.ls_instance.active(3) or stopButtonPressed.value )):
+		while ( not ( self.ls_instance.active(1) or self.ls_instance.active(3) or stopButtonPressed.value)):
 			self.updatePosition()
 			if (abs(self.encoder_instance.last_tick_diff1) < 60):
                                 self.motor_control.setMotorSpeed(GANTRY_ROBOT, 60)
@@ -206,7 +205,15 @@ class controller:
 		self.stop()
 		
 		self.encoder_instance.reset_counter(1)
-		print('Encoder initiated')
+		print('Gantry encoder initiated')
+
+		self.motor_control.setMotorDirection(GANTRY_ROBOT, 1)
+		while (self.ls_instance.active(1) or self.ls_instance.active(3)):
+			self.motor_control.setMotorSpeed(GANTRY_ROBOT, 30) 
+			if (stopButtonPressed.value):
+				return False
+			time.sleep(0.05)
+		self.stop()
 		#################################################################################
 		#																				#
 		#   The follwing code that is comment out is used to initialize the encoder.	#
@@ -217,14 +224,14 @@ class controller:
 		#################################################################################
 
 		# Move r_2 until the first z value is active and limit switch is no longer active
-		self.motor_control.setMotorDirection(GANTRY_ROBOT, 1)
-		self.motor_control.setMotorSpeed(GANTRY_ROBOT, 30)
-		if ( not self.encoder_instance.findFirstZ(GANTRY_ROBOT)):
-			self.stop()
-			return False
-		self.stop()
+#		self.motor_control.setMotorDirection(GANTRY_ROBOT, 1)
+#		self.motor_control.setMotorSpeed(GANTRY_ROBOT, 30)
+#		if ( not self.encoder_instance.findFirstZ(GANTRY_ROBOT)):
+#			self.stop()
+#			return False
+#		self.stop()
 
-		print('Found gantry z')
+#		print('Found gantry z')
 
 		#  Move theta_4 until the first z value is active.
 #		self.motor_control.setMotorDirection(RING_ROBOT, 1)
@@ -249,14 +256,13 @@ class controller:
 		self.timeout = False
 		
 		# Enables possibility of different PID control for different states
-		if (state == 1 or state == 4):
+		if (state == "moveInwards" or state == "moveOutwards"):
 			[P_g, I_g, D_g] = [430, 60, 94]
 			[P_r, I_r, D_r] = [900, 470, 350]
-			self.motor_control.openGrip()
-		elif(state == 2 or state ==5):
+		elif(state == "moveAlongRing"):
 			[P_g, I_g, D_g] = [430, 60, 94]
 			[P_r, I_r, D_r] = [900, 470, 350]	
-		if (state == 3 or state == 6):
+		if (state == "tightenRopeInwards" or state == "tightenRopeOutwards"):
 			[P_g, I_g, D_g] = [430, 60, 94]			# PID controller is not used for gantry in these states
 			[P_r, I_r, D_r] = [900, 470, 350]
 			self.motor_control.closeGrip()
@@ -277,11 +283,11 @@ class controller:
 		self.dataBuffer[7] = state
 
 	def calculateTrajectory(self, state):
-		if (state == 1 or state == 4):
-			if (state == 1):
+		if (state == "moveOutwards" or state == "moveInwards"):
+			if (state == "moveOutwards"):
 				self.r2_ref = self.r2_max
 				velocityDir = 1
-			elif (state == 4):
+			elif (state == "moveInwards"):
 				self.r2_ref = self.r2_min
 				velocityDir = -1
 			velocity = tp.getLSPB_velocity(self.r2, self.r2_ref, self.t0, self.tf, 0.3) 
@@ -291,23 +297,15 @@ class controller:
 			
 			stateRunTime = self.tf - self.t0
 			if (self.theta4d == self.dimensions.theta4Min):
-				# If statement is true the first time state 1 is run
+				# If statement is true the first time state "moveOutwards" is run
 				[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = [0, 0, 0, 0]
-			else: 
+			else:  
 				velocityAngular = tp.getLSPB_velocity(self.theta4, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.5)
 				[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocityAngular * -1 , [self.theta4, 0, self.theta4d, 0], [0, stateRunTime/3])
 		
-
-		elif (state == 2 or state == 5):
+		elif (state == "moveAlongRing"):
 			velocity = tp.getLSPB_velocity(self.theta4, self.theta4d, self.t0, self.tf, 0.5)
 			[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocity, [self.theta4, 0, self.theta4d, 0], [self.t0, self.tf])
-			if (state == 2):
-				self.r2_ref = self.r2_max
-			elif (state == 5):
-				self.r2_ref = self.r2_min
-
-		#elif (state == 3 or state == 6):
-			# don't care about this as theta_4 ref is constant and unchanged
 
 
 	def waitForInitSignal(self, buttonPipe):
@@ -331,14 +329,14 @@ class controller:
 
 	# Used to set the next reference point for theta_4, based on geometry of the SPOKe cleats
 	def getNextTheta4d(self, state):
-		if (state == 1 or state == 4):
+		if (state == "moveInwards" or state == "moveOutwards"):
 			if (self.theta4d == self.dimensions.theta4Min):
 				self.theta4d = self.dimensions.theta4Min
 			else: 
 				self.theta4d = self.theta4d + self.dimensions.angularMovementState_1_4
 			return self.theta4d
 
-		elif (state == 2 or state == 5): 
+		elif (state == "moveAlongRing"): 
 			if (self.theta4d == self.dimensions.theta4Min):
 				self.theta4d = self.dimensions.initialAngularMovement
 			else:
@@ -346,7 +344,7 @@ class controller:
 			if (self.theta4d > self.dimensions.theta4Max):
 				return False
 			return self.theta4d
-		elif (state == 3 or state == 6):
+		elif (state == "tightenRopeInwards" or state == "tightenRopeOutwards"):
 			return self.theta4d
 		else: 
 			return False
@@ -358,23 +356,24 @@ class controller:
 		if (operation_time > self.tf - 0.1):
 			self.timeout = True
 			return True
-		if (state == 1 or state == 4):
+		if (state == "moveOutwards" or state == "moveInwards"):
 			self.r2_ref = tp.getLSPB_position(self.A0_gantry, self.A1_gantry, self.A2_gantry, self.t0, self.tb_gantry, self.tf, operation_time)
 
 			stateRunTime = self.tf - self.t0
-			if (self.theta4d == self.dimensions.theta4Min): # For the first time state 1 is excecuted
+			if (self.theta4d == self.dimensions.theta4Min): # For the first time state "moveOutwards" is excecuted
 				self.theta4_ref = self.theta4d
-			elif (operation_time < stateRunTime/3):
+				return True
+			elif (operation_time < stateRunTime/4):
 				# This is a way to have constant desired theta4 until the trajectory is supposed to begin
 				self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.t0, self.tb_ring, stateRunTime/3, 0)
+				return True
 			else: 
-				self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.t0, self.tb_ring, stateRunTime/3, operation_time - stateRunTime/3)
+				self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.t0, self.tb_ring, stateRunTime/3, operation_time - stateRunTime/4)
 			return True
-		elif (state == 2 or state == 5):
-
+		elif (state == "moveAlongRing"):
 			self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.t0,  self.tb_ring, self.tf, operation_time)
 			return True
-		elif (state ==3 or state == 6):
+		elif (state == "tightenRopeInwards" or state == "tightenRopeOutwards"):
 			return True
 		return False
 
@@ -383,14 +382,14 @@ class controller:
 		self.theta4 = SPOKe_Geometry.rad2theta4(self.encoder_instance.read_counter_rad(RING_ROBOT))
 
 	def updatePID(self, state):
-		if (state == 3 or state == 6):
+		if (state == "tightenRopeInwards" or state == "tightenRopeOutwards"):
 			self.r2_e = 0
 			self.pid_ring.SetPoint = self.theta4_ref 
 			self.pid_ring.update(self.theta4)
 			self.theta4_e = self.theta4_ref - self.theta4
 			self.pid_gantry.SetPoint = self.r2_ref
 			return True
-		elif (state == 1 or state == 2 or state == 4 or state == 5):
+		elif (state == "moveInwards" or state == "moveOutwards" or state == "moveAlongRing"):
 			self.r2_e = self.r2_ref - self.r2
 
 			# To eliminate windup effecting us badly: 
@@ -404,16 +403,13 @@ class controller:
 
 			self.theta4_e = self.theta4_ref - self.theta4
 			# To eliminate windup effecting us badly: 
-			if (abs(self.theta4_e) < 0.3*3.14/180): # 0.3 deg
+			if (abs(self.theta4_e) < 0.5*3.14/180): # 0.3 deg
 				self.pid_ring.setWindup(0)
 			else: 
 				self.pid_ring.setWindup(20)
 			
 			self.pid_ring.SetPoint = self.theta4_ref 
 			self.pid_ring.update(self.theta4)
-			
-
-			
 			return True
 		return False
 
@@ -425,18 +421,19 @@ class controller:
 		#self.motor_control.setMotorSpeed(2, 0.3)
 		
 
-		if (state == 3):
+		if (state == "tightenRopeInwards"):
 			self.motor_control.setMotorDirection(GANTRY_ROBOT, -1)
-			self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0.3)
+			self.motor_control.setMotorSpeed(GANTRY_ROBOT, 35)
 			return True
-		elif (state == 6):
+		elif (state == "tightenRopeOutwards"):
 			self.motor_control.setMotorDirection(GANTRY_ROBOT, 1)
-			self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0.3)
+			self.motor_control.setMotorSpeed(GANTRY_ROBOT, 35)
 			return True
 		
 		[direction_gantry, PWM_signal_strength_gantry] = PID_to_control_input(self.pid_gantry.output, GANTRY_ROBOT, self.encoder_instance)
 		self.motor_control.setMotorDirection(GANTRY_ROBOT, direction_gantry)
 		self.motor_control.setMotorSpeed(GANTRY_ROBOT, PWM_signal_strength_gantry)
+		return True
 		
 
 	def stop(self):
@@ -477,7 +474,8 @@ class controller:
 
 
 def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData):
-	if (stopButtonPressed.value == 1):
+	global stateToRevertBackTo
+	if (state == "stopButtonPressed"):
 		control_instance.stop()
 		control_instance.dataBuffer[7] = 100
 		sendData(control_instance, graphPipe, graphPipeSize, graphLock)
@@ -485,13 +483,21 @@ def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPi
 		time.sleep(4)
 		control_instance.waitForStartSignal(buttonPipe, newButtonData, stopButtonPressed)
 		stopButtonPressed.value = 0
-		return True
-	elif (state == 3 or state == 6): # Shoud check if the system is stuck
-		print("We are in state ", state, "and are stuck. Proceeding to the next state")
+		return stateToRevertBackTo
+	elif(state == "errorLimitSwitch"):
+		control_instance.dataBuffer[7] = 51
+		sendData(control_instance, graphPipe, graphPipeSize, graphLock)
+		print("The robot has touched limit switch. Stopping all motion")
+		print("theta4 = ", control_instance.theta4, " | counter 2 = ", control_instance.encoder_instance.local_counter2)
 		control_instance.stop()
-		control_instance.motor_control.openGrip()
-		return False
-#	elif (control_instance.isStuck()):
+		print("Limit switch active: ", int(control_instance.ls_instance.active(1)), int(control_instance.ls_instance.active(2)), int(control_instance.ls_instance.active(3)), int(control_instance.ls_instance.active(4)))
+		buttonPipe.send("Ready to continue")
+		newButtonData.value += 1
+		time.sleep(4)
+		control_instance.waitForStartSignal(buttonPipe, newButtonData, stopButtonPressed)
+		return stateToRevertBackTo
+	return False
+	#	elif (control_instance.isStuck()):
 #		print("The robot is stuck. Stopping all motion")
 #		control_instance.stop()
 #		control_instance.dataBuffer[7] = 50
@@ -503,69 +509,17 @@ def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPi
 #			print("In error, robot stuck detected")
 #			time.sleep(4)
 #		return True
-	elif (state == 1 and control_instance.ls_instance.active(1)):
-		control_instance.motor_control.setMotorDirection(1,-1)
-		while (control_instance.ls_instance.active(1)):
-			control_instance.updatePosition()
-			if (abs(control_instance.encoder_instance.last_tick_diff1) < 60):
-                                control_instance.motor_control.setMotorSpeed(GANTRY_ROBOT, 60)
-			elif (abs(control_instance.encoder_instance.last_tick_diff1) < 500):
-				control_instance.motor_control.setMotorSpeed(GANTRY_ROBOT, 35)
-			else:
-				control_instance.motor_control.setMotorSpeed(GANTRY_ROBOT, 20)
-			if (stopButtonPressed.value):
-				return False
-			time.sleep(0.05)
-		control_instance.stop()
-
-		control_instance.r2 = control_instance.r2_max
-		control_instance.encoder_instance.set_position(GANTRY_ROBOT, control_instance.r2_max)
-		return True
-
-	elif (state == 4 and control_instance.ls_instance.active(3)):
-		control_instance.motor_control.setMotorDirection(1,1)
-		while (control_instance.ls_instance.active(1)):
-			control_instance.updatePosition()
-			if (abs(control_instance.encoder_instance.last_tick_diff1) < 60):
-                                control_instance.motor_control.setMotorSpeed(GANTRY_ROBOT, 60)
-			elif (abs(control_instance.encoder_instance.last_tick_diff1) < 500):
-				control_instance.motor_control.setMotorSpeed(GANTRY_ROBOT, 35)
-			else:
-				control_instance.motor_control.setMotorSpeed(GANTRY_ROBOT, 20)
-			if (stopButtonPressed.value):
-				return False
-			time.sleep(0.05)
-		control_instance.stop()
-		control_instance.r2 = 0
-		control_instance.encoder_instance.set_position(GANTRY_ROBOT, 0)
-		return True
-
-	elif(control_instance.ls_instance.anyActive()):
-		control_instance.dataBuffer[7] = 51
-		sendData(control_instance, graphPipe, graphPipeSize, graphLock)
-		print("The robot has touched limit switch. Stopping all motion")
-		print("theta4 = ", control_instance.theta4, " | counter 2 = ", control_instance.encoder_instance.local_counter2)
-		control_instance.stop()
-		print("Limit switch active: ", int(control_instance.ls_instance.active(1)), int(control_instance.ls_instance.active(2)), int(control_instance.ls_instance.active(3)), int(control_instance.ls_instance.active(4)))
-		buttonPipe.send("Ready to continue")
-		newButtonData.value += 1
-		time.sleep(4)
-		control_instance.waitForStartSignal(buttonPipe, newButtonData, stopButtonPressed)
-		return True
-	return False
 
 
 
 def getTf(state, timeMultiplier):
 	# timeMultiplier in range [0.5, 1.5], received from the slider on the touch screen
 	# Want low value to represent low velocity -> high tf
-	if (state == 1 or state == 4):
+	if (state == "moveInwards" or state == "moveOutwards"):
 		return 20 *abs(timeMultiplier.value -2) 
-	elif (state == 2):
+	elif (state == "moveAlongRing"):
 		return 7 *abs(timeMultiplier.value -2)
-	elif (state == 5):
-		return  4 *abs(timeMultiplier.value -2)
-	elif (state == 3 or state == 6):
+	elif (state == "tightenRopeInwards" or state == "tightenRopeOutwards"):
 		# return -1 # This should be used when the system has a stuck detection, as the state 3 and 6 don't have a trajectory to follow
 		return 3
 
@@ -574,3 +528,63 @@ def sendData(data_storage, graphPipe,graphPipeSize, graphLock):
 	graphPipe.send(data_storage.dataBuffer)
 	graphPipeSize.value = graphPipeSize.value + 1
 	graphLock.release()
+
+
+def transitionState(state, control_instance):
+	global stateToRevertBackTo
+	if (stopButtonPressed.value):
+		stateToRevertBackTo = state
+		return "stopButtonPressed"
+
+	elif ((state == "moveInwards" and control_instance.ls_instance.active(1)) or (state == "moveOutwards" and control_instance.ls_instance.active(3)):
+		if (state == "moveInwards"):
+			control_instance.motor_control.setMotorDirection(1,-1)
+		else: 
+			control_instance.motor_control.setMotorDirection(1,1)
+
+		while (control_instance.ls_instance.active(1) or control_instance.ls_instance.active(3)):
+			control_instance.updatePosition()
+			if (abs(control_instance.encoder_instance.last_tick_diff1) < 60):
+                                control_instance.motor_control.setMotorSpeed(GANTRY_ROBOT, 60)
+			elif (abs(control_instance.encoder_instance.last_tick_diff1) < 500):
+				control_instance.motor_control.setMotorSpeed(GANTRY_ROBOT, 35)
+			else:
+				control_instance.motor_control.setMotorSpeed(GANTRY_ROBOT, 20)
+			time.sleep(0.05)
+		control_instance.stop()		
+
+		if (state == "moveInwards"):
+			control_instance.r2 = control_instance.r2_max
+			control_instance.encoder_instance.set_position(GANTRY_ROBOT, control_instance.r2_max)
+		else: 
+			control_instance.r2 = control_instance.r2_min
+			control_instance.encoder_instance.set_position(GANTRY_ROBOT, control_instance.r2_min)
+		return "moveAlongRing"
+	
+	elif (state == "moveInwards" or state == "moveOutwards"):
+		return "moveAlongRing"
+
+	elif (state == "moveAlongRing"):
+		if (control_instance.r2_ref == r2_max):
+			return "tightenRopeInwards"
+		elif (control_instance.r2_ref == r2_min):
+			return "tightenRopeOutwards"
+		else:
+			return False
+
+	elif (state == "tightenRopeInwards"):
+		print("We are in state ", state, "and are stuck. Proceeding to the next state")
+		control_instance.stop()
+		control_instance.motor_control.openGrip()
+		return "moveInwards"
+	
+	elif (state == "tightenRopeOutwards"):
+		print("We are in state ", state, "and are stuck. Proceeding to the next state")
+		control_instance.stop()
+		control_instance.motor_control.openGrip()
+		return "moveOutwards"
+	
+	elif (control_instance.ls_instance.anyActive()):
+		stateToRevertBackTo = state
+		return "errorLimitSwitch"
+	

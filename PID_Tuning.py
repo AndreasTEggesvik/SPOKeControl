@@ -12,9 +12,9 @@
 
 #### Changable Variables ####
 							#
-[P, I, D] = [600, 0, 0]		#
+[P, I, D] = [500, 0, 0]		#
 motorNumber = 1				#
-reference = 0.10 			# 
+reference = 0.20 				# 
 							#
 #############################
 
@@ -34,7 +34,7 @@ def PID_to_control_input(pid_output):
 	if (pid_output < 15):
 		pid_output = 0
 	else:
-		pid_output = 35 + 6*math.sqrt(pid_output-20)
+		pid_output = 20 + 6*math.sqrt(max(pid_output-20, 0))
 	return [direction, min(pid_output, 100)]
 
 
@@ -43,6 +43,7 @@ def main():
 	global motorNumber, reference
 	control_instance = controller(reference, startTime)
 	i = 0
+	kickStartMovement(control_instance.motor_control, motorNumber, 20)
 	while ((round(time.time(),2) - startTime) < 10):
 		control_instance.updatePosition(motorNumber)
 		control_instance.updatePID()
@@ -56,6 +57,17 @@ def main():
 		i += 1
 
 		time.sleep(0.02)
+
+def kickStartMovement(motor_control, motorNumber, control_signal):
+	if (control_signal > 0):
+		motor_control.setMotorDirection(motorNumber, 1)
+	if (control_signal <= 0):
+		motor_control.setMotorDirection(motorNumber, -1)	
+
+	motor_control.setMotorSpeed(motorNumber, 80)
+	time.sleep(0.2)
+		
+
 
 
 class controller:

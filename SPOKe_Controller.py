@@ -133,18 +133,18 @@ class controller:
 		#	A2_ring											#
 		#	tb_ring											#
 		#	theta4											#
-		#	theta4_e										#
 		#	r2												#
-		#	r2_e											#
 		#####################################################
 
 		# Position parameters
 		self.theta4d = self.dimensions.theta4Min
 		self.theta4_ref = self.dimensions.theta4Min
+		self.theta4_e = 0
 
 		self.r2_max = self.dimensions.r2Max
 		self.r2_min = self.dimensions.r2Min
 		self.r2_ref = 0
+		self.r2_e = 0
 
 		self.timeDiffBuffer = collections.deque(maxlen=5)
 		self.tickDiffBuffer1 = collections.deque(maxlen=5)
@@ -211,7 +211,7 @@ class controller:
 
 		# Move r_2 until the first z value is active and limit switch is no longer active
 		self.motor_control.setMotorDirection(GANTRY_ROBOT, 1)
-		self.motor_control.setMotorSpeed(GANTRY_ROBOT, initVelocity/2)
+		self.motor_control.setMotorSpeed(GANTRY_ROBOT, initVelocity*2)
 		if ( not self.encoder_instance.findFirstZ(GANTRY_ROBOT)):
 			self.stop()
 			return False

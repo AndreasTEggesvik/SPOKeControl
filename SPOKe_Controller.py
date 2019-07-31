@@ -194,7 +194,7 @@ class controller:
 		self.updatePosition()
 		while ( not ( self.ls_instance.active(3) or self.ls_instance.active(4) or stopButtonPressed.value )):
 			self.updatePosition()
-			if (abs(self.encoder_instance.last_tick_diff2) < 300):
+			if (abs(self.encoder_instance.last_tick_diff2) < 3):
 				self.motor_control.setMotorSpeed(GANTRY_ROBOT, 70)
 			else:
 				self.motor_control.setMotorSpeed(GANTRY_ROBOT, 15)

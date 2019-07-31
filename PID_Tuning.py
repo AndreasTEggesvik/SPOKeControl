@@ -12,9 +12,9 @@
 
 #### Changable Variables ####
 							#
-[P, I, D] = [500, 0, 0]		#
+[P, I, D] = [120, 60, 74.4]		#
 motorNumber = 1				#
-reference = 0.20 				# 
+reference = 0.10 				# 
 							#
 #############################
 
@@ -25,7 +25,7 @@ import SPOKe_IO
 import csv 
 import math
 
-def PID_to_control_input(pid_output):
+def PID_to_control_input(pid_output, encoder):
 	if pid_output >= 0:
 		direction = 1
 	else:
@@ -33,8 +33,10 @@ def PID_to_control_input(pid_output):
 	pid_output = abs(pid_output)
 	if (pid_output < 15):
 		pid_output = 0
+	elif (abs(encoder.last_tick_diff1) < 2):
+		pid_output = 80
 	else:
-		pid_output = 20 + 6*math.sqrt(max(pid_output-20, 0))
+		pid_output = 22 + 6*math.sqrt(max(pid_output-20, 0))
 	return [direction, min(pid_output, 100)]
 
 
@@ -43,7 +45,7 @@ def main():
 	global motorNumber, reference
 	control_instance = controller(reference, startTime)
 	i = 0
-	kickStartMovement(control_instance.motor_control, motorNumber, 20)
+#	kickStartMovement(control_instance.motor_control, motorNumber, 20)
 	while ((round(time.time(),2) - startTime) < 10):
 		control_instance.updatePosition(motorNumber)
 		control_instance.updatePID()
@@ -51,8 +53,8 @@ def main():
 		control_instance.storeData()
 
 		if (i == 15):
-			[d, pidPower] = PID_to_control_input(control_instance.pid.output)
-			print("Position: ", control_instance.position, " | Reference: ", control_instance.reference ," | PID output: ", pidPower)
+			[d, pidPower] = PID_to_control_input(control_instance.pid.output, control_instance.encoder_instance)
+			print("Position: ", control_instance.position, " | Reference: ", control_instance.reference ," | PID output: ", d* pidPower, " ( ", control_instance.pid.output, " )" )
 			i = 0
 		i += 1
 
@@ -65,8 +67,8 @@ def kickStartMovement(motor_control, motorNumber, control_signal):
 		motor_control.setMotorDirection(motorNumber, -1)	
 
 	motor_control.setMotorSpeed(motorNumber, 80)
-	time.sleep(0.2)
-		
+	time.sleep(0.1)
+	motor_control.setMotorSpeed(motorNumber, 0)	
 
 
 
@@ -111,11 +113,15 @@ class controller:
 			self.position = SPOKe_Geometry.rad2theta4(self.encoder_instance.read_counter_rad(motorNumber))
 	
 	def updatePID(self):
+		if (abs(self.reference - self.position) < 0.005): # 5 mm
+			self.pid.setWindup(0)
+		else:
+			self.pid.setWindup(20)
 		self.pid.SetPoint = self.reference
 		self.pid.update(self.position)
 
 	def setOutput(self, motorNumber):
-		[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(self.pid.output)
+		[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(self.pid.output, self.encoder_instance)
 		self.motor_control.setMotorDirection(motorNumber, direction_ring)
 		self.motor_control.setMotorSpeed(motorNumber, PWM_signal_strength_ring)
 			

@@ -58,7 +58,7 @@ class Encoder_input:
 				GPIO.remove_event_detect(self.index1SignalPort)
 				self.update_counter(counter_identifier)
 				self.firstZTickValue1 = self.local_counter1
-				GPIO.add_event_detect(self.index1SignalPort, GPIO.RISING, callback=self.receivedIndex1Value, bouncetime=2)
+#				GPIO.add_event_detect(self.index1SignalPort, GPIO.RISING, callback=self.receivedIndex1Value, bouncetime=2)
 				print('FOUND: ', self.firstZTickValue1)
 				return True
 		
@@ -107,29 +107,47 @@ class Encoder_input:
 
 
 	def update_counter(self, counter_identifier):
+#		if (counter_identifier == 1):
+#			new_value = self.plc_handler.read_counter(1)
+#			if abs(new_value - self.last_received1) < 23000:
+#				# We have moved a reasonable length (a half rotation)
+#				increase = new_value - self.last_received1
+#			elif new_value < self.last_received1:
+#				# We have probably passed the storage limit
+#				print('Probably moved past storage limit gantry')
+#				increase = new_value - self.last_received1 + 65536
+#				print(new_value, ' - ', self.last_received1, ' + ', 65536, ' = ', increase)
+#
+#			elif new_value > self.last_received1:
+#				# We have probably went backwards past zero
+#				print('Probably moved backwards past zero gantry')
+#				increase = new_value - self.last_received1 - 65536
+#				print(new_value, ' - ', self.last_received1, ' - ', 65536, ' = ', increase)
+#				
+#			self.counterScalingRest1 += increase % self.counterDownScalingFactor
+#			restOverflow = self.counterScalingRest1 // self.counterDownScalingFactor
+#			increase += restOverflow
+#			self.last_tick_diff1 = increase
+#			self.counterScalingRest1 -= restOverflow * self.counterDownScalingFactor
+#			self.local_counter1 +=  increase // self.counterDownScalingFactor
+#			self.last_received1 = new_value
+
 		if (counter_identifier == 1):
 			new_value = self.plc_handler.read_counter(1)
-			if abs(new_value - self.last_received1) < 23000:
-				# We have moved a reasonable length (a half rotation)
+			if abs(new_value - self.last_received1) < 23000: 
+				# We have moved a reasonable length (half a rotation)
 				increase = new_value - self.last_received1
+				#print('Increase in counter 2 is ', increase)
 			elif new_value < self.last_received1:
-				# We have probably passed the storage limit
-				print('Probably moved past storage limit gantry')
-				increase = new_value - self.last_received1 + 65536
-				print(new_value, ' - ', self.last_received1, ' + ', 65536, ' = ', increase)
-
+				# We have probably passed the storage  limit
+				print('Probably moved past storage limit ring')
+				increase = new_value - self.last_received1 + 65535
 			elif new_value > self.last_received1:
 				# We have probably went backwards past zero
-				print('Probably moved backwards past zero gantry')
-				increase = new_value - self.last_received1 - 65536
-				print(new_value, ' - ', self.last_received1, ' - ', 65536, ' = ', increase)
-				
-			self.counterScalingRest1 += increase % self.counterDownScalingFactor
-			restOverflow = self.counterScalingRest1 // self.counterDownScalingFactor
-			increase += restOverflow
+				print('Probably moved backwards past zero ring')
+				increase = new_value - self.last_received1 - 65535
 			self.last_tick_diff1 = increase
-			self.counterScalingRest1 -= restOverflow * self.counterDownScalingFactor
-			self.local_counter1 +=  increase // self.counterDownScalingFactor
+			self.local_counter1 +=  increase
 			self.last_received1 = new_value
 
 		elif (counter_identifier == 2):
@@ -186,21 +204,22 @@ class Encoder_input:
 
 	def set_position(self, counter_identifier, value):
 		if (counter_identifier == 1):
-			self.local_counter1 = SPOKe_Geometry.r2TOrad(value) * self.gear_reduction * self.encoder_precision * self.tickMultiplier / (2 * 3.14 *self.counterDownScalingFactor)
+#			self.local_counter1 = SPOKe_Geometry.r2TOrad(value) * self.gear_reduction * self.encoder_precision * self.tickMultiplier / (2 * 3.14 *self.counterDownScalingFactor)
+			self.local_counter1 = SPOKe_Geometry.r2TOrad(value) * self.gear_reduction * self.encoder_precision * self.tickMultiplier / (2 * 3.14 )
 		elif (counter_identifier == 2):
 			self.local_counter2 = SPOKe_Geometry.theta4TOrad(value) * self.gear_reduction * self.encoder_precision * self.tickMultiplier / (2*3.14)
 			
 	def read_counter_rad(self, counter_identifier):
 		self.update_counter(counter_identifier)
 		if (counter_identifier == 1):
-			return self.local_counter1 * 2 * 3.14 *self.counterDownScalingFactor / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
+			return self.local_counter1 * 2 * 3.14  / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		elif (counter_identifier == 2):
 			return self.local_counter2 * 2 * 3.14  / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		
 	def read_counter_deg(self, counter_identifier):
 		self.update_counter(counter_identifier)
 		if (counter_identifier == 1):
-			return self.local_counter1 * 360 * self.counterDownScalingFactor / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
+			return self.local_counter1 * 360  / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		elif (counter_identifier == 2):
 			return self.local_counter2  * 360 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 

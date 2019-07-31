@@ -1,14 +1,14 @@
 #####################################################################################################
+#   																								#
+#   Start the program using the command 'sudo python3 SPOKe_GUI' 									#
+#   This code runs the main loop, and starts the main loop in 'Controller.py'						#
+#   The two loops run simultaneously and communicates over shared variables and pipes.				#
 #  																									#
 #   TEMP FIX: In order to receive data from the encoders, the Monarco must be initialized. 			#
 #             This is done by running the code sudo ./monarco-complex-demo which can be found in 	#
 #             https://github.com/monarco/monarco-hat-driver-c/tree/master/examples 					#
 #             after running the make file. This fix is needed as the pymonarco library				#
 # 			  currently does not initiade quadrature encoding.										#
-#   																								#
-#   Start the program using the command 'sudo python3 SPOKe_GUI' 									#
-#   This code runs the main loop, and starts the main loop in 'Controller.py'						#
-#   The two loops run simultaneously and communicates over shared variables and pipes.				#
 #																									#
 #####################################################################################################
 
@@ -28,20 +28,19 @@ from kivy.clock import Clock
 from functools import partial
 from kivy.graphics import Color, Rectangle
 
+import csv # Used to write data to file
 
-# Used to write data to file
-import csv 
-
-# Graph:
 import matplotlib.pyplot as plt
 from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 
-# Multiprocessing for starting the main loop in 'Controller'
 from multiprocessing import Process, Pipe, Value, Array, Lock
 import SPOKe_Controller
 
+
+
 speed = 1 					# Used to modify the speed of the trajectories for the controller
 state = -1 					# Used to display the state of the controller
+storeData = False 			# Variable to enable writing to file SPOKeRunData.csv
 
 time_list = [0]				
 measurement_list = [0]		
@@ -54,16 +53,6 @@ ring_pid_list = [0]
 
 plt.plot(time_list, gantry_ref_list, 'r')
 graph = FigureCanvasKivyAgg(plt.gcf())
-
-#def press_callback(startButton, buttonPipeParent, stopButtonPressed, newButtonData, obj):
-#	if obj.text == 'STOP':
-#		buttonPipeParent.send("STOP")
-#		stopButtonPressed.value = 1
-#		print("Stop button pressed")
-#		startButton.text = "START"
-#		startButton.background_color = [0, 0.7, 0, 1]
-	
-	
 
 def screenPress(data, obj):
 	if obj.text == 'STOP':
@@ -152,23 +141,28 @@ class StateLabel(Label):
 		elif (state == 100):
 			self.text = "State: \nStop button pressed"
 
+
+#################################################################################
+# This function updates the graph with data received from the controller. 		#
+# It also recveives and updates the state, which is used by class StateLabel	#
+#################################################################################
 def UpdateGraph(graphPipeParent, graphPipeSize, graphLock, dt):
-	global time_list, measurement_list, gantry_val_list, gantry_ref_list, gantry_pid_list, ring_val_list, ring_ref_list, ring_pid_list, state
+	global time_list, measurement_list, gantry_val_list, gantry_ref_list, gantry_pid_list, ring_val_list, ring_ref_list, ring_pid_list, state, storeData
 
 	graphLock.acquire() 
 	if (graphPipeSize.value > 1):
 		# Pipe is FIFO, if the pipe has more items than one, the last one carries most up to date information
+		# We therefore only care about the last item in the pipe
 		while(graphPipeSize.value > 1):
 			graphPipeParent.recv()
-			graphPipeSize.value = graphPipeSize.value - 1
+			graphPipeSize.value -= 1
 
 	if (graphPipeSize.value == 1):
 		[timeD, gantryM, gantryR, gantryPID, ringM, ringR, ringPID, systemState] = graphPipeParent.recv()  
 		state = systemState
 
-		graphPipeSize.value = graphPipeSize.value - 1
+		graphPipeSize.value -= 1
 
-		# size of received arrays will depend on how many times the loop in 'Controller.py' runs between each run of "UpdateGraph"
 		time_list.extend(timeD)
 		gantry_val_list.extend(gantryM)										
 		gantry_ref_list.extend(gantryR)
@@ -179,19 +173,19 @@ def UpdateGraph(graphPipeParent, graphPipeSize, graphLock, dt):
 		ring_pid_list.extend(ringPID)											
 		
 		plt.clf()
-		plotLen = min(len(time_list), 2000) # Only plotting the latest 2000 data points
+		plotLen = min(len(time_list), 2000)
 		plt.plot(time_list[-plotLen:], gantry_ref_list[-plotLen:], '--r', time_list[-plotLen:], gantry_val_list[-plotLen:], 'r', time_list[-plotLen:], ring_ref_list[-plotLen:], '--b', time_list[-plotLen:], ring_val_list[-plotLen:], 'b')
 		graph.draw()
 
 		# In order to not run out of memory, arrays are reduced to only the latest data once they reach size of 5000
 		# Before the size is reduced, the data about to be deleted is added to the text file 'SPOKeRunData.csv'
 		if (len(time_list) > 5000):
-			with open('SPOKeRunData.csv', 'a') as csvFile:
-				writer = csv.writer(csvFile)
-				for i in range( len(time_list) - 2000 ):
-					writer.writerow([time_list[i], gantry_val_list[i], gantry_ref_list[i], gantry_pid_list[i] ,ring_val_list[i], ring_ref_list[i], ring_pid_list[i] ])
-			csvFile.close
-
+			if (storeData):
+				with open('SPOKeRunData.csv', 'a') as csvFile:
+					writer = csv.writer(csvFile)
+					for i in range( len(time_list) - 2000 ):
+						writer.writerow([time_list[i], gantry_val_list[i], gantry_ref_list[i], gantry_pid_list[i] ,ring_val_list[i], ring_ref_list[i], ring_pid_list[i] ])
+				csvFile.close
 			time_list = time_list[-2000:]
 			gantry_val_list = gantry_val_list[-2000:]
 			gantry_ref_list = gantry_ref_list[-2000:]
@@ -205,12 +199,10 @@ def UpdateGraph(graphPipeParent, graphPipeSize, graphLock, dt):
 class DisplayApp(App):
 	def build(self):
 	
-		# Pipes used for communication with the process running in 'Controller.py'
+		# Pipes and variables used for communication with the process running in 'Controller.py'
 		graphPipeParent, graphPipeChild = Pipe()
 		buttonPipeParent, buttonPipeChild = Pipe()
 		graphLock = Lock()
-		
-		# Variables shared with the process running in 'Controller.py' 
 		graphPipeSize = Value('i', 0)
 		stopButtonPressed = Value('i', 0)
 		newButtonData = Value('i', 0)
@@ -232,29 +224,25 @@ class DisplayApp(App):
 		startButton = StartButton(text = "INIT")
 		startButton.background_normal = ''
 		startButton.background_color = [0, 0.7, 0, 1]
-		#startButton.bind(on_press=(partial(startButton.buttonPressed, buttonPipeParent))) # Working
 		startButton.bind(on_press=(partial(screenPress, buttonPipeParent)))
 		Clock.schedule_interval(partial(startButton.updateStartButton, buttonPipeParent, newButtonData, superBox), 0.6)
 		
 		stopButton = Button(text = "STOP")
 		stopButton.background_normal = ''
 		stopButton.background_color = [0.7, 0, 0, 1]
-		#stopButton.bind(on_press=(partial(press_callback, startButton, buttonPipeParent, stopButtonPressed, newButtonData))) # Working
 		stopButton.bind(on_press=(partial(screenPress, [startButton, buttonPipeParent, stopButtonPressed, newButtonData])))
 
 		wimg = Image(source='Prototype1.png')
 
 		speedSlider = Slider(orientation='vertical', min=0.5, max=1.5, value=speed)
-		#speedSlider.bind(on_touch_move=update_speed)
 		speedSlider.bind(on_touch_move=partial(screenSwipe, operatingTimeConstant))
 		speedSlider.size_hint_x=(0.2)
 		
-		# Add gray color to the background, usefor when taking screenshots
+		# Add gray color to the background, useful when taking screenshots
 		with superBox.canvas.before:
 			Color(.2,.2,.2,1)
 			self.rect = Rectangle(size=(800,600), pos=superBox.pos)
-
-		# Layout of display is 			
+	
 		verticalTextBox1 = BoxLayout()
 		verticalTextBox1.orientation = 'vertical'
 		verticalTextBox1.add_widget(valueLabel)
@@ -272,7 +260,6 @@ class DisplayApp(App):
 		superBox.add_widget(graph)
 		superBox.add_widget(verticalTextBox1)
 		superBox.add_widget(verticalTextBox2)
-
 		superBox.add_widget(speedSlider)
 
 		return superBox

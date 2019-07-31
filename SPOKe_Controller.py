@@ -36,67 +36,7 @@ def PID_to_control_input(pid_output, motor):
 
 
 
-def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData):
-	if (stopButtonPressed.value == 1):
-		control_instance.stop()
-		control_instance.dataBuffer[7] = 100
-		sendData(control_instance, graphPipe, graphPipeSize, graphLock)
-		print("In error state button pressed")
-		time.sleep(4)
-		control_instance.waitForStartSignal(buttonPipe, newButtonData, stopButtonPressed)
-		stopButtonPressed.value = 0
-		return True
-	elif ((state == 3 or state == 6) and True): # Shoud check if the system is stuck
-		print("We are in state ", state, "and are stuck. Proceeding to the next state")
-		control_instance.stop()
-		control_instance.motor_control.openGrip()
-		return False
-#	elif (control_instance.isStuck()):
-#		print("The robot is stuck. Stopping all motion")
-#		control_instance.stop()
-#		control_instance.dataBuffer[7] = 50
-#		sendData(control_instance, graphPipe, graphPipeSize, graphLock)
-#		print("In error stuck")
-#		time.sleep(4)
-#		control_instance.waitForStartSignal(buttonPipe, newButtonData)
-#		while(1):
-#			print("In error, robot stuck detected")
-#			time.sleep(4)
-#		return True
-	elif(control_instance.ls_instance.anyActive()):
-		control_instance.dataBuffer[7] = 51
-		sendData(control_instance, graphPipe, graphPipeSize, graphLock)
-		print("The robot has touched limit switch. Stopping all motion")
-		print("theta4 = ", control_instance.theta4, " | counter 2 = ", control_instance.encoder_instance.local_counter2)
-		control_instance.stop()
-		print("Limit switch active: ", int(control_instance.ls_instance.active(1)), int(control_instance.ls_instance.active(2)), int(control_instance.ls_instance.active(3)), int(control_instance.ls_instance.active(4)))
-		buttonPipe.send("Ready to continue")
-		newButtonData.value += 1
-		time.sleep(4)
-		control_instance.waitForStartSignal(buttonPipe, newButtonData, stopButtonPressed)
-		return True
-	return False
 
-
-
-def getTf(state, timeMultiplier):
-	# timeMultiplier in range [0.5, 1.5], received from the slider on the touch screen
-	# Want low value to represent low velocity -> high tf
-	if (state == 1 or state == 4):
-		return 20 *abs(timeMultiplier.value -2) 
-	elif (state == 2):
-		return 7 *abs(timeMultiplier.value -2)
-	elif (state == 5):
-		return  4 *abs(timeMultiplier.value -2)
-	elif (state == 3 or state == 6):
-		# return -1 # This should be used when the system has a stuck detection, as the state 3 and 6 don't have a trajectory to follow
-		return 3
-
-def sendData(data_storage, graphPipe,graphPipeSize, graphLock):
-	graphLock.acquire()
-	graphPipe.send(data_storage.dataBuffer)
-	graphPipeSize.value = graphPipeSize.value + 1
-	graphLock.release()
 
 def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, stopButtonPressed, newButtonData, operatingTimeConstant):
 	# Initializing the robot, guaranteeing a safe starting position
@@ -224,9 +164,8 @@ class controller:
 
 		self.motor_control.setMotorDirection(GANTRY_ROBOT, -1)
 		self.motor_control.setMotorDirection(RING_ROBOT, -1)
+
 		initVelocity = 30
-
-
 		# Moving along the ring until we hit the limit switch
 		while ( not ( self.ls_instance.anyActive() or stopButtonPressed.value )): # self.ls_instance.active(1) or self.ls_instance.active(2)
 			self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity)
@@ -234,18 +173,15 @@ class controller:
 				return False
 			time.sleep(0.05)
 		self.stop()
-		print ("not (", self.ls_instance.anyActive(), " or ", stopButtonPressed.value, ") = ", not ( self.ls_instance.anyActive or stopButtonPressed.value ))
-		print("Hit limit switch!")
 
 		self.motor_control.setMotorDirection(RING_ROBOT, 1)
 		while (self.ls_instance.anyActive()):
-			self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity)
+			self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity*0.8) 
 			if (stopButtonPressed.value):
 				return False
 			time.sleep(0.05)
 		self.stop()
-		
-		print("Got off of limit switch!")
+
 
 		# Moving the gantry robot until we hit the limit switch
 		while ( not ( self.ls_instance.active(3) or self.ls_instance.active(4) or stopButtonPressed.value )):
@@ -507,3 +443,67 @@ class controller:
 		self.measurement_list_ring = []
 		self.reference_list_ring = []
 		self.pid_list_ring = []
+
+
+
+def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData):
+	if (stopButtonPressed.value == 1):
+		control_instance.stop()
+		control_instance.dataBuffer[7] = 100
+		sendData(control_instance, graphPipe, graphPipeSize, graphLock)
+		print("In error state button pressed")
+		time.sleep(4)
+		control_instance.waitForStartSignal(buttonPipe, newButtonData, stopButtonPressed)
+		stopButtonPressed.value = 0
+		return True
+	elif (state == 3 or state == 6): # Shoud check if the system is stuck
+		print("We are in state ", state, "and are stuck. Proceeding to the next state")
+		control_instance.stop()
+		control_instance.motor_control.openGrip()
+		return False
+#	elif (control_instance.isStuck()):
+#		print("The robot is stuck. Stopping all motion")
+#		control_instance.stop()
+#		control_instance.dataBuffer[7] = 50
+#		sendData(control_instance, graphPipe, graphPipeSize, graphLock)
+#		print("In error stuck")
+#		time.sleep(4)
+#		control_instance.waitForStartSignal(buttonPipe, newButtonData)
+#		while(1):
+#			print("In error, robot stuck detected")
+#			time.sleep(4)
+#		return True
+	elif(control_instance.ls_instance.anyActive()):
+		control_instance.dataBuffer[7] = 51
+		sendData(control_instance, graphPipe, graphPipeSize, graphLock)
+		print("The robot has touched limit switch. Stopping all motion")
+		print("theta4 = ", control_instance.theta4, " | counter 2 = ", control_instance.encoder_instance.local_counter2)
+		control_instance.stop()
+		print("Limit switch active: ", int(control_instance.ls_instance.active(1)), int(control_instance.ls_instance.active(2)), int(control_instance.ls_instance.active(3)), int(control_instance.ls_instance.active(4)))
+		buttonPipe.send("Ready to continue")
+		newButtonData.value += 1
+		time.sleep(4)
+		control_instance.waitForStartSignal(buttonPipe, newButtonData, stopButtonPressed)
+		return True
+	return False
+
+
+
+def getTf(state, timeMultiplier):
+	# timeMultiplier in range [0.5, 1.5], received from the slider on the touch screen
+	# Want low value to represent low velocity -> high tf
+	if (state == 1 or state == 4):
+		return 20 *abs(timeMultiplier.value -2) 
+	elif (state == 2):
+		return 7 *abs(timeMultiplier.value -2)
+	elif (state == 5):
+		return  4 *abs(timeMultiplier.value -2)
+	elif (state == 3 or state == 6):
+		# return -1 # This should be used when the system has a stuck detection, as the state 3 and 6 don't have a trajectory to follow
+		return 3
+
+def sendData(data_storage, graphPipe,graphPipeSize, graphLock):
+	graphLock.acquire()
+	graphPipe.send(data_storage.dataBuffer)
+	graphPipeSize.value = graphPipeSize.value + 1
+	graphLock.release()

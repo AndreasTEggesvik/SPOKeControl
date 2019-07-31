@@ -1,10 +1,7 @@
 import numpy as np
 
 # constraints = [q(t0), d(q(t0)), d(q(tf))], t = [t0, tf]
-# Different modes has different constraints
-
 # example: ([0.2, 0, 5], [0, 20])
-#def calculateTrajectory(constraints, t, mode):
 def calculateTrajectory(constraints, t):
     
     # constraints = [q(t0), d(q(t0)), d(q(tf))]
@@ -12,17 +9,7 @@ def calculateTrajectory(constraints, t):
         M = np.array([[1, t[0], t[0]**2],
                     [0, 1, 2*t[0]],
                     [0, 1, 2*t[1]]])
-#
-#    if len(constraints) == 3 and mode == 1:
-#        M = np.array([[1, t[0], t[0]**2],
-#                    [0, 1, 2*t[0]],
-#                    [0, 1, 2*t[1]]])
-#    # constraints = [q(t0), q(tf), d(q(tf))]
-#    elif len(constraints) == 3 and mode == 2:
-#        M = np.array([[1, t[0], t[0]**2],
-#                    [1, t[1], t[1]**2],
-#                    [0, 1, 2*t[1]]])
-#                    
+
     # constraints = [q(t0), d(q(t0)), q(tf), d(q(tf))]
     elif len(constraints) == 4:
         M = np.array([[1, t[0], t[0]**2, t[0]**3],
@@ -48,7 +35,7 @@ def getLSPB_velocity(q0, qf, t0, tf, mergingValue):
 #########################################################################
 # Calculates a LSPB given a set of constraints.                         #
 # The trajectory is given by three matricies containing the constants   #
-#   for a polynomial funcuion describing position over time             #
+#   for a polynomial function describing position over time             #
 # constraints = [q(t0), d(q(t0)), q(tf), d(q(tf))], t = [t0, tf]        #
 #   example on set of valid arguments (0.2, [0, 0, 2, 0], [0, 5])       #
 # LSPB = linear segment with parabolic blends                           #
@@ -68,10 +55,8 @@ def LSPB(V, constraints, t):
     tb = (q0 - qf + V*tf)/V
     
     A0 = calculateTrajectory([q0, dq0, V], [t0, tb])
-    #A0 = calculateTrajectory([q0, dq0, V], [t0, tb], 1)
     A1 = np.array([(q0 + qf - V*tf)/2, V])
     A2 = np.array([qf - A0[2]*tf**2, 2*A0[2]*tf, -A0[2]])
-    #A2 = calculateTrajectory([A1[0] + A1[1]*(tf-tb), 0, qf, dqf], [tf-tb , tf], 2)
     return [A0, A1, A2, tb]
 
 
@@ -94,7 +79,6 @@ def getTrajectoryPosition(A, t):
 #########################################################
 # Calculates the desired position for a LSPB trajectory #
 #   at a given time                                     #
-#
 #########################################################
 def getLSPB_position(A0, A1, A2, t0, tb, tf, t):
     if (t < 0):

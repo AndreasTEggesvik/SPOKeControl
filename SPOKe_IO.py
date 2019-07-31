@@ -2,7 +2,6 @@ import pymonarco_hat as plc
 import RPi.GPIO as GPIO
 
 import time
-import SPOKe_Geometry
 
 GPIO.setwarnings(False)
 
@@ -16,11 +15,6 @@ class Encoder_input:
 		self.encoder_precision = 500 
 		self.tickMultiplier = 4 
 
-		dimensions = SPOKe_Geometry.Dimensions()
-
-		self.gear_radius1 = dimensions.r_m1
-		self.gear_radius2 = dimensions.r_m2
-
 		self.local_counter1 = 0
 		self.last_received1 = 0
 		self.last_tick_diff1 = 0
@@ -31,17 +25,18 @@ class Encoder_input:
 		self.last_tick_diff2 = 0
 		self.last_counter2 = 0
 
-		#The monarco counter can only count to 65,535
-		# We can count a total of 46 000 ticks for each rotation.
-		# This gives a precision of 0.0078 degrees
-		# We only need a precision of 0.36 degrees 
-		# We therefore only want to count 1000
-		# We therefore only count every 46th tick.
+#############################################################
+#	The monarco counter can only count to 65,535			#
+#	We can count a total of 46 000 ticks for each rotation.	#
+# 	This gives a precision of 0.0078 degrees				#
+#	By only counting every 46th tick, we count 1000 tick	#
+#		per rotation, a precision of 0.36 deg.				#
+#############################################################
+
 		self.counterDownScalingFactor = 46
 		self.counterScalingRest1 = 0
 		self.counterScalingRest2 = 0
 
-		# (counter_identifier, mode, edge_count)
 		GPIO.setmode(GPIO.BOARD)
 		
 		self.reset_counter(1)
@@ -67,6 +62,7 @@ class Encoder_input:
 				return True
 		
 		elif (counter_identifier == 2):
+			# This implementation does not work. Can we have used the wrong z pin physically? 
 			return True
 #			if (GPIO.wait_for_edge(self.index2SignalPort, GPIO.RISING, timeout=10000) is not None):
 #				GPIO.remove_event_detect(self.index2SignalPort)
@@ -81,8 +77,6 @@ class Encoder_input:
 	def receivedIndex1Value(self, channel):
 		self.update_counter(1)
 		diff = self.local_counter1 - self.firstZTickValue1 - self.ZCount1*46000/(self.counterDownScalingFactor * self.gear_reduction)
-#		print('Diff1 = ', self.local_counter1, ' - ', self.firstZTickValue1, ' - ', self.ZCount1*46000/(self.counterDownScalingFactor * self.gear_reduction), ' = ', diff)
-
 		if (diff > 700/self.gear_reduction):
 #			print('Rotation Forwards')
 			self.ZCount1 +=1
@@ -155,6 +149,7 @@ class Encoder_input:
 			self.local_counter2 +=  increase
 			self.last_received2 = new_value
 
+# This code is for scaling down counter 2, this has given large errors in position.
 #		elif (counter_identifier == 2):
 #			new_value = self.plc_handler.read_counter(2)			
 #			if abs(new_value - self.last_received2) < 23000: 
@@ -232,17 +227,14 @@ class Motor_output:
 		GPIO.setup(motor2Pin1, GPIO.OUT, initial = 0)
 		GPIO.setup(motor2Pin2, GPIO.OUT, initial = 0)
 		
-		# Initialize pwm channels
+		# Initialize pwm channels, frequency 100, duty cycle 0
 		GPIO.setup(motor1pwmPin, GPIO.OUT, initial = 0)
 		GPIO.setup(motor2pwmPin, GPIO.OUT, initial = 0)
-		self.M1 = GPIO.PWM(motor1pwmPin, 100)
-		self.M1.start(0) # 0 % duty cycle
+		self.M1 = GPIO.PWM(motor1pwmPin, 100) 
 		self.M2 = GPIO.PWM(motor2pwmPin, 100)
-		self.M2.start(0) # 0 % duty cycle
-
+		self.M1.start(0) 		
+		self.M2.start(0) 
 		self.plc_handler.set_pwm_frequency(plc.PWM_CHANNEL1, 50)
-		#self.plc_handler.set_pwm_out(plc.DOUT1, 1)
-		#self.plc_handler.set_pwm_out(plc.DOUT2, 1) #Assuming 1 is off
 		self.openGrip()
 
 		
@@ -274,14 +266,10 @@ class Motor_output:
 	def setMotorSpeed(self, motorNumber, speedValue):
 		if (100 < speedValue or speedValue < 0):
 			return False 
-#		speedValue = invert_PWM(speedValue)
-
 		if (motorNumber == 1):
 			self.M1.ChangeDutyCycle(speedValue)
-#			self.plc_handler.set_pwm_out(plc.DOUT1, speedValue)
 		elif (motorNumber == 2):
 			self.M2.ChangeDutyCycle(speedValue)
-#			self.plc_handler.set_pwm_out(plc.DOUT2, speedValue)
 		else:
 			return False
 		
@@ -293,14 +281,7 @@ class Motor_output:
 		self.plc_handler.set_pwm_out(plc.DOUT3, 0.95)
 		return True
 
-
-def invert_PWM(pwm_in):
-	# Required as pwm = 1 is off, while pwm = 0 is off, and we want the opposite
-	return abs(pwm_in - 1)
-
 class LimitSwitch():
-
-	# Assuming low represents active switch
 	def __init__(self):
 		GPIO.setmode(GPIO.BOARD) # Use the physical naming convention
 		GPIO.setup(limitSwitchPin1, GPIO.IN, pull_up_down = GPIO.PUD_UP) 
@@ -325,3 +306,9 @@ class LimitSwitch():
 		
 	def anyActive(self):
 		return not bool(GPIO.input(32) and GPIO.input(33) and GPIO.input(35) and GPIO.input(36)) 
+
+
+# Only needed if usin pwm pins from Monarco
+def invert_PWM(pwm_in):
+	# Required as pwm = 1 is off, while pwm = 0 is off, and we want the opposite
+	return abs(pwm_in - 1)

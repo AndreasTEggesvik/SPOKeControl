@@ -505,7 +505,7 @@ def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPi
 #		return True
 	elif (state == 1 and control_instance.ls_instance.active(1)):
 		control_instance.motor_control.setMotorDirection(1,-1)
-		while ( not ( control_instance.ls_instance.active(1) or stopButtonPressed.value )):
+		while (control_instance.ls_instance.active(1)):
 			control_instance.updatePosition()
 			if (abs(control_instance.encoder_instance.last_tick_diff1) < 60):
                                 control_instance.motor_control.setMotorSpeed(GANTRY_ROBOT, 60)
@@ -523,7 +523,7 @@ def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPi
 
 	elif (state == 4 and control_instance.ls_instance.active(3)):
 		control_instance.motor_control.setMotorDirection(1,1)
-		while ( not ( control_instance.ls_instance.active(1) or stopButtonPressed.value )):
+		while (control_instance.ls_instance.active(1)):
 			control_instance.updatePosition()
 			if (abs(control_instance.encoder_instance.last_tick_diff1) < 60):
                                 control_instance.motor_control.setMotorSpeed(GANTRY_ROBOT, 60)

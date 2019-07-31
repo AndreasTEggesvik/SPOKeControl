@@ -160,10 +160,10 @@ class controller:
 		self.motor_control.setMotorDirection(GANTRY_ROBOT, -1)
 		self.motor_control.setMotorDirection(RING_ROBOT, -1)
 
-		self.encoder_instance.reset_counter(2)
-		self.updatePosition()
 
 		# Moving along the ring until we hit the limit switch
+		self.encoder_instance.reset_counter(2)
+		self.updatePosition()
 		while ( not ( self.ls_instance.anyActive() or stopButtonPressed.value )):
 			self.updatePosition()
 			if (abs(self.encoder_instance.last_tick_diff2) < 400):
@@ -190,8 +190,14 @@ class controller:
 		
 
 		# Moving the gantry robot until we hit the limit switch
+		self.encoder_instance.reset_counter(1)
+		self.updatePosition()
 		while ( not ( self.ls_instance.active(3) or self.ls_instance.active(4) or stopButtonPressed.value )):
-#			self.motor_control.setMotorSpeed(GANTRY_ROBOT, initVelocity)
+			self.updatePosition()
+			if (abs(self.encoder_instance.last_tick_diff2) < 300):
+				self.motor_control.setMotorSpeed(GANTRY_ROBOT, 70)
+			else:
+				self.motor_control.setMotorSpeed(GANTRY_ROBOT, 15)
 			if (stopButtonPressed.value):
 				return False
 			time.sleep(0.05)
@@ -243,14 +249,14 @@ class controller:
 		# Enables possibility of different PID control for different states
 		if (state == 1 or state == 4):
 			[P_g, I_g, D_g] = [120, 60, 84]
-			[P_r, I_r, D_r] = [400, 533, 200]
+			[P_r, I_r, D_r] = [500, 533, 200]
 			self.motor_control.openGrip()
 		elif(state == 2 or state ==5):
 			[P_g, I_g, D_g] = [120, 60, 84]
-			[P_r, I_r, D_r] = [400, 533, 200]	
+			[P_r, I_r, D_r] = [500, 533, 200]	
 		if (state == 3 or state == 6):
 			[P_g, I_g, D_g] = [120, 60, 84]			# PID controller is not used for gantry in these states
-			[P_r, I_r, D_r] = [400, 533, 200]
+			[P_r, I_r, D_r] = [500, 533, 200]
 			self.motor_control.closeGrip()
 		
 
@@ -396,7 +402,7 @@ class controller:
 
 			self.theta4_e = self.theta4_ref - self.theta4
 			# To eliminate windup effecting us badly: 
-			if (abs(self.theta4_e) < 0.5*3.14/180): # 1 deg
+			if (abs(self.theta4_e) < 0.3*3.14/180): # 0.3 deg
 				self.pid_ring.setWindup(0)
 			else: 
 				self.pid_ring.setWindup(20)

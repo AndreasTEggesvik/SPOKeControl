@@ -164,7 +164,7 @@ class controller:
 		# Moving along the ring until we hit the limit switch
 		self.encoder_instance.reset_counter(2)
 		self.updatePosition()
-		while ( not ( self.ls_instance.anyActive() or stopButtonPressed.value )):
+		while ( not ( self.ls_instance.active(2) or self.ls_instance.active(4) or stopButtonPressed.value )):
 			self.updatePosition()
 			if (abs(self.encoder_instance.last_tick_diff2) < 400):
 				self.motor_control.setMotorSpeed(RING_ROBOT, 80) 
@@ -182,7 +182,7 @@ class controller:
 
 		self.motor_control.setMotorDirection(RING_ROBOT, 1)
 		while (self.ls_instance.anyActive()):
-			self.motor_control.setMotorSpeed(RING_ROBOT, 15) 
+			self.motor_control.setMotorSpeed(RING_ROBOT, 25) 
 			if (stopButtonPressed.value):
 				return False
 			time.sleep(0.05)
@@ -192,7 +192,7 @@ class controller:
 		# Moving the gantry robot until we hit the limit switch
 		self.encoder_instance.reset_counter(1)
 		self.updatePosition()
-		while ( not ( self.ls_instance.active(3) or self.ls_instance.active(4) or stopButtonPressed.value )):
+		while ( not ( self.ls_instance.active(1) or self.ls_instance.active(3) or stopButtonPressed.value )):
 			self.updatePosition()
 			if (abs(self.encoder_instance.last_tick_diff2) < 3):
 				self.motor_control.setMotorSpeed(GANTRY_ROBOT, 70)
@@ -501,6 +501,14 @@ def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPi
 #			print("In error, robot stuck detected")
 #			time.sleep(4)
 #		return True
+	elif (state == 1 and control_instance.ls_instance.active(1)):
+		control_instance.r2 = 1.54
+		return True
+
+	elif (state == 4 and control_instance.ls_instance.active(3)):
+		control_instance.r2 = 0
+		return True
+
 	elif(control_instance.ls_instance.anyActive()):
 		control_instance.dataBuffer[7] = 51
 		sendData(control_instance, graphPipe, graphPipeSize, graphLock)

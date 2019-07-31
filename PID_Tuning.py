@@ -12,9 +12,9 @@
 
 #### Changable Variables ####
 							#
-[P, I, D] = [600, 0, 0]	#
+[P, I, D] = [600, 0, 0]		#
 motorNumber = 1				#
-reference = 0.10 				# 
+reference = 0.10 			# 
 							#
 #############################
 

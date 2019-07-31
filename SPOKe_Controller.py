@@ -166,8 +166,11 @@ class controller:
 		# Moving along the ring until we hit the limit switch
 		while ( not ( self.ls_instance.anyActive() or stopButtonPressed.value )): # self.ls_instance.active(1) or self.ls_instance.active(2)
 			self.updatePosition()
-			if (abs(self.encoder_instance.last_tick_diff2) < 2):
-				self.motor_control.setMotorSpeed(RING_ROBOT, 40) 
+			if (abs(self.encoder_instance.last_tick_diff2) < 400):
+				self.motor_control.setMotorSpeed(RING_ROBOT, 80) 
+				print("motor speed 80! ")
+			elif (abs(self.encoder_instance.last_tick_diff2) < 600):
+				self.motor_control.setMotorSpeed(RING_ROBOT, 50)
 			else:
 				self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity) 
 			if (stopButtonPressed.value):
@@ -180,9 +183,6 @@ class controller:
 
 		self.motor_control.setMotorDirection(RING_ROBOT, 1)
 		while (self.ls_instance.anyActive()):
-			self.updatePosition()
-			if (abs(self.encoder_instance.last_tick_diff2) < 2):
-				pid_output = 40
 			self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity) 
 			if (stopButtonPressed.value):
 				return False

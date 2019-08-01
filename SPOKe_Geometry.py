@@ -4,7 +4,7 @@ import math
  
 r4 = 1.966 
 l_total = 1.56
-r_gear_gantry = 26.1 / 1000 # 2.86 cm is an estimate based on test
+r_gear_gantry = 26.05 / 1000 # 2.86 cm is an estimate based on test
 r_gear_rotary = 20 / 1000
 
 
@@ -39,7 +39,7 @@ class Dimensions:
 		self.r2Min = 0
 		#self.r2Max = self.r3*math.cos(self.phi1)*math.sqrt(self.r3**2*math.cos(self.phi1)**2 - r3**2 + r4**2)
 		# self.r2Max = 1.5
-		self.r2Max = 1.63 
+		self.r2Max = 1.615 
 		self.theta4Min = 0.0087 # 0.5 deg
 		self.theta4Max = 8 * 0.1588
 
@@ -56,4 +56,5 @@ class Dimensions:
 		self.angularMovementState_1_4 = - 0.5 * 0.1588
 		self.angularMovementState_2_5 = 0.1588 # Distance from one clam to the next
 		self.initialAngularMovement = 0.1348 #0.1358 # Distance to move from the limit switch to the middle of the first two clams
+		self.initialAngularMovementBack = - 0.4 # Distance from left ls to first clam
 		

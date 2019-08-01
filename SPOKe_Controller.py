@@ -560,15 +560,6 @@ def sendData(data_storage, graphPipe,graphPipeSize, graphLock):
 
 
 
-self.motor_control.setMotorDirection(GANTRY_ROBOT, 1)
-		while (self.ls_instance.active(1) or self.ls_instance.active(3)):
-			self.motor_control.setMotorSpeed(GANTRY_ROBOT, 30) 
-			if (stopButtonPressed.value):
-				return False
-			time.sleep(0.05)
-		self.stop()
-
-
 def transitionState(state, control_instance, stopButtonPressed):
 	global stateToRevertBackTo
 	if (stopButtonPressed.value):

@@ -195,9 +195,9 @@ class controller:
 		while(not ( self.ls_instance.active(limitSwitchNumber) or stopButtonPressed.value)):
 			self.updatePosition()
 			tickDiff = abs(self.encoder_instance.getTickDiff(motorNumber))
-			if (tickDiff < 400):
+			if (tickDiff < 40):
 				motorSpeed = 90
-			elif (tickDiff < 600):
+			elif (tickDiff < 400):
 				motorSpeed = 50
 			else: 
 				motorSpeed = 20
@@ -228,7 +228,7 @@ class controller:
 			self.initializeEncoder(RING_ROBOT, "left", stopButtonPressed)
 			self.initializeEncoder(GANTRY_ROBOT, "out", stopButtonPressed)
 
-		if (stopButtonPressed):
+		if (stopButtonPressed.value):
 			return False
 		self.dataBuffer[7] = 0
 		sendData(self, graphPipe, graphPipeSize, graphLock)

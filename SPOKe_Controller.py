@@ -65,7 +65,8 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 		continuing = False
 		control_instance.initNewState(t0, tf, state)
 		i = 0 
-		while ((not control_instance.timeout or (abs(control_instance.theta4_e) > 0.017 or abs(control_instance.r2_e) > 0.007)) and (stopButtonPressed.value == 0) and (not control_instance.ls_instance.anyActive()) and (not control_instance.isStuck())): 
+		while ((not control_instance.timeout or (abs(control_instance.theta4_e) > 0.017)) and (stopButtonPressed.value == 0) and (not control_instance.ls_instance.anyActive()) and (not control_instance.isStuck())): 
+			#(not control_instance.timeout or (abs(control_instance.theta4_e) > 0.017 or abs(control_instance.r2_e) > 0.007))
 			# Only continue when the trajectory is still moving, theta4_e < 1 deg, r2_e < 9 mm and no stop button or limit switch is hit.
 
 			control_instance.updateTrajectory(state)
@@ -285,10 +286,10 @@ class controller:
 		self.pid_ring.setSampleTime(0.02)
 		
 		self.theta4 = SPOKe_Geometry.rad2theta4(self.encoder_instance.read_counter_rad(RING_ROBOT))
-		self.r2 = SPOKe_Geometry.rad2r2(self.encoder_instance.read_counter_rad(GANTRY_ROBOT))
+#		self.r2 = SPOKe_Geometry.rad2r2(self.encoder_instance.read_counter_rad(GANTRY_ROBOT))
 
 #		self.theta4 = self.theta4_ref					# Only for simulation, these valuas represents position if control is perfect
-#		self.r2 = self.r2_ref 							# Only for simulation
+		self.r2 = self.r2_ref 							# Only for simulation
 		
 		self.calculateTrajectory(state)
 		self.dataBuffer[7] = state
@@ -389,7 +390,8 @@ class controller:
 		return False
 
 	def updatePosition(self):
-		self.r2 = SPOKe_Geometry.rad2r2(self.encoder_instance.read_counter_rad(GANTRY_ROBOT))
+		#self.r2 = SPOKe_Geometry.rad2r2(self.encoder_instance.read_counter_rad(GANTRY_ROBOT))
+		self.r2 = self.r2_ref
 		self.theta4 = SPOKe_Geometry.rad2theta4(self.encoder_instance.read_counter_rad(RING_ROBOT))
 
 	def updatePID(self, state):

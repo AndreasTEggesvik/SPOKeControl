@@ -293,7 +293,7 @@ class Motor_output:
 		if (100 < speedValue or speedValue < 0):
 			return False 
 		if (motorNumber == 1):
-			self.M1.ChangeDutyCycle(speedValue)
+			#self.M1.ChangeDutyCycle(speedValue)
 		elif (motorNumber == 2):
 			self.M2.ChangeDutyCycle(speedValue)
 		else:

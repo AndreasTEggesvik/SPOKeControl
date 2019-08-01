@@ -65,7 +65,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 		continuing = False
 		control_instance.initNewState(t0, tf, state)
 		i = 0 
-		while ((not control_instance.timeout or (abs(control_instance.theta4_e) > 0.017)) and (stopButtonPressed.value == 0) and (not control_instance.ls_instance.anyActive()) and (not control_instance.isStuck())): 
+		while ((not control_instance.timeout or (abs(control_instance.theta4_e) > 0.09)) and (stopButtonPressed.value == 0) and (not control_instance.ls_instance.anyActive()) and (not control_instance.isStuck())): 
 			#(not control_instance.timeout or (abs(control_instance.theta4_e) > 0.017 or abs(control_instance.r2_e) > 0.007))
 			# Only continue when the trajectory is still moving, theta4_e < 1 deg, r2_e < 9 mm and no stop button or limit switch is hit.
 
@@ -148,6 +148,7 @@ class controller:
 
 		# Position parameters
 		self.theta4d = self.dimensions.theta4Min
+		self.previous_theta4d = self.theta4d
 		self.theta4_ref = self.dimensions.theta4Min
 		self.theta4_e = 0
 
@@ -345,14 +346,14 @@ class controller:
 			if (self.theta4d == self.dimensions.theta4Min):
 				self.theta4d = self.dimensions.theta4Min
 			else: 
-				self.theta4d = self.theta4d + self.dimensions.angularMovementState_1_4
+				self.theta4d = self.previous_theta4d + self.dimensions.angularMovementState_1_4
 			return self.theta4d
 
 		elif (state == "moveAlongRing"): 
 			if (self.theta4d == self.dimensions.theta4Min):
 				self.theta4d = self.dimensions.initialAngularMovement
 			else:
-				self.theta4d = self.theta4d + self.dimensions.angularMovementState_2_5
+				self.theta4d = self.previous_theta4d + self.dimensions.angularMovementState_2_5
 			if (self.theta4d > self.dimensions.theta4Max):
 				return False
 			return self.theta4d
@@ -416,7 +417,7 @@ class controller:
 
 			self.theta4_e = self.theta4_ref - self.theta4
 			# To eliminate windup effecting us badly: 
-			if (abs(self.theta4_e) < 0.3*3.14/180): # 0.3 deg
+			if (abs(self.theta4_e) < 0.2*3.14/180): # 0.3 deg
 				self.pid_ring.setWindup(0)
 			else: 
 				self.pid_ring.setWindup(20)

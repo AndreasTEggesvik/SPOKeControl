@@ -346,14 +346,14 @@ class controller:
 			if (self.theta4d == self.dimensions.theta4Min):
 				self.theta4d = self.dimensions.theta4Min
 			else: 
-				self.theta4d = self.previous_theta4d + self.dimensions.angularMovementState_1_4
+				self.theta4d += self.dimensions.angularMovementState_1_4
 			return self.theta4d
 
 		elif (state == "moveAlongRing"): 
 			if (self.theta4d == self.dimensions.theta4Min):
 				self.theta4d = self.dimensions.initialAngularMovement
 			else:
-				self.theta4d = self.previous_theta4d + self.dimensions.angularMovementState_2_5
+				self.theta4d += self.dimensions.angularMovementState_2_5
 			if (self.theta4d > self.dimensions.theta4Max):
 				return False
 			return self.theta4d
@@ -417,7 +417,7 @@ class controller:
 
 			self.theta4_e = self.theta4_ref - self.theta4
 			# To eliminate windup effecting us badly: 
-			if (abs(self.theta4_e) < 0.2*3.14/180): # 0.3 deg
+			if (abs(self.theta4_e) < 0.2*3.14/180): # 0.2 deg
 				self.pid_ring.setWindup(0)
 			else: 
 				self.pid_ring.setWindup(20)

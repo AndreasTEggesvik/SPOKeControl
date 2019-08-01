@@ -199,11 +199,11 @@ class controller:
 			if (direction == "right"):
 				motorDirectionValue = -1
 				limitSwitchNumber = 2
-				positionOfLimitSwitch = self.dimensions.theta4Max # Should be changed
+				positionOfLimitSwitch = 0
 			elif (direction == "left"):
 				motorDirectionValue = 1
 				limitSwitchNumber = 4
-				positionOfLimitSwitch = 0
+				positionOfLimitSwitch = self.dimensions.theta4Max # Should be changed
 		elif (motorNumber == GANTRY_ROBOT):
 			if (direction == "in"):
 				motorDirectionValue = -1

@@ -65,7 +65,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 		continuing = False
 		control_instance.initNewState(t0, tf, state)
 		i = 0 
-		while ((not control_instance.timeout or (abs(control_instance.theta4_e) > 0.017 or abs(control_instance.r2_e) > 0.003)) and (stopButtonPressed.value == 0) and (not control_instance.ls_instance.anyActive())): # and (not control_instance.isStuck())): 
+		while ((not control_instance.timeout or (abs(control_instance.theta4_e) > 0.017 or abs(control_instance.r2_e) > 0.007)) and (stopButtonPressed.value == 0) and (not control_instance.ls_instance.anyActive()) and (not control_instance.isStuck())): 
 			# Only continue when the trajectory is still moving, theta4_e < 1 deg, r2_e < 9 mm and no stop button or limit switch is hit.
 
 			control_instance.updateTrajectory(state)
@@ -109,7 +109,8 @@ class controller:
 		self.pid_list_ring = [0, 0]
 		self.dataBuffer = [self.time_list[:], self.measurement_list_gantry[:], self.reference_list_gantry[:], self.pid_list_gantry[:], self.measurement_list_ring[:], self.reference_list_ring[:], self.pid_list_ring[:], -1]
 		self.powerBuffer = [0, deque(maxlen=10), deque(maxlen=10)] # Length of 10 -> 0.02s * 10 = 0.2 s
-
+		self.powerBuffer[GANTRY_ROBOT].append(1)
+		self.powerBuffer[RING_ROBOT].append(1)
 		import pymonarco_hat as plc
 		lib_path = '../pymonarco-hat/monarco-c/libmonarco.so'
 		self.plc_handler = plc.Monarco(lib_path, debug_flag=plc.MONARCO_DPF_WRITE | plc.MONARCO_DPF_WARNING)	
@@ -511,8 +512,12 @@ def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPi
 		time.sleep(4)
 		control_instance.waitForStartSignal(buttonPipe, newButtonData, stopButtonPressed)
 		return stateToRevertBackTo
+<<<<<<< HEAD
 	return False
 	elif (state == "stuck"):
+=======
+	elif (control_instance.isStuck()):
+>>>>>>> b62c23a7c05d75eadabcd4cfb26d696abd0f6009
 		print("The robot is stuck. Stopping all motion")
 		control_instance.stop()
 		control_instance.dataBuffer[7] = 50
@@ -524,6 +529,7 @@ def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPi
 			print("In error, robot stuck detected")
 			time.sleep(4)
 		return True
+	return False
 
 
 
@@ -581,9 +587,9 @@ def transitionState(state, control_instance, stopButtonPressed):
 		return "moveAlongRing"
 
 	elif (state == "moveAlongRing"):
-		if (control_instance.r2_ref == r2_max):
+		if (control_instance.r2_ref == control_instance.r2_max):
 			return "tightenRopeInwards"
-		elif (control_instance.r2_ref == r2_min):
+		elif (control_instance.r2_ref == control_instance.r2_min):
 			return "tightenRopeOutwards"
 		else:
 			return False

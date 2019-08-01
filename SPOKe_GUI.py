@@ -140,6 +140,14 @@ class StateLabel(Label):
 			self.text = "State: \nLimit switch hit"
 		elif (state == 100):
 			self.text = "State: \nStop button pressed"
+		elif (state == "moveInwards"):
+			self.text =  "State: \nMove radially \nin"
+		elif (state == "moveOutwards"):
+                        self.text = "State: \nMove radially \nout"
+		elif (state == "moveAlongRing"):
+                        self.text = "State: \nMove angular"
+		elif (state == "tightenRopeInwards" or state == "tightenRopeOutwards"):
+                        self.text ="State: \nTighten rope"
 
 
 #################################################################################

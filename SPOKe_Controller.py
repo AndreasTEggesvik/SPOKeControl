@@ -10,6 +10,7 @@ import SPOKe_Geometry
 from multiprocessing import Process, Pipe, Value, Lock
 import SPOKe_IO
 import math
+from collections import deque
 
 
 GANTRY_ROBOT = 1
@@ -18,8 +19,11 @@ RING_ROBOT = 2
 # State = [init, stopButtonPressed, errorLimitSwitch, stuck, moveAlongRing, moveInwards, moveOutwards, tightenRopeInwards, tightenRopeOutwards]
 #stateToRevertBackTo = [moveAlongRing, moveInwards, moveOutwards, tightenRopeInwards, tightenRopeOutwards]
 stateToRevertBackTo = "moveAlongRing" # Only used when in an error state
+powerThrust = 70
+
 
 def PID_to_control_input(pid_output, motor, encoder):
+	global powerThrust
 	if pid_output >= 0:
 		direction = 1
 	else:
@@ -28,13 +32,12 @@ def PID_to_control_input(pid_output, motor, encoder):
 	if (pid_output < 15):
 		pid_output = 0
 	elif (motor == RING_ROBOT and abs(encoder.last_tick_diff2) < 2):
-		pid_output = 70
+		pid_output = powerThrust
 	elif (motor == GANTRY_ROBOT and abs(encoder.last_tick_diff1) < 2):
-		pid_output = 70
+		pid_output = powerThrust
 	else: 
 		pid_output = 15 + 6 * math.sqrt(pid_output-15)
 	return [direction, min(pid_output, 100)]
-
 
 def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, stopButtonPressed, newButtonData, operatingTimeConstant):
 	# Initializing the robot, guaranteeing a safe starting position
@@ -74,7 +77,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			if (i == 15):
 
 				[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(control_instance.pid_ring.output, 2, control_instance.encoder_instance)
-				print("Motor control signals: DIRECTION = ", direction_ring, " | POWER = ", PWM_signal_strength_ring)
+				print("Motor control signals: DIRECTION = ", direction_ring, " | POWER = ", PWM_signal_strength_ring, " (",control_instance.pid_ring.output, ")" )
 
 				if (graphPipeSize.value == 0):
 					control_instance.eraseBufferData()
@@ -105,6 +108,7 @@ class controller:
 		self.reference_list_ring = [0, 0]
 		self.pid_list_ring = [0, 0]
 		self.dataBuffer = [self.time_list[:], self.measurement_list_gantry[:], self.reference_list_gantry[:], self.pid_list_gantry[:], self.measurement_list_ring[:], self.reference_list_ring[:], self.pid_list_ring[:], -1]
+		self.powerBuffer = [0, deque(maxlen=10), deque(maxlen=10)] # Length of 10 -> 0.02s * 10 = 0.2 s
 
 		import pymonarco_hat as plc
 		lib_path = '../pymonarco-hat/monarco-c/libmonarco.so'
@@ -418,6 +422,7 @@ class controller:
 		[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(self.pid_ring.output, RING_ROBOT, self.encoder_instance)
 		self.motor_control.setMotorDirection(RING_ROBOT, direction_ring)
 		self.motor_control.setMotorSpeed(RING_ROBOT, PWM_signal_strength_ring)
+		self.powerBuffer[RING_ROBOT].append(PWM_signal_strength_ring)
 		#self.motor_control.setMotorSpeed(2, 0.3)
 		
 
@@ -433,7 +438,17 @@ class controller:
 		[direction_gantry, PWM_signal_strength_gantry] = PID_to_control_input(self.pid_gantry.output, GANTRY_ROBOT, self.encoder_instance)
 		self.motor_control.setMotorDirection(GANTRY_ROBOT, direction_gantry)
 		self.motor_control.setMotorSpeed(GANTRY_ROBOT, PWM_signal_strength_gantry)
+		self.powerBuffer[GANTRY_ROBOT].append(PWM_signal_strength_gantry)
 		return True
+	def isStuck(self):
+		global powerThrust
+		if (sum(self.powerBuffer[RING_ROBOT])/len(self.powerBuffer[RING_ROBOT]) == powerThrust ):
+			print("Ring movment is stuck!!")
+			return True
+		elif (sum(self.powerBuffer[GANTRY_ROBOT])/len(self.powerBuffer[GANTRY_ROBOT]) == powerThrust):
+			print("Gantry movement is stuck!!")
+			return True
+		return False
 		
 
 	def stop(self):
@@ -497,18 +512,18 @@ def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPi
 		control_instance.waitForStartSignal(buttonPipe, newButtonData, stopButtonPressed)
 		return stateToRevertBackTo
 	return False
-	#	elif (control_instance.isStuck()):
-#		print("The robot is stuck. Stopping all motion")
-#		control_instance.stop()
-#		control_instance.dataBuffer[7] = 50
-#		sendData(control_instance, graphPipe, graphPipeSize, graphLock)
-#		print("In error stuck")
-#		time.sleep(4)
-#		control_instance.waitForStartSignal(buttonPipe, newButtonData)
-#		while(1):
-#			print("In error, robot stuck detected")
-#			time.sleep(4)
-#		return True
+	elif (control_instance.isStuck()):
+		print("The robot is stuck. Stopping all motion")
+		control_instance.stop()
+		control_instance.dataBuffer[7] = 50
+		sendData(control_instance, graphPipe, graphPipeSize, graphLock)
+		print("In error stuck")
+		time.sleep(4)
+		control_instance.waitForStartSignal(buttonPipe, newButtonData)
+		while(1):
+			print("In error, robot stuck detected")
+			time.sleep(4)
+		return True
 
 
 
@@ -530,13 +545,13 @@ def sendData(data_storage, graphPipe,graphPipeSize, graphLock):
 	graphLock.release()
 
 
-def transitionState(state, control_instance):
+def transitionState(state, control_instance, stopButtonPressed):
 	global stateToRevertBackTo
 	if (stopButtonPressed.value):
 		stateToRevertBackTo = state
 		return "stopButtonPressed"
 
-	elif ((state == "moveInwards" and control_instance.ls_instance.active(1)) or (state == "moveOutwards" and control_instance.ls_instance.active(3)):
+	elif ((state == "moveInwards" and control_instance.ls_instance.active(1)) or (state == "moveOutwards" and control_instance.ls_instance.active(3))):
 		if (state == "moveInwards"):
 			control_instance.motor_control.setMotorDirection(1,-1)
 		else: 

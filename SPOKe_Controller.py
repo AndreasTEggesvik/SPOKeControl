@@ -316,7 +316,7 @@ class controller:
 				self.stop()
 
 	# Used to set the next reference point for theta_4, based on geometry of the SPOKe cleats
-	def getNextTheta4d(self, state):
+	def getNextTheta4d(self, _state):
 		global state
 		self.previous_theta4d = self.theta4d
 		if (state == "moveInwards" or state == "moveOutwards"):

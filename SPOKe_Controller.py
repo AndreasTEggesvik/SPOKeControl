@@ -75,7 +75,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			continuing = False
 			state = "moveAlongRingBack"
 
-
+		print("Ready for while loop")
 		# Main loop:
 		while(True):
 			t0 = 0

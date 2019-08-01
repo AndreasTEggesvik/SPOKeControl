@@ -91,7 +91,10 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 		state = transitionState(state, control_instance, stopButtonPressed)
 		if (state == "stopButtonPressed" or state == "errorLimitSwitch" or state == "stuck"):
 			state = reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData)
-			continuing = True
+			if (state == False):
+				break
+			else:
+				continuing = True
 	print("Finished")
 	control_instance.stop()
 
@@ -512,23 +515,13 @@ def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPi
 		time.sleep(4)
 		control_instance.waitForStartSignal(buttonPipe, newButtonData, stopButtonPressed)
 		return stateToRevertBackTo
-<<<<<<< HEAD
-	return False
 	elif (state == "stuck"):
-=======
-	elif (control_instance.isStuck()):
->>>>>>> b62c23a7c05d75eadabcd4cfb26d696abd0f6009
 		print("The robot is stuck. Stopping all motion")
 		control_instance.stop()
 		control_instance.dataBuffer[7] = 50
 		sendData(control_instance, graphPipe, graphPipeSize, graphLock)
-		print("In error stuck")
-		time.sleep(4)
-		control_instance.waitForStartSignal(buttonPipe, newButtonData)
-		while(1):
-			print("In error, robot stuck detected")
-			time.sleep(4)
-		return True
+		print("Terminating due to stuckness")
+		return False
 	return False
 
 

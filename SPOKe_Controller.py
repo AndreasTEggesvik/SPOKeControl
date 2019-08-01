@@ -46,7 +46,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 	
 	run_start_time = round(time.time(),2)
 	control_instance = controller(run_start_time)
-	
+
 	while(mode == "Deploy" or mode == "Detatch"):
 		if mode == "Deploy":
 			control_instance.waitForInitSignal(buttonPipe)
@@ -261,6 +261,7 @@ class controller:
 		return True
 		
 	def initNewState(self, t0, tf, state):
+		print("Initializing state: ", state)
 		self.tstart = round(time.time(),2)
 		self.tf = tf
 		self.t0 = t0
@@ -560,7 +561,7 @@ def getTf(state, timeMultiplier):
 	# Want low value to represent low velocity -> high tf
 	if (state == "moveInwards" or state == "moveOutwards"):
 		return 20 *abs(timeMultiplier.value -2) 
-	elif (state == "moveAlongRing"):
+	elif (state == "moveAlongRing" or state =="moveAlongRingBacks"):
 		return 7 *abs(timeMultiplier.value -2)
 	elif (state == "tightenRopeInwards" or state == "tightenRopeOutwards"):
 		# return -1 # This should be used when the system has a stuck detection, as the state 3 and 6 don't have a trajectory to follow

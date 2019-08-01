@@ -570,11 +570,11 @@ def transitionState(state, control_instance, stopButtonPressed):
 		control_instance.stop()		
 
 		if (state == "moveInwards"):
-			control_instance.r2 = control_instance.r2_max
-			control_instance.encoder_instance.set_position(GANTRY_ROBOT, control_instance.r2_max)
-		else: 
 			control_instance.r2 = control_instance.r2_min
 			control_instance.encoder_instance.set_position(GANTRY_ROBOT, control_instance.r2_min)
+		else: 
+			control_instance.r2 = control_instance.r2_max
+			control_instance.encoder_instance.set_position(GANTRY_ROBOT, control_instance.r2_max)
 		return "moveAlongRing"
 	
 	elif (state == "moveInwards" or state == "moveOutwards"):

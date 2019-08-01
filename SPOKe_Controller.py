@@ -322,8 +322,13 @@ class controller:
 				[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocityAngular * -1 , [self.previous_theta4d, 0, self.theta4d, 0], [0, stateRunTime/3])
 		
 		elif (state == "moveAlongRing" or state == "moveAlongRingBack"):
+			if (state == "moveAlongRing"):
+				velocityDir = 1
+			elif (state == "moveAlongRingBack"):
+				velocityDir = -1
+			print("Calculating trajectory for ring with theta4 = ", self.theta4, " | theta4d = ", self.theta4d, " | velocity = ", velocity*velocityDir)
 			velocity = tp.getLSPB_velocity(self.theta4, self.theta4d, self.t0, self.tf, 0.5)
-			[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocity, [self.theta4, 0, self.theta4d, 0], [self.t0, self.tf])
+			[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocity*velocityDir, [self.theta4, 0, self.theta4d, 0], [self.t0, self.tf])
 
 
 	def waitForInitSignal(self, buttonPipe):

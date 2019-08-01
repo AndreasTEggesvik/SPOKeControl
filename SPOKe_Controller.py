@@ -512,7 +512,7 @@ def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPi
 		control_instance.waitForStartSignal(buttonPipe, newButtonData, stopButtonPressed)
 		return stateToRevertBackTo
 	return False
-	elif (control_instance.isStuck()):
+	elif (state == "stuck"):
 		print("The robot is stuck. Stopping all motion")
 		control_instance.stop()
 		control_instance.dataBuffer[7] = 50
@@ -550,7 +550,8 @@ def transitionState(state, control_instance, stopButtonPressed):
 	if (stopButtonPressed.value):
 		stateToRevertBackTo = state
 		return "stopButtonPressed"
-
+	elif (control_instance.isStuck()):
+		return "stuck"
 	elif ((state == "moveInwards" and control_instance.ls_instance.active(1)) or (state == "moveOutwards" and control_instance.ls_instance.active(3))):
 		if (state == "moveInwards"):
 			control_instance.motor_control.setMotorDirection(1,-1)

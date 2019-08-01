@@ -313,8 +313,8 @@ class controller:
 				# If statement is true the first time state "moveOutwards" is run
 				[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = [0, 0, 0, 0]
 			else:  
-				velocityAngular = tp.getLSPB_velocity(self.theta4, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.5)
-				[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocityAngular * -1 , [self.theta4, 0, self.theta4d, 0], [0, stateRunTime/3])
+				velocityAngular = tp.getLSPB_velocity(self.previous_theta4d, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.5)
+				[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocityAngular * -1 , [self.previous_theta4d, 0, self.theta4d, 0], [0, stateRunTime/3])
 		
 		elif (state == "moveAlongRing"):
 			velocity = tp.getLSPB_velocity(self.theta4, self.theta4d, self.t0, self.tf, 0.5)
@@ -342,6 +342,7 @@ class controller:
 
 	# Used to set the next reference point for theta_4, based on geometry of the SPOKe cleats
 	def getNextTheta4d(self, state):
+		self.previous_theta4d = self.theta4d
 		if (state == "moveInwards" or state == "moveOutwards"):
 			if (self.theta4d == self.dimensions.theta4Min):
 				self.theta4d = self.dimensions.theta4Min

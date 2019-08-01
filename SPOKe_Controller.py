@@ -268,13 +268,13 @@ class controller:
 		
 		# Enables possibility of different PID control for different states
 		if (state == "moveInwards" or state == "moveOutwards"):
-			[P_g, I_g, D_g] = [430, 60, 94]
-			[P_r, I_r, D_r] = [900, 470, 350]
+			[P_g, I_g, D_g] = [450, 80, 94]
+			[P_r, I_r, D_r] = [1000, 470, 400]
 		elif(state == "moveAlongRing"):
-			[P_g, I_g, D_g] = [430, 60, 94]
+			[P_g, I_g, D_g] = [450, 80, 94]
 			[P_r, I_r, D_r] = [900, 470, 350]	
 		if (state == "tightenRopeInwards" or state == "tightenRopeOutwards"):
-			[P_g, I_g, D_g] = [430, 60, 94]			# PID controller is not used for gantry in these states
+			[P_g, I_g, D_g] = [450, 80, 94]			# PID controller is not used for gantry in these states
 			[P_r, I_r, D_r] = [900, 470, 350]
 			self.motor_control.closeGrip()
 			time.sleep(1.5)
@@ -419,10 +419,10 @@ class controller:
 
 			self.theta4_e = self.theta4_ref - self.theta4
 			# To eliminate windup effecting us badly: 
-			if (abs(self.theta4_e) < 0.2*3.14/180): # 0.2 deg
-				self.pid_ring.setWindup(0)
-			else: 
-				self.pid_ring.setWindup(20)
+#			if (abs(self.theta4_e) < 0.2*3.14/180): # 0.2 deg
+#				self.pid_ring.setWindup(0)
+#			else: 
+#				self.pid_ring.setWindup(20)
 			
 			self.pid_ring.SetPoint = self.theta4_ref 
 			self.pid_ring.update(self.theta4)
@@ -439,12 +439,19 @@ class controller:
 		
 
 		if (state == "tightenRopeInwards"):
-			self.motor_control.setMotorDirection(GANTRY_ROBOT, -1)
-			self.motor_control.setMotorSpeed(GANTRY_ROBOT, 35)
+			if (self.r2_max * (1/3) < self.r2 < self.r2_max * (2/3)):
+				# Protection in case we have too much rope to tighten
+				self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0)
+			else:
+				self.motor_control.setMotorDirection(GANTRY_ROBOT, -1)
+				self.motor_control.setMotorSpeed(GANTRY_ROBOT, 50)
 			return True
 		elif (state == "tightenRopeOutwards"):
-			self.motor_control.setMotorDirection(GANTRY_ROBOT, 1)
-			self.motor_control.setMotorSpeed(GANTRY_ROBOT, 35)
+			if (self.r2_max * (1/3) < self.r2 < self.r2_max * (2/3)):
+				self.motor_control.setMotorSpeed(GANTRY_ROBOT, 0)
+			else:
+				self.motor_control.setMotorDirection(GANTRY_ROBOT, 1)
+				self.motor_control.setMotorSpeed(GANTRY_ROBOT, 50)
 			return True
 		
 		[direction_gantry, PWM_signal_strength_gantry] = PID_to_control_input(self.pid_gantry.output, GANTRY_ROBOT, self.encoder_instance)

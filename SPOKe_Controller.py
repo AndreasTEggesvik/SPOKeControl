@@ -559,6 +559,16 @@ def sendData(data_storage, graphPipe,graphPipeSize, graphLock):
 	graphLock.release()
 
 
+
+self.motor_control.setMotorDirection(GANTRY_ROBOT, 1)
+		while (self.ls_instance.active(1) or self.ls_instance.active(3)):
+			self.motor_control.setMotorSpeed(GANTRY_ROBOT, 30) 
+			if (stopButtonPressed.value):
+				return False
+			time.sleep(0.05)
+		self.stop()
+
+
 def transitionState(state, control_instance, stopButtonPressed):
 	global stateToRevertBackTo
 	if (stopButtonPressed.value):
@@ -566,12 +576,12 @@ def transitionState(state, control_instance, stopButtonPressed):
 		return "stopButtonPressed"
 	elif (control_instance.isStuck()):
 		return "stuck"
-	elif ((state == "moveInwards" and control_instance.ls_instance.active(1)) or (state == "moveOutwards" and control_instance.ls_instance.active(3))):
+	elif ((state == "moveInwards" and control_instance.ls_instance.active(3)) or (state == "moveOutwards" and control_instance.ls_instance.active(1))):
 		if (state == "moveInwards"):
 			control_instance.motor_control.setMotorDirection(1,1)
 		else: 
 			control_instance.motor_control.setMotorDirection(1,-1)
-
+		print("Hit limit switch, moving away from it.")
 		while (control_instance.ls_instance.active(1) or control_instance.ls_instance.active(3)):
 			control_instance.updatePosition()
 			if (abs(control_instance.encoder_instance.last_tick_diff1) < 60):
@@ -590,6 +600,10 @@ def transitionState(state, control_instance, stopButtonPressed):
 			control_instance.r2 = control_instance.r2_max
 			control_instance.encoder_instance.set_position(GANTRY_ROBOT, control_instance.r2_max)
 		return "moveAlongRing"
+
+	elif (control_instance.ls_instance.anyActive()):
+		stateToRevertBackTo = state
+		return "errorLimitSwitch"
 	
 	elif (state == "moveInwards" or state == "moveOutwards"):
 		return "moveAlongRing"
@@ -617,7 +631,5 @@ def transitionState(state, control_instance, stopButtonPressed):
 		time.sleep(1.5)
 		return "moveOutwards"
 	
-	elif (control_instance.ls_instance.anyActive()):
-		stateToRevertBackTo = state
-		return "errorLimitSwitch"
+	
 	

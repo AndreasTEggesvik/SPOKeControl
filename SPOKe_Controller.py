@@ -20,8 +20,8 @@ RING_ROBOT = 2
 #stateToRevertBackTo = [moveAlongRing, moveInwards, moveOutwards, tightenRopeInwards, tightenRopeOutwards]
 state = "init"
 stateToRevertBackTo = "moveAlongRing" # Only used when in an error state
-powerThrust = 70
-mode = "Deploy"
+powerThrust = 90
+mode = "Detatch"
 
 def PID_to_control_input(pid_output, motor, encoder):
 	global powerThrust
@@ -270,9 +270,9 @@ class controller:
 		
 		# Enables possibility of different PID control for different states
 		if (state == "moveInwards" or state == "moveOutwards"):
-			[P_g, I_g, D_g] = [750, 80, 94]
+			[P_g, I_g, D_g] = [950, 80, 94]
 			[P_r, I_r, D_r] = [1000, 470, 400]
-		elif(state == "moveAlongRing"):
+		elif(state == "moveAlongRing" or state == "moveAlongRingBack"):
 			[P_g, I_g, D_g] = [450, 80, 94]
 			[P_r, I_r, D_r] = [900, 470, 350]	
 		if (state == "tightenRopeInwards" or state == "tightenRopeOutwards"):
@@ -562,7 +562,7 @@ def getTf(state, timeMultiplier):
 	# Want low value to represent low velocity -> high tf
 	if (state == "moveInwards" or state == "moveOutwards"):
 		return 20 *abs(timeMultiplier.value -2) 
-	elif (state == "moveAlongRing" or state =="moveAlongRingBacks"):
+	elif (state == "moveAlongRing" or state =="moveAlongRingBack"):
 		return 7 *abs(timeMultiplier.value -2)
 	elif (state == "tightenRopeInwards" or state == "tightenRopeOutwards"):
 		# return -1 # This should be used when the system has a stuck detection, as the state 3 and 6 don't have a trajectory to follow

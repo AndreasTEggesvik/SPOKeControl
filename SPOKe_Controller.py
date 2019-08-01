@@ -16,8 +16,9 @@ from collections import deque
 GANTRY_ROBOT = 1
 RING_ROBOT = 2
 
-# State = [init, stopButtonPressed, errorLimitSwitch, stuck, moveAlongRing, moveAlongRingBack moveInwards, moveOutwards, tightenRopeInwards, tightenRopeOutwards]
+# State = [init, deploymentDone stopButtonPressed, errorLimitSwitch, stuck, moveAlongRing, moveAlongRingBack moveInwards, moveOutwards, tightenRopeInwards, tightenRopeOutwards]
 #stateToRevertBackTo = [moveAlongRing, moveInwards, moveOutwards, tightenRopeInwards, tightenRopeOutwards]
+state = "init"
 stateToRevertBackTo = "moveAlongRing" # Only used when in an error state
 powerThrust = 70
 
@@ -45,7 +46,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 	control_instance = controller(run_start_time)
 	control_instance.waitForInitSignal(buttonPipe)
 
-	if (control_instance.initialize(buttonPipe, newButtonData, stopButtonPressed, graphPipe, graphPipeSize, graphLock) == False):
+	if (control_instance.initialize(buttonPipe, newButtonData, stopButtonPressed, graphPipe, graphPipeSize, graphLock, "Detatch") == False):
 		print("Stop button is pressed during init, looping forever")
 		while (True):
 			time.sleep(0.5)
@@ -97,6 +98,8 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 				break
 			else:
 				continuing = True
+	if (state == "deploymentDone"):
+		print("Deployment finished!! ")
 	print("Finished")
 	control_instance.stop()
 
@@ -214,20 +217,24 @@ class controller:
 
 
 		# Storage lists
-	def initialize(self, buttonPipe, newButtonData,  stopButtonPressed, graphPipe, graphPipeSize, graphLock):
-		
+	def initialize(self, buttonPipe, newButtonData,  stopButtonPressed, graphPipe, graphPipeSize, graphLock, operation):
 		self.dataBuffer[7] = -1
 		sendData(self, graphPipe, graphPipeSize, graphLock)
+		if (operation == "Deploy"):
+			self.initializeEncoder(RING_ROBOT, "right", stopButtonPressed)
+			self.initializeEncoder(GANTRY_ROBOT, "in", stopButtonPressed)
 
-		self.initializeEncoder(RING_ROBOT, "right", stopButtonPressed)
-		self.initializeEncoder(GANTRY_ROBOT, "in", stopButtonPressed)
+		elif (operation == "Detatch"):
+			self.initializeEncoder(RING_ROBOT, "left", stopButtonPressed)
+			self.initializeEncoder(GANTRY_ROBOT, "out", stopButtonPressed)
 
+		if (stopButtonPressed):
+			return False
 		self.dataBuffer[7] = 0
 		sendData(self, graphPipe, graphPipeSize, graphLock)
 		buttonPipe.send("Init finished")
 		newButtonData.value += 1
 		return True
-
 		
 	def initNewState(self, t0, tf, state):
 		self.tstart = round(time.time(),2)
@@ -310,6 +317,7 @@ class controller:
 
 	# Used to set the next reference point for theta_4, based on geometry of the SPOKe cleats
 	def getNextTheta4d(self, state):
+		global state
 		self.previous_theta4d = self.theta4d
 		if (state == "moveInwards" or state == "moveOutwards"):
 			if (self.theta4d == self.dimensions.theta4Min):
@@ -324,6 +332,7 @@ class controller:
 			else:
 				self.theta4d += self.dimensions.angularMovementState_2_5
 			if (self.theta4d > self.dimensions.theta4Max):
+				state = "deploymentDone"
 				return False
 			return self.theta4d
 		elif (state == "tightenRopeInwards" or state == "tightenRopeOutwards"):

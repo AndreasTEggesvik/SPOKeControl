@@ -619,7 +619,7 @@ def transitionStateDeployment(state, control_instance, stopButtonPressed, mode):
 	elif (state == "moveInwards" or state == "moveOutwards"):
 		if (mode == "Deploy"):
 			return "moveAlongRing"
-		elif (mode == "Detatch")
+		elif (mode == "Detatch"):
 			return "moveAlongRingBack"
 
 	elif (state == "moveAlongRing"):

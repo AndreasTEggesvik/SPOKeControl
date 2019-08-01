@@ -204,9 +204,9 @@ class controller:
 		self.encoder_instance.set_position(motorNumber, positionOfLimitSwitch)
 		print("Encoder set for motor number", motorNumber)
 		self.motor_control.setMotorDirection(motorNumber, motorDirectionValue * -1)
-		self.motor_control.setMotorSpeed(motorNumber, 30)
 		while(self.ls_instance.active(limitSwitchNumber)):
-			time.sleep(0.5)
+			self.motor_control.setMotorSpeed(motorNumber, 30)
+			time.sleep(0.05)
 		self.stop()
 
 

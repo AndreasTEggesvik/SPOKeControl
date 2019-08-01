@@ -315,13 +315,16 @@ class controller:
 			# We want the angle to move as the middle third of the movement:
 			
 			stateRunTime = self.tf - self.t0
-			if (self.theta4d == self.dimensions.theta4Min):
-				# If statement is true the first time state "moveOutwards" is run
-				[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = [0, 0, 0, 0]
-			else:  
+			if (mode == "Deploy"):
+				if (self.theta4d == self.dimensions.theta4Min):
+					# If statement is true the first time state "moveOutwards" is run
+					[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = [0, 0, 0, 0]
+				else:  
+					velocityAngular = tp.getLSPB_velocity(self.previous_theta4d, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.5)
+					[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocityAngular * -1 , [self.previous_theta4d, 0, self.theta4d, 0], [0, stateRunTime/3])
+			elif (mode == "Detatch"):
 				velocityAngular = tp.getLSPB_velocity(self.previous_theta4d, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.5)
-				[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocityAngular * -1 , [self.previous_theta4d, 0, self.theta4d, 0], [0, stateRunTime/3])
-		
+				[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocityAngular , [self.previous_theta4d, 0, self.theta4d, 0], [0, stateRunTime/3])
 		elif (state == "moveAlongRing" or state == "moveAlongRingBack"):
 			if (state == "moveAlongRing"):
 				velocityDir = 1

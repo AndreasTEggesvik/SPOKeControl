@@ -268,7 +268,7 @@ class controller:
 		
 		# Enables possibility of different PID control for different states
 		if (state == "moveInwards" or state == "moveOutwards"):
-			[P_g, I_g, D_g] = [450, 80, 94]
+			[P_g, I_g, D_g] = [650, 80, 94]
 			[P_r, I_r, D_r] = [1000, 470, 400]
 		elif(state == "moveAlongRing"):
 			[P_g, I_g, D_g] = [450, 80, 94]

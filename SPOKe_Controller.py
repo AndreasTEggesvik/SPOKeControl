@@ -43,6 +43,7 @@ def PID_to_control_input(pid_output, motor, encoder):
 def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, stopButtonPressed, newButtonData, operatingTimeConstant):
 	# Initializing the robot, guaranteeing a safe starting position
 	global mode
+	global state
 	
 	run_start_time = round(time.time(),2)
 	control_instance = controller(run_start_time)

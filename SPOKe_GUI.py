@@ -40,7 +40,7 @@ import SPOKe_Controller
 
 speed = 1 					# Used to modify the speed of the trajectories for the controller
 state = -1 					# Used to display the state of the controller
-storeData = False 			# Variable to enable writing to file SPOKeRunData.csv
+storeData = True 			# Variable to enable writing to file SPOKeRunData.csv
 
 time_list = [0]				
 measurement_list = [0]		

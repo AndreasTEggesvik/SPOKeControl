@@ -88,7 +88,9 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 				i = 0
 			i += 1
 			time.sleep(0.02)
+		print("Transitioning from state ", state)
 		state = transitionState(state, control_instance, stopButtonPressed)
+		print("To state ", state)
 		if (state == "stopButtonPressed" or state == "errorLimitSwitch" or state == "stuck"):
 			state = reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData)
 			if (state == False):
@@ -412,7 +414,7 @@ class controller:
 
 			self.theta4_e = self.theta4_ref - self.theta4
 			# To eliminate windup effecting us badly: 
-			if (abs(self.theta4_e) < 0.5*3.14/180): # 0.3 deg
+			if (abs(self.theta4_e) < 0.3*3.14/180): # 0.3 deg
 				self.pid_ring.setWindup(0)
 			else: 
 				self.pid_ring.setWindup(20)

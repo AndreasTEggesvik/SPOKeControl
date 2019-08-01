@@ -21,7 +21,7 @@ RING_ROBOT = 2
 state = "init"
 stateToRevertBackTo = "moveAlongRing" # Only used when in an error state
 powerThrust = 70
-
+mode = "Deploy"
 
 def PID_to_control_input(pid_output, motor, encoder):
 	global powerThrust
@@ -42,64 +42,90 @@ def PID_to_control_input(pid_output, motor, encoder):
 
 def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, stopButtonPressed, newButtonData, operatingTimeConstant):
 	# Initializing the robot, guaranteeing a safe starting position
-	run_start_time = round(time.time(),2)
-	control_instance = controller(run_start_time)
-	control_instance.waitForInitSignal(buttonPipe)
-
-	if (control_instance.initialize(buttonPipe, newButtonData, stopButtonPressed, graphPipe, graphPipeSize, graphLock, "Detatch") == False):
-		print("Stop button is pressed during init, looping forever")
-		while (True):
-			time.sleep(0.5)
+	global mode
 	
-	control_instance.waitForStartSignal(buttonPipe, newButtonData, stopButtonPressed)
-	control_instance.run_start_time = round(time.time(),2)
-	continuing = False
-	state = "moveOutwards"
+	
+	while(mode == "Deploy" or mode == "Detatch"):
+		if mode == "Deploy":
+			run_start_time = round(time.time(),2)
+			control_instance = controller(run_start_time)
+			control_instance.waitForInitSignal(buttonPipe)
 
-	while(True):
-		t0 = 0
-		tf = getTf(state, operatingTimeConstant)
-		if (not continuing):
-			if ( not control_instance.getNextTheta4d(state) ):
-				# In case next desired angle is outside working area, breaking the while loop
-				break
-		continuing = False
-		control_instance.initNewState(t0, tf, state)
-		i = 0 
-		while ((not control_instance.timeout or (abs(control_instance.theta4_e) > 0.01 or abs(control_instance.r2_e) > 0.007)) and (stopButtonPressed.value == 0) and (not control_instance.ls_instance.anyActive()) and (not control_instance.isStuck())): 
-			# Only continue when the trajectory is still moving, theta4_e < 0.57 deg, r2_e < 7 mm and no stop button or limit switch is hit.
+			if (control_instance.initialize(buttonPipe, newButtonData, stopButtonPressed, graphPipe, graphPipeSize, graphLock, "Deploy") == False):
+				print("Stop button is pressed during init, looping forever")
+				while (True):
+					time.sleep(0.5)
+			
+			control_instance.waitForStartSignal(buttonPipe, newButtonData, stopButtonPressed)
+			control_instance.run_start_time = round(time.time(),2)
+			continuing = False
+			state = "moveOutwards"
 
-			control_instance.updateTrajectory(state)
-			control_instance.updatePosition()
-			control_instance.updatePID(state)
-			control_instance.setOutput(state)
-			control_instance.storeData()
+		elif (mode == "Detatch"):
+			print("Deployment finished!! ")
+			run_start_time = round(time.time(),2)
+			control_instance = controller(run_start_time)
+			control_instance.waitForInitSignal(buttonPipe)
 
-			if (i == 15):
+			if (control_instance.initialize(buttonPipe, newButtonData, stopButtonPressed, graphPipe, graphPipeSize, graphLock, "Detatch") == False):
+				print("Stop button is pressed during init, looping forever")
+				while (True):
+					time.sleep(0.5)
+			
+			control_instance.waitForStartSignal(buttonPipe, newButtonData, stopButtonPressed)
+			control_instance.run_start_time = round(time.time(),2)
+			continuing = False
+			state = "moveAlongRingBack"
 
-				[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(control_instance.pid_ring.output, 2, control_instance.encoder_instance)
-				print("Motor control signals: DIRECTION = ", direction_ring, " | POWER = ", PWM_signal_strength_ring, " (",control_instance.pid_ring.output, ")" )
 
-				if (graphPipeSize.value == 0):
-					control_instance.eraseBufferData()
-				control_instance.bufferData()
-				control_instance.eraseData()
-				graphCommunication = Process(target=sendData, args=(control_instance, graphPipe, graphPipeSize, graphLock))
-				graphCommunication.start()
-				i = 0
-			i += 1
-			time.sleep(0.02)
-		print("Transitioning from state ", state)
-		state = transitionStateDeployment(state, control_instance, stopButtonPressed)
-		print("To state ", state)
-		if (state == "stopButtonPressed" or state == "errorLimitSwitch" or state == "stuck"):
-			state = reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData)
-			if (state == False):
-				break
-			else:
-				continuing = True
-	if (state == "deploymentDone"):
-		print("Deployment finished!! ")
+		# Main loop:
+		while(True):
+			t0 = 0
+			tf = getTf(state, operatingTimeConstant)
+			if (not continuing):
+				if ( not control_instance.getNextTheta4d(state) ):
+					# In case next desired angle is outside working area, breaking the while loop
+					break
+			continuing = False
+			control_instance.initNewState(t0, tf, state)
+			i = 0 
+			while ((not control_instance.timeout or (abs(control_instance.theta4_e) > 0.01 or abs(control_instance.r2_e) > 0.007)) and (stopButtonPressed.value == 0) and (not control_instance.ls_instance.anyActive()) and (not control_instance.isStuck())): 
+				# Only continue when the trajectory is still moving, theta4_e < 0.57 deg, r2_e < 7 mm and no stop button or limit switch is hit.
+
+				control_instance.updateTrajectory(state)
+				control_instance.updatePosition()
+				control_instance.updatePID(state)
+				control_instance.setOutput(state)
+				control_instance.storeData()
+
+				if (i == 15):
+
+					[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(control_instance.pid_ring.output, 2, control_instance.encoder_instance)
+					print("Motor control signals: DIRECTION = ", direction_ring, " | POWER = ", PWM_signal_strength_ring, " (",control_instance.pid_ring.output, ")" )
+
+					if (graphPipeSize.value == 0):
+						control_instance.eraseBufferData()
+					control_instance.bufferData()
+					control_instance.eraseData()
+					graphCommunication = Process(target=sendData, args=(control_instance, graphPipe, graphPipeSize, graphLock))
+					graphCommunication.start()
+					i = 0
+				i += 1
+				time.sleep(0.02)
+			print("Transitioning from state ", state)
+			state = transitionStateDeployment(state, control_instance, stopButtonPressed, mode)
+			print("To state ", state)
+			if (state == "stopButtonPressed" or state == "errorLimitSwitch" or state == "stuck"):
+				state = reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData)
+				if (state == False):
+					break
+				else:
+					continuing = True	
+
+			elif (state == "deploymentDone"):
+				mode = 	"Detatch"
+			elif (state == "detatchmentDone")
+				mode = "Deploy"
 	print("Finished")
 	control_instance.stop()
 
@@ -174,7 +200,7 @@ class controller:
 			if (direction == "right"):
 				motorDirectionValue = -1
 				limitSwitchNumber = 2
-				positionOfLimitSwitch = self.dimensions.theta4Max
+				positionOfLimitSwitch = self.dimensions.theta4Max # Should be changed
 			elif (direction == "left"):
 				motorDirectionValue = 1
 				limitSwitchNumber = 4
@@ -335,6 +361,17 @@ class controller:
 				state = "deploymentDone"
 				return False
 			return self.theta4d
+		elif (state  == "moveAlongRingBack"):
+			if (self.theta4d == self.dimensions.theta4Max): # Should be changed
+				self.theta4d = self.dimensions.initialAngularMovementBack
+			else:
+				self.theta4d -= self.dimensions.angularMovementState_2_5
+			if (self.theta4d < self.dimensions.theta4Min):
+				state = "detatchmentDone"
+				return False
+			return self.theta4d
+
+
 		elif (state == "tightenRopeInwards" or state == "tightenRopeOutwards"):
 			return self.theta4d
 		else: 
@@ -361,9 +398,10 @@ class controller:
 			else: 
 				self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.t0, self.tb_ring, stateRunTime/3, operation_time - stateRunTime/4)
 			return True
-		elif (state == "moveAlongRing"):
+		elif (state == "moveAlongRing" or state == "moveAlongRingBack"):
 			self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.t0,  self.tb_ring, self.tf, operation_time)
 			return True
+
 		elif (state == "tightenRopeInwards" or state == "tightenRopeOutwards"):
 			return True
 		return False
@@ -383,7 +421,7 @@ class controller:
 			self.theta4_e = self.theta4_ref - self.theta4
 			self.pid_gantry.SetPoint = self.r2_ref
 			return True
-		elif (state == "moveInwards" or state == "moveOutwards" or state == "moveAlongRing"):
+		elif (state == "moveInwards" or state == "moveOutwards" or state == "moveAlongRing" or state =="moveAlongRingBack"):
 			self.r2_e = self.r2_ref - self.r2
 
 			# To eliminate windup effecting us badly: 
@@ -538,8 +576,9 @@ def sendData(data_storage, graphPipe,graphPipeSize, graphLock):
 
 
 
-def transitionStateDeployment(state, control_instance, stopButtonPressed):
+def transitionStateDeployment(state, control_instance, stopButtonPressed, mode):
 	global stateToRevertBackTo
+
 	if (stopButtonPressed.value):
 		stateToRevertBackTo = state
 		return "stopButtonPressed"
@@ -568,20 +607,35 @@ def transitionStateDeployment(state, control_instance, stopButtonPressed):
 		else: 
 			control_instance.r2 = control_instance.r2_max
 			control_instance.encoder_instance.set_position(GANTRY_ROBOT, control_instance.r2_max)
-		return "moveAlongRing"
+		if (mode == "Deploy"):
+			return "moveAlongRing"
+		elif (mode == "Detatch")
+			return "moveAlongRingBack"
 
 	elif (control_instance.ls_instance.anyActive()):
 		stateToRevertBackTo = state
 		return "errorLimitSwitch"
 	
 	elif (state == "moveInwards" or state == "moveOutwards"):
-		return "moveAlongRing"
+		if (mode == "Deploy"):
+			return "moveAlongRing"
+		elif (mode == "Detatch")
+			return "moveAlongRingBack"
 
 	elif (state == "moveAlongRing"):
 		if (abs(control_instance.r2_ref - control_instance.r2_max) < 0.2):
 			return "tightenRopeInwards"
 		elif (abs(control_instance.r2_ref - control_instance.r2_min) < 0.2):
 			return "tightenRopeOutwards"
+		else:
+			print("Reference: ", control_instance.r2_ref)
+			return False
+	
+	elif (state == "moveAlongRingBack"):
+		if (abs(control_instance.r2_ref - control_instance.r2_max) < 0.2):
+			return "moveInwards"
+		elif (abs(control_instance.r2_ref - control_instance.r2_min) < 0.2):
+			return "moveOutwards"
 		else:
 			print("Reference: ", control_instance.r2_ref)
 			return False

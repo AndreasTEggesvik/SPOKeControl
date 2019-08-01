@@ -161,6 +161,58 @@ class controller:
 		self.tickDiffBuffer2 = collections.deque(maxlen=5)
 
 
+	def initializeEncoder(self, motorNumber, direction, stopButtonPressed):
+		
+		motorDirectionValue = 0
+		motorSpeed = 0
+		limitSwitchNumber = 0
+		positionOfLimitSwitch = 0
+		if (motorNumber == RING_ROBOT):
+			if (direction == "right"):
+				motorDirectionValue = -1
+				limitSwitchNumber = 2
+				positionOfLimitSwitch = self.dimensions.theta4Max
+			elif (direction == "left"):
+				motorDirectionValue = 1
+				limitSwitchNumber = 4
+				positionOfLimitSwitch = 0
+		elif (motorNumber == GANTRY_ROBOT):
+			if (direction == "in"):
+				motorDirectionValue = -1
+				limitSwitchNumber = 3
+				positionOfLimitSwitch = 0
+			elif (direction == "out"):
+				motorDirectionValue = 1
+				limitSwitchNumber = 1
+				positionOfLimitSwitch = self.dimensions.r2Max
+		self.motor_control.setMotorDirection(motorNumber, motorDirectionValue)
+		self.encoder_instance.reset_counter(motorNumber)
+		self.updatePosition()
+
+		while(not ( self.ls_instance.active(limitSwitchNumber) or stopButtonPressed.value)):
+			self.updatePosition()
+			tickDiff = abs(self.encoder_instance.getTickDiff(motorNumber))
+			if (tickDiff < 400):
+				motorSpeed = 90
+			elif (tickDiff < 600):
+				motorSpeed = 50
+			else: 
+				motorSpeed = 20
+			self.motor_control.setMotorSpeed(motorNumber, motorSpeed)
+			time.sleep(0.05)
+		self.stop()
+		self.encoder_instance.set_position(motorNumber, positionOfLimitSwitch)
+		print("Encoder set for motor number", motorNumber)
+		self.motor_control.setMotorDirection(motorNumber, motorDirectionValue * -1)
+		self.motor_control.setMotorSpeed(motorNumber, 30)
+		while(self.ls_instance.active(limitSwitchNumber)):
+			time.sleep(0.5)
+		self.stop()
+
+
+
+
+
 		# Storage lists
 	def initialize(self, buttonPipe, newButtonData,  stopButtonPressed, graphPipe, graphPipeSize, graphLock):
 		
@@ -170,89 +222,63 @@ class controller:
 		self.motor_control.setMotorDirection(GANTRY_ROBOT, -1)
 		self.motor_control.setMotorDirection(RING_ROBOT, -1)
 
-
-		# Moving along the ring until we hit the limit switch
-		self.encoder_instance.reset_counter(2)
-		self.updatePosition()
-		while ( not ( self.ls_instance.active(2) or self.ls_instance.active(4) or stopButtonPressed.value)):
-			self.updatePosition()
-			if (abs(self.encoder_instance.last_tick_diff2) < 400):
-				self.motor_control.setMotorSpeed(RING_ROBOT, 90) 
-			elif (abs(self.encoder_instance.last_tick_diff2) < 600):
-				self.motor_control.setMotorSpeed(RING_ROBOT, 50)
-			else:
-				self.motor_control.setMotorSpeed(RING_ROBOT, 15) 
-			if (stopButtonPressed.value):
-				return False
-			time.sleep(0.05)
-		self.stop()
-
-		self.encoder_instance.reset_counter(2)
-		print('Ring encoder initiated')
-		
-		self.motor_control.setMotorDirection(RING_ROBOT, 1)
-		while (self.ls_instance.active(2) or self.ls_instance.active(4)):
-			self.motor_control.setMotorSpeed(RING_ROBOT, 30) 
-			if (stopButtonPressed.value):
-				return False
-			time.sleep(0.05)
-		self.stop()
-		
-
-		# Moving the gantry robot until we hit the limit switch
-		self.encoder_instance.reset_counter(1)
-		self.updatePosition()
-		while ( not ( self.ls_instance.active(1) or self.ls_instance.active(3) or stopButtonPressed.value)):
-			self.updatePosition()
-			if (abs(self.encoder_instance.last_tick_diff1) < 60):
-                                self.motor_control.setMotorSpeed(GANTRY_ROBOT, 60)
-			elif (abs(self.encoder_instance.last_tick_diff1) < 500):
-				self.motor_control.setMotorSpeed(GANTRY_ROBOT, 35)
-			else:
-				self.motor_control.setMotorSpeed(GANTRY_ROBOT, 20)
-			if (stopButtonPressed.value):
-				return False
-			time.sleep(0.05)
-		self.stop()
-		
-		self.encoder_instance.reset_counter(1)
-		print('Gantry encoder initiated')
-
-		self.motor_control.setMotorDirection(GANTRY_ROBOT, 1)
-		while (self.ls_instance.active(1) or self.ls_instance.active(3)):
-			self.motor_control.setMotorSpeed(GANTRY_ROBOT, 30) 
-			if (stopButtonPressed.value):
-				return False
-			time.sleep(0.05)
-		self.stop()
-		#################################################################################
-		#																				#
-		#   The follwing code that is comment out is used to initialize the encoder.	#
-		#   Without motor control, the encoders must be moved manually					#
-		#   until the z signal is high. Init fails if this is not done within 10s		#
-		#	This is specified in 'findFirstZ' in SPOKe_IO.py 							#
-		#																				#
-		#################################################################################
-
-		# Move r_2 until the first z value is active and limit switch is no longer active
-#		self.motor_control.setMotorDirection(GANTRY_ROBOT, 1)
-#		self.motor_control.setMotorSpeed(GANTRY_ROBOT, 30)
-#		if ( not self.encoder_instance.findFirstZ(GANTRY_ROBOT)):
-#			self.stop()
-#			return False
+		self.initializeEncoder(RING_ROBOT, "right", stopButtonPressed)
+		self.initializeEncoder(GANTRY_ROBOT, "in", stopButtonPressed)
+#		# Moving along the ring until we hit the limit switch
+#		self.encoder_instance.reset_counter(2)
+#		self.updatePosition()
+#		while ( not ( self.ls_instance.active(2) or self.ls_instance.active(4) or stopButtonPressed.value)):
+#			self.updatePosition()
+#			if (abs(self.encoder_instance.last_tick_diff2) < 400):
+#				self.motor_control.setMotorSpeed(RING_ROBOT, 90) 
+#			elif (abs(self.encoder_instance.last_tick_diff2) < 600):
+#				self.motor_control.setMotorSpeed(RING_ROBOT, 50)
+#			else:
+#				self.motor_control.setMotorSpeed(RING_ROBOT, 15) 
+#			if (stopButtonPressed.value):
+#				return False
+#			time.sleep(0.05)
 #		self.stop()
-
-#		print('Found gantry z')
-
-		#  Move theta_4 until the first z value is active.
+#
+#		self.encoder_instance.reset_counter(2)
+#		print('Ring encoder initiated')
+#		
 #		self.motor_control.setMotorDirection(RING_ROBOT, 1)
-#		self.motor_control.setMotorSpeed(RING_ROBOT, initVelocity/2)
-#		if ( not self.encoder_instance.findFirstZ(RING_ROBOT)):
-#			self.stop()
-#			return False
+#		while (self.ls_instance.active(2) or self.ls_instance.active(4)):
+#			self.motor_control.setMotorSpeed(RING_ROBOT, 30) 
+#			if (stopButtonPressed.value):
+#				return False
+#			time.sleep(0.05)
 #		self.stop()
-#		print('found ring z')
+#		
 
+#		# Moving the gantry robot until we hit the limit switch
+#		self.encoder_instance.reset_counter(1)
+#		self.updatePosition()
+#		while ( not ( self.ls_instance.active(1) or self.ls_instance.active(3) or stopButtonPressed.value)):
+#			self.updatePosition()
+#			if (abs(self.encoder_instance.last_tick_diff1) < 60):
+ #                               self.motor_control.setMotorSpeed(GANTRY_ROBOT, 60)
+#			elif (abs(self.encoder_instance.last_tick_diff1) < 500):
+#				self.motor_control.setMotorSpeed(GANTRY_ROBOT, 35)
+#			else:
+#				self.motor_control.setMotorSpeed(GANTRY_ROBOT, 20)
+#			if (stopButtonPressed.value):
+#				return False
+#			time.sleep(0.05)
+#		self.stop()
+#		
+#		self.encoder_instance.reset_counter(1)
+#		print('Gantry encoder initiated')
+#
+#		self.motor_control.setMotorDirection(GANTRY_ROBOT, 1)
+#		while (self.ls_instance.active(1) or self.ls_instance.active(3)):
+#			self.motor_control.setMotorSpeed(GANTRY_ROBOT, 30) 
+#			if (stopButtonPressed.value):
+#				return False
+#			time.sleep(0.05)
+#		self.stop()
+#
 		self.dataBuffer[7] = 0
 		sendData(self, graphPipe, graphPipeSize, graphLock)
 		buttonPipe.send("Init finished")

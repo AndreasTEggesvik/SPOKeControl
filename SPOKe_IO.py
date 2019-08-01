@@ -222,6 +222,12 @@ class Encoder_input:
 			return self.local_counter1 * 360  / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
 		elif (counter_identifier == 2):
 			return self.local_counter2  * 360 / (self.gear_reduction * self.encoder_precision * self.tickMultiplier)
+			
+	def getTickDiff(self, counter_identifier):
+		if (counter_identifier == 1):
+			return self.last_tick_diff1
+		elif (counter_identifier == 2):
+			return self.last_tick_diff2
 
 
 # Robot definition

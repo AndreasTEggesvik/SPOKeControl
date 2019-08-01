@@ -609,7 +609,7 @@ def transitionStateDeployment(state, control_instance, stopButtonPressed, mode):
 			control_instance.encoder_instance.set_position(GANTRY_ROBOT, control_instance.r2_max)
 		if (mode == "Deploy"):
 			return "moveAlongRing"
-		elif (mode == "Detatch")
+		elif (mode == "Detatch"):
 			return "moveAlongRingBack"
 
 	elif (control_instance.ls_instance.anyActive()):

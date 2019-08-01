@@ -44,11 +44,11 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 	# Initializing the robot, guaranteeing a safe starting position
 	global mode
 	
+	run_start_time = round(time.time(),2)
+	control_instance = controller(run_start_time)
 	
 	while(mode == "Deploy" or mode == "Detatch"):
 		if mode == "Deploy":
-			run_start_time = round(time.time(),2)
-			control_instance = controller(run_start_time)
 			control_instance.waitForInitSignal(buttonPipe)
 
 			if (control_instance.initialize(buttonPipe, newButtonData, stopButtonPressed, graphPipe, graphPipeSize, graphLock, "Deploy") == False):
@@ -63,8 +63,6 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 
 		elif (mode == "Detatch"):
 			print("Deployment finished!! ")
-			run_start_time = round(time.time(),2)
-			control_instance = controller(run_start_time)
 			control_instance.waitForInitSignal(buttonPipe)
 
 			if (control_instance.initialize(buttonPipe, newButtonData, stopButtonPressed, graphPipe, graphPipeSize, graphLock, "Detatch") == False):

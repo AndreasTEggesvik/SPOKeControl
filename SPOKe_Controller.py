@@ -274,6 +274,7 @@ class controller:
 			[P_g, I_g, D_g] = [430, 60, 94]			# PID controller is not used for gantry in these states
 			[P_r, I_r, D_r] = [900, 470, 350]
 			self.motor_control.closeGrip()
+			time.sleep(1.5)
 		
 
 		self.pid_gantry = PID.PID(P_g, I_g, D_g)
@@ -580,23 +581,26 @@ def transitionState(state, control_instance, stopButtonPressed):
 		return "moveAlongRing"
 
 	elif (state == "moveAlongRing"):
-		if (control_instance.r2_ref == control_instance.r2_max):
+		if (abs(control_instance.r2_ref - control_instance.r2_max) < 0.2):
 			return "tightenRopeInwards"
-		elif (control_instance.r2_ref == control_instance.r2_min):
+		elif (abs(control_instance.r2_ref - control_instance.r2_min) < 0.2):
 			return "tightenRopeOutwards"
 		else:
+			print("Reference: ", control_instance.r2_ref)
 			return False
 
 	elif (state == "tightenRopeInwards"):
 		print("We are in state ", state, "and are stuck. Proceeding to the next state")
 		control_instance.stop()
 		control_instance.motor_control.openGrip()
+		time.sleep(1.5)
 		return "moveInwards"
 	
 	elif (state == "tightenRopeOutwards"):
 		print("We are in state ", state, "and are stuck. Proceeding to the next state")
 		control_instance.stop()
 		control_instance.motor_control.openGrip()
+		time.sleep(1.5)
 		return "moveOutwards"
 	
 	elif (control_instance.ls_instance.anyActive()):

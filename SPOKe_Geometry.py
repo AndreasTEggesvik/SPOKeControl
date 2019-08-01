@@ -39,7 +39,7 @@ class Dimensions:
 		self.r2Min = 0
 		#self.r2Max = self.r3*math.cos(self.phi1)*math.sqrt(self.r3**2*math.cos(self.phi1)**2 - r3**2 + r4**2)
 		# self.r2Max = 1.5
-		self.r2Max = 1.575 
+		self.r2Max = 1.59 
 		self.theta4Min = 0.000001
 		self.theta4Max = 8 * 0.1588
 
@@ -55,5 +55,5 @@ class Dimensions:
 
 		self.angularMovementState_1_4 = - 0.5 * 0.1588
 		self.angularMovementState_2_5 = 0.1588 # Distance from one clam to the next
-		self.initialAngularMovement = 0.135 #0.1358 # Distance to move from the limit switch to the middle of the first two clams
+		self.initialAngularMovement = 0.1358 #0.1358 # Distance to move from the limit switch to the middle of the first two clams
 		

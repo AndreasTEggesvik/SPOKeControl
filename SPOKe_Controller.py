@@ -16,7 +16,7 @@ from collections import deque
 GANTRY_ROBOT = 1
 RING_ROBOT = 2
 
-# State = [init, stopButtonPressed, errorLimitSwitch, stuck, moveAlongRing, moveInwards, moveOutwards, tightenRopeInwards, tightenRopeOutwards]
+# State = [init, stopButtonPressed, errorLimitSwitch, stuck, moveAlongRing, moveAlongRingBack moveInwards, moveOutwards, tightenRopeInwards, tightenRopeOutwards]
 #stateToRevertBackTo = [moveAlongRing, moveInwards, moveOutwards, tightenRopeInwards, tightenRopeOutwards]
 stateToRevertBackTo = "moveAlongRing" # Only used when in an error state
 powerThrust = 70
@@ -89,7 +89,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			i += 1
 			time.sleep(0.02)
 		print("Transitioning from state ", state)
-		state = transitionState(state, control_instance, stopButtonPressed)
+		state = transitionStateDeployment(state, control_instance, stopButtonPressed)
 		print("To state ", state)
 		if (state == "stopButtonPressed" or state == "errorLimitSwitch" or state == "stuck"):
 			state = reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData)
@@ -219,66 +219,9 @@ class controller:
 		self.dataBuffer[7] = -1
 		sendData(self, graphPipe, graphPipeSize, graphLock)
 
-		self.motor_control.setMotorDirection(GANTRY_ROBOT, -1)
-		self.motor_control.setMotorDirection(RING_ROBOT, -1)
-
 		self.initializeEncoder(RING_ROBOT, "right", stopButtonPressed)
 		self.initializeEncoder(GANTRY_ROBOT, "in", stopButtonPressed)
-#		# Moving along the ring until we hit the limit switch
-#		self.encoder_instance.reset_counter(2)
-#		self.updatePosition()
-#		while ( not ( self.ls_instance.active(2) or self.ls_instance.active(4) or stopButtonPressed.value)):
-#			self.updatePosition()
-#			if (abs(self.encoder_instance.last_tick_diff2) < 400):
-#				self.motor_control.setMotorSpeed(RING_ROBOT, 90) 
-#			elif (abs(self.encoder_instance.last_tick_diff2) < 600):
-#				self.motor_control.setMotorSpeed(RING_ROBOT, 50)
-#			else:
-#				self.motor_control.setMotorSpeed(RING_ROBOT, 15) 
-#			if (stopButtonPressed.value):
-#				return False
-#			time.sleep(0.05)
-#		self.stop()
-#
-#		self.encoder_instance.reset_counter(2)
-#		print('Ring encoder initiated')
-#		
-#		self.motor_control.setMotorDirection(RING_ROBOT, 1)
-#		while (self.ls_instance.active(2) or self.ls_instance.active(4)):
-#			self.motor_control.setMotorSpeed(RING_ROBOT, 30) 
-#			if (stopButtonPressed.value):
-#				return False
-#			time.sleep(0.05)
-#		self.stop()
-#		
 
-#		# Moving the gantry robot until we hit the limit switch
-#		self.encoder_instance.reset_counter(1)
-#		self.updatePosition()
-#		while ( not ( self.ls_instance.active(1) or self.ls_instance.active(3) or stopButtonPressed.value)):
-#			self.updatePosition()
-#			if (abs(self.encoder_instance.last_tick_diff1) < 60):
- #                               self.motor_control.setMotorSpeed(GANTRY_ROBOT, 60)
-#			elif (abs(self.encoder_instance.last_tick_diff1) < 500):
-#				self.motor_control.setMotorSpeed(GANTRY_ROBOT, 35)
-#			else:
-#				self.motor_control.setMotorSpeed(GANTRY_ROBOT, 20)
-#			if (stopButtonPressed.value):
-#				return False
-#			time.sleep(0.05)
-#		self.stop()
-#		
-#		self.encoder_instance.reset_counter(1)
-#		print('Gantry encoder initiated')
-#
-#		self.motor_control.setMotorDirection(GANTRY_ROBOT, 1)
-#		while (self.ls_instance.active(1) or self.ls_instance.active(3)):
-#			self.motor_control.setMotorSpeed(GANTRY_ROBOT, 30) 
-#			if (stopButtonPressed.value):
-#				return False
-#			time.sleep(0.05)
-#		self.stop()
-#
 		self.dataBuffer[7] = 0
 		sendData(self, graphPipe, graphPipeSize, graphLock)
 		buttonPipe.send("Init finished")
@@ -586,7 +529,7 @@ def sendData(data_storage, graphPipe,graphPipeSize, graphLock):
 
 
 
-def transitionState(state, control_instance, stopButtonPressed):
+def transitionStateDeployment(state, control_instance, stopButtonPressed):
 	global stateToRevertBackTo
 	if (stopButtonPressed.value):
 		stateToRevertBackTo = state

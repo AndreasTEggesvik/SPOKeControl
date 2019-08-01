@@ -568,9 +568,9 @@ def transitionState(state, control_instance, stopButtonPressed):
 		return "stuck"
 	elif ((state == "moveInwards" and control_instance.ls_instance.active(1)) or (state == "moveOutwards" and control_instance.ls_instance.active(3))):
 		if (state == "moveInwards"):
-			control_instance.motor_control.setMotorDirection(1,-1)
-		else: 
 			control_instance.motor_control.setMotorDirection(1,1)
+		else: 
+			control_instance.motor_control.setMotorDirection(1,-1)
 
 		while (control_instance.ls_instance.active(1) or control_instance.ls_instance.active(3)):
 			control_instance.updatePosition()

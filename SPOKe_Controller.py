@@ -86,6 +86,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			if (not continuing):
 				if ( not control_instance.getNextTheta4d(state) ):
 					# In case next desired angle is outside working area, breaking the while loop
+					print ("We will break because we received ", control_instance.getNextTheta4d(state))
 					break
 			continuing = False
 			control_instance.initNewState(t0, tf, state)
@@ -366,6 +367,7 @@ class controller:
 			return self.theta4d
 		elif (state  == "moveAlongRingBack"):
 			if (self.theta4d == self.dimensions.theta4Max): # Should be changed
+				print("Ready for initial movement back!")
 				self.theta4d = self.dimensions.initialAngularMovementBack
 			else:
 				self.theta4d -= self.dimensions.angularMovementState_2_5

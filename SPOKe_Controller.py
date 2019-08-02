@@ -99,7 +99,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			control_instance.initNewState(t0, tf, state)
 			i = 0 
 			print("ready for while loop. Timeout: ", control_instance.timeout)
-			while ((not control_instance.timeout or (sum(control_instance.absErrorBuffer[RING_ROBOT])/len(control_instance.absErrorBuffer[RING_ROBOT]) > 0.01 or sum(control_instance.absErrorBuffer[GANTRY_ROBOT])/len(control_instance.absErrorBuffer[GANTRY_ROBOT]) > 0.007)) and (stopButtonPressed.value == 0) and (not control_instance.ls_instance.anyActive()) and (not control_instance.isStuck())): 
+			while ((not control_instance.timeout or (sum(control_instance.absErrorBuffer[RING_ROBOT])/len(control_instance.absErrorBuffer[RING_ROBOT]) > 0.005 or sum(control_instance.absErrorBuffer[GANTRY_ROBOT])/len(control_instance.absErrorBuffer[GANTRY_ROBOT]) > 0.007)) and (stopButtonPressed.value == 0) and (not control_instance.ls_instance.anyActive()) and (not control_instance.isStuck())): 
 #			while ((not control_instance.timeout or (abs(control_instance.theta4_e) > 0.01 or abs(control_instance.r2_e) > 0.007)) and (stopButtonPressed.value == 0) and (not control_instance.ls_instance.anyActive()) and (not control_instance.isStuck())): 
 				# Only continue when the trajectory is still moving, theta4_e < 0.57 deg, r2_e < 7 mm and no stop button or limit switch is hit.
 
@@ -154,7 +154,7 @@ class controller:
 		self.reference_list_ring = [0, 0]
 		self.pid_list_ring = [0, 0]
 		self.dataBuffer = [self.time_list[:], self.measurement_list_gantry[:], self.reference_list_gantry[:], self.pid_list_gantry[:], self.measurement_list_ring[:], self.reference_list_ring[:], self.pid_list_ring[:], -1]
-		self.powerBuffer = [0, deque(maxlen=10), deque(maxlen=10)] # Length of 10 -> 0.02s * 10 = 0.2 s
+		self.powerBuffer = [0, deque(maxlen=20), deque(maxlen=10)] # Length of 20 -> 0.02s * 20 = 0.4 s
 		self.powerBuffer[GANTRY_ROBOT].append(1)
 		self.powerBuffer[RING_ROBOT].append(1)
 		self.absErrorBuffer = [0, deque(maxlen=4), deque(maxlen=4)]

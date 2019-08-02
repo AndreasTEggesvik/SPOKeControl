@@ -327,6 +327,7 @@ class controller:
 					[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocityAngular * -1 , [self.previous_theta4d, 0, self.theta4d, 0], [0, stateRunTime/3])
 			elif (mode == "Detatch"):
 				velocityAngular = tp.getLSPB_velocity(self.previous_theta4d, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.5)
+				print("Calculating trajectory for ring with theta4 = ", self.previous_theta4d, " | theta4d = ", self.theta4d, " | velocity = ", velocityAngular)
 				[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocityAngular , [self.previous_theta4d, 0, self.theta4d, 0], [0, stateRunTime/3])
 		elif (state == "moveAlongRing" or state == "moveAlongRingBack"):
 			if (state == "moveAlongRing"):

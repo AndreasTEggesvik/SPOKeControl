@@ -293,6 +293,10 @@ class controller:
 			[P_g, I_g, D_g] = [450, 80, 94]			# PID controller is not used for gantry in these states
 			[P_r, I_r, D_r] = [900, 470, 350]
 			self.motor_control.closeGrip()
+			if state == "tightenRopeInwards":
+				self.motor_control.setMotorDirection(GANTRY_ROBOT, -1)
+			elif state == "tightenRopeOutwards":
+				self.motor_control.setMotorDirection(GANTRY_ROBOT, 1)
 			time.sleep(1.5)
 		
 

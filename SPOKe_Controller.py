@@ -88,9 +88,9 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			t0 = 0
 			tf = getTf(state, operatingTimeConstant)
 			if (not continuing):
-				if ( not control_instance.getNextTheta4d(state) ):
+				if ( not control_instance.getNextTheta4d(state, mode) ):
 					# In case next desired angle is outside working area, breaking the while loop
-					print ("We will break because we received ", control_instance.getNextTheta4d(state))
+					print ("We will break because we received ", control_instance.getNextTheta4d(state, mode))
 					break
 			continuing = False
 			control_instance.initNewState(t0, tf, state)
@@ -359,14 +359,16 @@ class controller:
 				self.stop()
 
 	# Used to set the next reference point for theta_4, based on geometry of the SPOKe cleats
-	def getNextTheta4d(self, _state):
+	def getNextTheta4d(self, _state, mode):
 		global state
 		self.previous_theta4d = self.theta4d
 		if (state == "moveInwards" or state == "moveOutwards"):
 			if (self.theta4d == self.dimensions.theta4Min):
 				self.theta4d = self.dimensions.theta4Min
-			else: 
+			elif (mode == "Deploy"): 
 				self.theta4d += self.dimensions.angularMovementState_1_4
+			elif (mode == "Detatch"):
+				self.theta4d -= self.dimensions.angularMovementState_1_4
 			return self.theta4d
 
 		elif (state == "moveAlongRing"): 

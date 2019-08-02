@@ -137,6 +137,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 				mode = 	"Detatch"
 			elif (state == "detatchmentDone"):
 				mode = "Deploy"
+			control_instance.stop()
 	print("Finished")
 	control_instance.stop()
 

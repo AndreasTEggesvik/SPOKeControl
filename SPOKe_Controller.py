@@ -323,10 +323,10 @@ class controller:
 					# If statement is true the first time state "moveOutwards" is run
 					[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = [0, 0, 0, 0]
 				else:  
-					velocityAngular = tp.getLSPB_velocity(self.previous_theta4d, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.5)
+					velocityAngular = tp.getLSPB_velocity(self.previous_theta4d, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.3)
 					[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocityAngular * -1 , [self.previous_theta4d, 0, self.theta4d, 0], [0, stateRunTime/3])
 			elif (mode == "Detatch"):
-				velocityAngular = tp.getLSPB_velocity(self.previous_theta4d, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.5)
+				velocityAngular = tp.getLSPB_velocity(self.previous_theta4d, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.3)
 				print("Calculating trajectory for ring with theta4 = ", self.previous_theta4d, " | theta4d = ", self.theta4d, " | velocity = ", velocityAngular)
 				[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocityAngular , [self.previous_theta4d, 0, self.theta4d, 0], [0, stateRunTime/3])
 		elif (state == "moveAlongRing" or state == "moveAlongRingBack"):
@@ -411,12 +411,12 @@ class controller:
 			if (self.theta4d == self.dimensions.theta4Min): # For the first time state "moveOutwards" is excecuted
 				self.theta4_ref = self.theta4d
 				return True
-			elif (operation_time < stateRunTime/4):
+			elif (operation_time < stateRunTime/5):
 				# This is a way to have constant desired theta4 until the trajectory is supposed to begin
 				self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.t0, self.tb_ring, stateRunTime/3, 0)
 				return True
 			else: 
-				self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.t0, self.tb_ring, stateRunTime/3, operation_time - stateRunTime/4)
+				self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.t0, self.tb_ring, stateRunTime/3, operation_time - stateRunTime/5)
 			return True
 		elif (state == "moveAlongRing" or state == "moveAlongRingBack"):
 			self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.t0,  self.tb_ring, self.tf, operation_time)

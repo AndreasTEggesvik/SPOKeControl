@@ -279,7 +279,7 @@ class controller:
 		# Enables possibility of different PID control for different states
 		if (state == "moveInwards" or state == "moveOutwards"):
 			[P_g, I_g, D_g] = [950, 90, 94]
-			[P_r, I_r, D_r] = [1000, 500, 350]
+			[P_r, I_r, D_r] = [800, 600, 350]
 		elif(state == "moveAlongRing" or state == "moveAlongRingBack"):
 			[P_g, I_g, D_g] = [400, 100, 74]
 			[P_r, I_r, D_r] = [900, 470, 350]	

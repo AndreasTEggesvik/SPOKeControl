@@ -278,10 +278,10 @@ class controller:
 		
 		# Enables possibility of different PID control for different states
 		if (state == "moveInwards" or state == "moveOutwards"):
-			[P_g, I_g, D_g] = [950, 80, 94]
+			[P_g, I_g, D_g] = [950, 90, 94]
 			[P_r, I_r, D_r] = [1000, 470, 400]
 		elif(state == "moveAlongRing" or state == "moveAlongRingBack"):
-			[P_g, I_g, D_g] = [450, 80, 94]
+			[P_g, I_g, D_g] = [400, 100, 74]
 			[P_r, I_r, D_r] = [900, 470, 350]	
 		if (state == "tightenRopeInwards" or state == "tightenRopeOutwards"):
 			[P_g, I_g, D_g] = [450, 80, 94]			# PID controller is not used for gantry in these states
@@ -312,7 +312,7 @@ class controller:
 			elif (state == "moveInwards"):
 				self.r2_ref = self.r2_min
 				velocityDir = -1
-			velocity = tp.getLSPB_velocity(self.r2, self.r2_ref, self.t0, self.tf, 0.3) 
+			velocity = tp.getLSPB_velocity(self.r2, self.r2_ref, self.t0, self.tf, 0.15) 
 			print("Calculating trajectory for gantry robot with r2 = ", self.r2, " | r2_ref = ", self.r2_ref, " | velocity = ", velocity)
 			[self.A0_gantry, self.A1_gantry, self.A2_gantry, self.tb_gantry] = tp.LSPB(velocity*velocityDir, [self.r2, 0, self.r2_ref, 0], [self.t0, self.tf])
 			# We want the angle to move as the middle third of the movement:

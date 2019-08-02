@@ -329,7 +329,7 @@ class controller:
 				# If statement is true the first time state "moveOutwards" is run
 				[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = [0, 0, 0, 0]
 			else:
-				velocityAngular = tp.getLSPB_velocity(self.previous_theta4d, self.theta4d, self.t0 + stateRunTime/4, self.tf - stateRunTime/3, 0.4)
+				velocityAngular = tp.getLSPB_velocity(self.previous_theta4d, self.theta4d, self.t0 + stateRunTime/4, self.tf - stateRunTime/4, 0.3)
 				velocityDir = sign(self.theta4d - self.previous_theta4d)
 				print("Calculating trajectory for ring with theta4 = ", self.previous_theta4d, " | theta4d = ", self.theta4d, " | velocity = ", velocityAngular)
 				[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocityAngular* velocityDir, [self.previous_theta4d, 0, self.theta4d, 0], [0, stateRunTime/4])

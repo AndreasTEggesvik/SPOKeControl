@@ -306,11 +306,11 @@ class controller:
 		self.pid_ring = PID.PID(P_r, I_r, D_r)
 		self.pid_ring.setSampleTime(0.02)
 		
-		self.theta4 = SPOKe_Geometry.rad2theta4(self.encoder_instance.read_counter_rad(RING_ROBOT))
-		self.r2 = SPOKe_Geometry.rad2r2(self.encoder_instance.read_counter_rad(GANTRY_ROBOT))
+#		self.theta4 = SPOKe_Geometry.rad2theta4(self.encoder_instance.read_counter_rad(RING_ROBOT))
+#		self.r2 = SPOKe_Geometry.rad2r2(self.encoder_instance.read_counter_rad(GANTRY_ROBOT))
 
-#		self.theta4 = self.theta4_ref					# Only for simulation, these valuas represents position if control is perfect
-#		self.r2 = self.r2_ref 							# Only for simulation
+		self.theta4 = self.theta4_ref					# Only for simulation, these valuas represents position if control is perfect
+		self.r2 = self.r2_ref 							# Only for simulation
 		
 		self.calculateTrajectory(state)
 		self.dataBuffer[7] = state
@@ -439,11 +439,11 @@ class controller:
 		return False
 
 	def updatePosition(self):
-		self.r2 = SPOKe_Geometry.rad2r2(self.encoder_instance.read_counter_rad(GANTRY_ROBOT))
-		self.theta4 = SPOKe_Geometry.rad2theta4(self.encoder_instance.read_counter_rad(RING_ROBOT))
+#		self.r2 = SPOKe_Geometry.rad2r2(self.encoder_instance.read_counter_rad(GANTRY_ROBOT))
+#		self.theta4 = SPOKe_Geometry.rad2theta4(self.encoder_instance.read_counter_rad(RING_ROBOT))
 
-		#self.r2 = self.r2_ref # For simulation only, represent perfect control
-		#self.theta4 = self.theta4_ref
+		self.r2 = self.r2_ref # For simulation only, represent perfect control
+		self.theta4 = self.theta4_ref
 
 	def updatePID(self, state):
 		if (state == "tightenRopeInwards" or state == "tightenRopeOutwards"):

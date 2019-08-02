@@ -32,6 +32,7 @@ class Encoder_input:
 # 	This gives a precision of 0.0078 degrees				#
 #	By only counting every 46th tick, we count 1000 tick	#
 #		per rotation, a precision of 0.36 deg.				#
+# 	I was however not capable of doing that					#
 #############################################################
 
 		self.counterDownScalingFactor = 46
@@ -52,86 +53,9 @@ class Encoder_input:
 		self.firstZTickValue2 = 0
 		self.ZCount2 = 0
 
-	def findFirstZ(self, counter_identifier):
-		if (counter_identifier == 1):
-			if (GPIO.wait_for_edge(self.index1SignalPort, GPIO.RISING, timeout=10000) is not None):
-				GPIO.remove_event_detect(self.index1SignalPort)
-				self.update_counter(counter_identifier)
-				self.firstZTickValue1 = self.local_counter1
-#				GPIO.add_event_detect(self.index1SignalPort, GPIO.RISING, callback=self.receivedIndex1Value, bouncetime=2)
-				print('FOUND: ', self.firstZTickValue1)
-				return True
-		
-		elif (counter_identifier == 2):
-			# This implementation does not work. Can we have used the wrong z pin physically? 
-			return True
-#			if (GPIO.wait_for_edge(self.index2SignalPort, GPIO.RISING, timeout=10000) is not None):
-#				GPIO.remove_event_detect(self.index2SignalPort)
-#				self.update_counter(counter_identifier)
-#				self.firstZTickValue2 = self.local_counter2
-#				GPIO.add_event_detect(self.index2SignalPort, GPIO.RISING, callback=self.receivedIndex2Value, bouncetime=2)
-#				print('FOUND: ', self.firstZTickValue2)
-#				return True
-		return False
-		
-
-	def receivedIndex1Value(self, channel):
-		self.update_counter(1)
-		diff = self.local_counter1 - self.firstZTickValue1 - self.ZCount1*46000/(self.counterDownScalingFactor * self.gear_reduction)
-		if (diff > 700/self.gear_reduction):
-#			print('Rotation Forwards')
-			self.ZCount1 +=1
-		elif (diff < -700/self.gear_reduction):
-#			print("Back to last position")
-			self.ZCount1 -=1
-#		else: 
-#			print('Back to earlier position')
-		self.local_counter1 =  self.firstZTickValue1 + self.ZCount1*46000/(self.counterDownScalingFactor * self.gear_reduction)
-		self.counterScalingRest1 = 0
-
-	def receivedIndex2Value(self, channel):
-		self.update_counter(2)
-		diff = self.local_counter2 - self.firstZTickValue2 - self.ZCount2*46000/(self.counterDownScalingFactor * self.gear_reduction)
-		print('Diff2 = ', self.local_counter2, ' - ', self.firstZTickValue2, ' - ', self.ZCount2*46000/(self.counterDownScalingFactor * self.gear_reduction), ' = ', diff)
-
-		if (diff > 700/self.gear_reduction):
-#			print('Rotation Forwards')
-			self.ZCount2 +=1
-		elif (diff < -700/self.gear_reduction):
-#			print("Rotation Backwards")
-			self.ZCount2 -=1
-#		else:
-#			print("Back to last position")
-		self.local_counter2 =  self.firstZTickValue2 + self.ZCount2*46000/(self.counterDownScalingFactor * self.gear_reduction)
-		self.counterScalingRest2 = 0
 
 
 	def update_counter(self, counter_identifier):
-#		if (counter_identifier == 1):
-#			new_value = self.plc_handler.read_counter(1)
-#			if abs(new_value - self.last_received1) < 23000:
-#				# We have moved a reasonable length (a half rotation)
-#				increase = new_value - self.last_received1
-#			elif new_value < self.last_received1:
-#				# We have probably passed the storage limit
-#				print('Probably moved past storage limit gantry')
-#				increase = new_value - self.last_received1 + 65536
-#				print(new_value, ' - ', self.last_received1, ' + ', 65536, ' = ', increase)
-#
-#			elif new_value > self.last_received1:
-#				# We have probably went backwards past zero
-#				print('Probably moved backwards past zero gantry')
-#				increase = new_value - self.last_received1 - 65536
-#				print(new_value, ' - ', self.last_received1, ' - ', 65536, ' = ', increase)
-#				
-#			self.counterScalingRest1 += increase % self.counterDownScalingFactor
-#			restOverflow = self.counterScalingRest1 // self.counterDownScalingFactor
-#			increase += restOverflow
-#			self.last_tick_diff1 = increase
-#			self.counterScalingRest1 -= restOverflow * self.counterDownScalingFactor
-#			self.local_counter1 +=  increase // self.counterDownScalingFactor
-#			self.last_received1 = new_value
-
 		if (counter_identifier == 1):
 			new_value = self.plc_handler.read_counter(1)
 			if abs(new_value - self.last_received1) < 23000: 
@@ -167,30 +91,6 @@ class Encoder_input:
 			self.last_tick_diff2 = increase
 			self.local_counter2 +=  increase
 			self.last_received2 = new_value
-
-# This code is for scaling down counter 2, this has given large errors in position.
-#		elif (counter_identifier == 2):
-#			new_value = self.plc_handler.read_counter(2)			
-#			if abs(new_value - self.last_received2) < 23000: 
-#				# We have moved a reasonable length (half a rotation)
-#				increase = new_value - self.last_received2
-#				#print('Increase in counter 2 is ', increase)
-#			elif new_value < self.last_received2:
-#				# We have probably passed the storage  limit
-#				print('Probably moved past storage limit ring')
-#				increase = new_value - self.last_received2 + 65535
-#			elif new_value > self.last_received2:
-#				# We have probably went backwards past zero
-#				print('Probably moved backwards past zero ring')
-#				increase = new_value - self.last_received2 - 65535
-#
-#			self.counterScalingRest2 += increase % self.counterDownScalingFactor
-#			restOverflow = self.counterScalingRest2 // self.counterDownScalingFactor
-#			increase += restOverflow
-#			self.last_tick_diff2 = increase
-#			self.counterScalingRest2 -= restOverflow * self.counterDownScalingFactor
-#			self.local_counter2 +=  increase // self.counterDownScalingFactor
-#			self.last_received2 = new_value
 
 	def readCounterValue(self,counter_identifier):
 		return self.plc_handler.read_counter(counter_identifier)
@@ -299,9 +199,11 @@ class Motor_output:
 		if (100 < speedValue or speedValue < 0):
 			return False 
 		if (motorNumber == 1):
-			self.M1.ChangeDutyCycle(speedValue)
+			#self.M1.ChangeDutyCycle(speedValue)
+			a = 0
 		elif (motorNumber == 2):
-			self.M2.ChangeDutyCycle(speedValue)
+			#self.M2.ChangeDutyCycle(speedValue)
+			a = 0
 		else:
 			return False
 		

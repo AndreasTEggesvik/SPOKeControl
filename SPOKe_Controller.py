@@ -636,7 +636,7 @@ def transitionStateDeployment(state, control_instance, stopButtonPressed, mode):
 				control_instance.motor_control.setMotorSpeed(GANTRY_ROBOT, 20)
 			time.sleep(0.05)
 		control_instance.stop()		
-
+		time.sleep(0.5)
 		if (state == "moveInwards"):
 			control_instance.r2 = control_instance.r2_min
 			control_instance.encoder_instance.set_position(GANTRY_ROBOT, control_instance.r2_min)

@@ -381,7 +381,7 @@ class controller:
 				return False
 			return self.theta4d
 		elif (state  == "moveAlongRingBack"):
-			if (self.theta4d == self.dimensions.theta4Max): # Should be changed
+			if (self.theta4d == self.dimensions.LS4Position): # Should be changed
 				print("Ready for initial movement back!")
 				self.theta4d -= self.dimensions.initialAngularMovementBack
 			else:

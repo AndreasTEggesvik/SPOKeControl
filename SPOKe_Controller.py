@@ -638,6 +638,7 @@ def transitionStateDeployment(state, control_instance, stopButtonPressed, mode):
 		else: 
 			control_instance.r2 = control_instance.r2_max
 			control_instance.encoder_instance.set_position(GANTRY_ROBOT, control_instance.r2_max)
+		control_instance.r2_ref = control_instance.r2
 		if (mode == "Deploy"):
 			return "moveAlongRing"
 		elif (mode == "Detatch"):
@@ -648,6 +649,7 @@ def transitionStateDeployment(state, control_instance, stopButtonPressed, mode):
 		return "errorLimitSwitch"
 	
 	elif (state == "moveInwards" or state == "moveOutwards"):
+		control_instance.r2_ref = control_instance.r2
 		if (mode == "Deploy"):
 			return "moveAlongRing"
 		elif (mode == "Detatch"):

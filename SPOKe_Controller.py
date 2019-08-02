@@ -62,6 +62,9 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			continuing = False
 			state = "moveOutwards"
 
+			control_instance.theta4d = control_instance.dimensions.theta4Min
+			control_instance.r2_ref = control_instance.dimensions.r2Min
+
 		elif (mode == "Detatch"):
 			print("Deployment finished!! ")
 			control_instance.waitForInitSignal(buttonPipe)
@@ -75,7 +78,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			control_instance.run_start_time = round(time.time(),2)
 			continuing = False
 			state = "moveAlongRingBack"
-			control_instance.theta4d = control_instance.dimensions.theta4Max
+			control_instance.theta4d = control_instance.LS4Position.theta4Max
 			control_instance.r2_ref = control_instance.dimensions.r2Max
 
 		print("Ready for while loop")
@@ -208,7 +211,7 @@ class controller:
 			elif (direction == "left"):
 				motorDirectionValue = 1
 				limitSwitchNumber = 4
-				positionOfLimitSwitch = self.dimensions.theta4Max # Should be changed
+				positionOfLimitSwitch = self.dimensions.LS4Position # Should be changed
 		elif (motorNumber == GANTRY_ROBOT):
 			if (direction == "in"):
 				motorDirectionValue = -1
@@ -367,7 +370,7 @@ class controller:
 
 		elif (state == "moveAlongRing"): 
 			if (self.theta4d == self.dimensions.theta4Min):
-				self.theta4d = self.dimensions.initialAngularMovement
+				self.theta4d += self.dimensions.initialAngularMovement
 			else:
 				self.theta4d += self.dimensions.angularMovementState_2_5
 			if (self.theta4d > self.dimensions.theta4Max):
@@ -377,7 +380,7 @@ class controller:
 		elif (state  == "moveAlongRingBack"):
 			if (self.theta4d == self.dimensions.theta4Max): # Should be changed
 				print("Ready for initial movement back!")
-				self.theta4d = self.dimensions.initialAngularMovementBack
+				self.theta4d -= self.dimensions.initialAngularMovementBack
 			else:
 				self.theta4d -= self.dimensions.angularMovementState_2_5
 			if (self.theta4d < self.dimensions.theta4Min):

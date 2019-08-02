@@ -52,9 +52,10 @@ class Dimensions:
 		self.l2 = 0.059
 		self.alpha1 = self.l1/self.r4 # Read thise values in Controller
 		self.alpha2 = self.l2/self.r4
+		self.LS4Position = 9 * 0.1588 + 0.035 + 0.0178
 
 		self.angularMovementState_1_4 = - 0.5 * 0.1588
 		self.angularMovementState_2_5 = 0.1588 # Distance from one clam to the next
 		self.initialAngularMovement = 0.1348 #0.1358 # Distance to move from the limit switch to the middle of the first two clams
-		self.initialAngularMovementBack = self.theta4Max - 0.4 # Distance from left ls to first clam
+		self.initialAngularMovementBack = 0.035 + 0.1588 + 0.079 + 0.5 * 0.076# self.theta4Max - 0.4 # Distance from left ls to first clam
 		

@@ -78,7 +78,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			control_instance.run_start_time = round(time.time(),2)
 			continuing = False
 			state = "moveAlongRingBack"
-			control_instance.theta4d = control_instance.LS4Position.theta4Max
+			control_instance.theta4d = control_instance.dimensions.LS4Position
 			control_instance.r2_ref = control_instance.dimensions.r2Max
 
 		print("Ready for while loop")

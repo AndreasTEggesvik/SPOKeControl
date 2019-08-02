@@ -279,7 +279,7 @@ class controller:
 		# Enables possibility of different PID control for different states
 		if (state == "moveInwards" or state == "moveOutwards"):
 			[P_g, I_g, D_g] = [950, 90, 94]
-			[P_r, I_r, D_r] = [800, 600, 350]
+			[P_r, I_r, D_r] = [800, 650, 400]
 		elif(state == "moveAlongRing" or state == "moveAlongRingBack"):
 			[P_g, I_g, D_g] = [400, 100, 74]
 			[P_r, I_r, D_r] = [900, 470, 350]	
@@ -323,10 +323,10 @@ class controller:
 				# If statement is true the first time state "moveOutwards" is run
 				[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = [0, 0, 0, 0]
 			else:
-				velocityAngular = tp.getLSPB_velocity(self.previous_theta4d, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.3)
+				velocityAngular = tp.getLSPB_velocity(self.previous_theta4d, self.theta4d, self.t0 + stateRunTime/4, self.tf - stateRunTime/3, 0.4)
 				velocityDir = sign(self.theta4d - self.previous_theta4d)
 				print("Calculating trajectory for ring with theta4 = ", self.previous_theta4d, " | theta4d = ", self.theta4d, " | velocity = ", velocityAngular)
-				[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocityAngular* velocityDir, [self.previous_theta4d, 0, self.theta4d, 0], [0, stateRunTime/3])
+				[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocityAngular* velocityDir, [self.previous_theta4d, 0, self.theta4d, 0], [0, stateRunTime/4])
 
 			
 		elif (state == "moveAlongRing" or state == "moveAlongRingBack"):
@@ -605,6 +605,7 @@ def transitionStateDeployment(state, control_instance, stopButtonPressed, mode):
 		return "stopButtonPressed"
 	elif (control_instance.isStuck()):
 		return "stuck"
+	
 	elif ((state == "moveInwards" and control_instance.ls_instance.active(3)) or (state == "moveOutwards" and control_instance.ls_instance.active(1))):
 		if (state == "moveInwards"):
 			control_instance.motor_control.setMotorDirection(1,1)

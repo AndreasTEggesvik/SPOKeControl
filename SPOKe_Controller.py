@@ -123,7 +123,7 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			state = transitionStateDeployment(state, control_instance, stopButtonPressed, mode)
 			print("To state ", state)
 			if (state == "stopButtonPressed" or state == "errorLimitSwitch" or state == "stuck"):
-				state = reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData)
+				[state, mode] = reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData, mode)
 				if (state == False):
 					break
 				else:
@@ -279,7 +279,7 @@ class controller:
 		# Enables possibility of different PID control for different states
 		if (state == "moveInwards" or state == "moveOutwards"):
 			[P_g, I_g, D_g] = [950, 90, 94]
-			[P_r, I_r, D_r] = [1000, 470, 400]
+			[P_r, I_r, D_r] = [1000, 500, 350]
 		elif(state == "moveAlongRing" or state == "moveAlongRingBack"):
 			[P_g, I_g, D_g] = [400, 100, 74]
 			[P_r, I_r, D_r] = [900, 470, 350]	
@@ -543,7 +543,7 @@ class controller:
 
 
 
-def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData):
+def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPipe, graphPipeSize, graphLock, newButtonData, mode):
 	global stateToRevertBackTo
 	if (state == "stopButtonPressed"):
 		control_instance.stop()
@@ -553,7 +553,7 @@ def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPi
 		time.sleep(4)
 		control_instance.waitForStartSignal(buttonPipe, newButtonData, stopButtonPressed)
 		stopButtonPressed.value = 0
-		return stateToRevertBackTo
+		return [stateToRevertBackTo, mode]
 	elif(state == "errorLimitSwitch"):
 		control_instance.dataBuffer[7] = 51
 		sendData(control_instance, graphPipe, graphPipeSize, graphLock)
@@ -565,14 +565,14 @@ def reactToError(state, control_instance, buttonPipe, stopButtonPressed, graphPi
 		newButtonData.value += 1
 		time.sleep(4)
 		control_instance.waitForStartSignal(buttonPipe, newButtonData, stopButtonPressed)
-		return stateToRevertBackTo
+		return [stateToRevertBackTo, mode]
 	elif (state == "stuck"):
 		print("The robot is stuck. Stopping all motion")
 		control_instance.stop()
 		control_instance.dataBuffer[7] = 50
 		sendData(control_instance, graphPipe, graphPipeSize, graphLock)
 		print("Terminating due to stuckness")
-		return False
+		return [False, False]
 	return False
 
 

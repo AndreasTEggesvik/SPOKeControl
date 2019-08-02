@@ -81,8 +81,8 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 			control_instance.theta4d = control_instance.dimensions.LS4Position
 			control_instance.r2_ref = control_instance.dimensions.r2Max
 
-		control_instance.absErrorBuffer[RING_ROBOT] = 0
-		control_instance.absErrorBuffer[GANTRY_ROBOT] = 0
+		control_instance.absErrorBuffer[RING_ROBOT].append(0)
+		control_instance.absErrorBuffer[GANTRY_ROBOT].append(0)
 
 		print("Ready for while loop")
 		# Main loop:

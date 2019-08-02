@@ -420,10 +420,10 @@ class controller:
 				return True
 			elif (operation_time < stateRunTime/5):
 				# This is a way to have constant desired theta4 until the trajectory is supposed to begin
-				self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.t0, self.tb_ring, stateRunTime/3, 0)
+				self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.t0, self.tb_ring, stateRunTime/4, 0)
 				return True
 			else: 
-				self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.t0, self.tb_ring, stateRunTime/3, operation_time - stateRunTime/5)
+				self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.t0, self.tb_ring, stateRunTime/4, operation_time - stateRunTime/5)
 			return True
 		elif (state == "moveAlongRing" or state == "moveAlongRingBack"):
 			self.theta4_ref = tp.getLSPB_position(self.A0_ring, self.A1_ring, self.A2_ring, self.t0,  self.tb_ring, self.tf, operation_time)

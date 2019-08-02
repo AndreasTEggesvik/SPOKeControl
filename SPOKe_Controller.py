@@ -21,7 +21,7 @@ RING_ROBOT = 2
 state = "init"
 stateToRevertBackTo = "moveAlongRing" # Only used when in an error state
 powerThrust = 90
-mode = "Detatch"
+mode = "Deploy"
 
 def PID_to_control_input(pid_output, motor, encoder):
 	global powerThrust

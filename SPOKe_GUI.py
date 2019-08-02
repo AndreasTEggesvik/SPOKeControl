@@ -91,7 +91,10 @@ class StartButton(Button):
 				self.text = "START"
 				self.background_color = [0, 0.7, 0, 1]
 				newButtonData.value -= 1
-
+			elif (b == "Ready to init again"):
+				self.text = "INIT"
+				self.background_color = [0, 0.7, 0, 1]
+				newButtonData.value -= 1
 			elif (b == "Starting"):
 				self.background_color = [0, 0.3, 0, 1]
 				newButtonData.value -= 1

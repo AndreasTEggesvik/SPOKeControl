@@ -56,5 +56,5 @@ class Dimensions:
 		self.angularMovementState_1_4 = - 0.5 * 0.1588
 		self.angularMovementState_2_5 = 0.1588 # Distance from one clam to the next
 		self.initialAngularMovement = 0.1348 #0.1358 # Distance to move from the limit switch to the middle of the first two clams
-		self.initialAngularMovementBack = self.theta4Max - 0.4 # Distance from left ls to first clam
+		self.initialAngularMovementBack = self.theta4Max - 0.23 # Distance from left ls to first clam
 		

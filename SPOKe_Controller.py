@@ -21,7 +21,7 @@ RING_ROBOT = 2
 state = "init"
 stateToRevertBackTo = "moveAlongRing" # Only used when in an error state
 powerThrust = 100
-mode = "Detatch"
+mode = "Deploy"
 
 def PID_to_control_input(pid_output, motor, encoder):
 	global powerThrust
@@ -230,7 +230,7 @@ class controller:
 			tickDiff = abs(self.encoder_instance.getTickDiff(motorNumber))
 			if (tickDiff < 40):
 				motorSpeed = 90
-			elif (tickDiff < 400):
+			elif (tickDiff < 200):
 				motorSpeed = 50
 			else: 
 				motorSpeed = 20

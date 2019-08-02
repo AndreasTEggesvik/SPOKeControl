@@ -307,7 +307,10 @@ class controller:
 	def calculateTrajectory(self, state):
 		sign = lambda x: math.copysign(1, x)
 		if (state == "moveOutwards" or state == "moveInwards"):
-	
+			if (state == "moveOutwards"):
+				self.r2_ref = self.r2_max
+			elif (state == "moveInwards"):
+				self.r2_ref = self.r2_min
 			velocity = tp.getLSPB_velocity(self.r2, self.r2_ref, self.t0, self.tf, 0.15) 
 			velocityDir = sign(self.r2_ref - self.r2)
 			print("Calculating trajectory for gantry robot with r2 = ", self.r2, " | r2_ref = ", self.r2_ref, " | velocity = ", velocity)

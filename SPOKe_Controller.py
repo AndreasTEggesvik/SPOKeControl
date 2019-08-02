@@ -219,7 +219,7 @@ class controller:
 			elif (direction == "left"):
 				motorDirectionValue = 1
 				limitSwitchNumber = 4
-				positionOfLimitSwitch = self.dimensions.LS4Position # Should be changed
+				positionOfLimitSwitch = self.dimensions.LS4Position
 		elif (motorNumber == GANTRY_ROBOT):
 			if (direction == "in"):
 				motorDirectionValue = -1
@@ -307,11 +307,11 @@ class controller:
 		self.pid_ring = PID.PID(P_r, I_r, D_r)
 		self.pid_ring.setSampleTime(0.02)
 		
-#		self.theta4 = SPOKe_Geometry.rad2theta4(self.encoder_instance.read_counter_rad(RING_ROBOT))
-#		self.r2 = SPOKe_Geometry.rad2r2(self.encoder_instance.read_counter_rad(GANTRY_ROBOT))
+		self.theta4 = SPOKe_Geometry.rad2theta4(self.encoder_instance.read_counter_rad(RING_ROBOT))
+		self.r2 = SPOKe_Geometry.rad2r2(self.encoder_instance.read_counter_rad(GANTRY_ROBOT))
 
-		self.theta4 = self.theta4_ref					# Only for simulation, these valuas represents position if control is perfect
-		self.r2 = self.r2_ref 							# Only for simulation
+#		self.theta4 = self.theta4_ref					# Only for simulation, these valuas represents position if control is perfect
+#		self.r2 = self.r2_ref 							# Only for simulation
 		
 		self.calculateTrajectory(state)
 		self.dataBuffer[7] = state
@@ -342,10 +342,6 @@ class controller:
 
 			
 		elif (state == "moveAlongRing" or state == "moveAlongRingBack"):
-			#if (state == "moveAlongRing"):
-			#	velocityDir = 1
-			#elif (state == "moveAlongRingBack"):
-			#	velocityDir = -1
 			velocity = tp.getLSPB_velocity(self.theta4, self.theta4d, self.t0, self.tf, 0.5)
 			velocityDir = sign(self.theta4d - self.theta4)
 			print("Calculating trajectory for ring with theta4 = ", self.theta4, " | theta4d = ", self.theta4d, " | velocity = ", velocity*velocityDir)
@@ -440,11 +436,11 @@ class controller:
 		return False
 
 	def updatePosition(self):
-#		self.r2 = SPOKe_Geometry.rad2r2(self.encoder_instance.read_counter_rad(GANTRY_ROBOT))
-#		self.theta4 = SPOKe_Geometry.rad2theta4(self.encoder_instance.read_counter_rad(RING_ROBOT))
+		self.r2 = SPOKe_Geometry.rad2r2(self.encoder_instance.read_counter_rad(GANTRY_ROBOT))
+		self.theta4 = SPOKe_Geometry.rad2theta4(self.encoder_instance.read_counter_rad(RING_ROBOT))
 
-		self.r2 = self.r2_ref # For simulation only, represent perfect control
-		self.theta4 = self.theta4_ref
+#		self.r2 = self.r2_ref # For simulation only, represent perfect control
+#		self.theta4 = self.theta4_ref
 
 	def updatePID(self, state):
 		if (state == "tightenRopeInwards" or state == "tightenRopeOutwards"):

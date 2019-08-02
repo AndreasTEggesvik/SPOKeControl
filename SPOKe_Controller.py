@@ -305,36 +305,32 @@ class controller:
 		self.dataBuffer[7] = state
 
 	def calculateTrajectory(self, state):
+		sign = lambda x: math.copysign(1, x)
 		if (state == "moveOutwards" or state == "moveInwards"):
-			if (state == "moveOutwards"):
-				self.r2_ref = self.r2_max
-				velocityDir = 1
-			elif (state == "moveInwards"):
-				self.r2_ref = self.r2_min
-				velocityDir = -1
+	
 			velocity = tp.getLSPB_velocity(self.r2, self.r2_ref, self.t0, self.tf, 0.15) 
+			velocityDir = sign(self.r2_ref - self.r2)
 			print("Calculating trajectory for gantry robot with r2 = ", self.r2, " | r2_ref = ", self.r2_ref, " | velocity = ", velocity)
 			[self.A0_gantry, self.A1_gantry, self.A2_gantry, self.tb_gantry] = tp.LSPB(velocity*velocityDir, [self.r2, 0, self.r2_ref, 0], [self.t0, self.tf])
 			# We want the angle to move as the middle third of the movement:
 			
 			stateRunTime = self.tf - self.t0
-			if (mode == "Deploy"):
-				if (self.theta4d == self.dimensions.theta4Min):
-					# If statement is true the first time state "moveOutwards" is run
-					[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = [0, 0, 0, 0]
-				else:  
-					velocityAngular = tp.getLSPB_velocity(self.previous_theta4d, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.3)
-					[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocityAngular * -1 , [self.previous_theta4d, 0, self.theta4d, 0], [0, stateRunTime/3])
-			elif (mode == "Detatch"):
-				velocityAngular = tp.getLSPB_velocity(self.previous_theta4d, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.3)
-				print("Calculating trajectory for ring with theta4 = ", self.previous_theta4d, " | theta4d = ", self.theta4d, " | velocity = ", velocityAngular)
-				[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocityAngular , [self.previous_theta4d, 0, self.theta4d, 0], [0, stateRunTime/3])
+			  
+			velocityAngular = tp.getLSPB_velocity(self.previous_theta4d, self.theta4d, self.t0 + stateRunTime/3, self.tf - stateRunTime/3, 0.3)
+			velocityDir = sign(self.theta4d - self.previous_theta4d)
+			print("Calculating trajectory for ring with theta4 = ", self.previous_theta4d, " | theta4d = ", self.theta4d, " | velocity = ", velocityAngular)
+			[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocityAngular* velocityDir, [self.previous_theta4d, 0, self.theta4d, 0], [0, stateRunTime/3])
+
+			if (mode == "Deploy" and self.theta4d == self.dimensions.theta4Min):
+				# If statement is true the first time state "moveOutwards" is run
+				[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = [0, 0, 0, 0]
 		elif (state == "moveAlongRing" or state == "moveAlongRingBack"):
-			if (state == "moveAlongRing"):
-				velocityDir = 1
-			elif (state == "moveAlongRingBack"):
-				velocityDir = -1
+			#if (state == "moveAlongRing"):
+			#	velocityDir = 1
+			#elif (state == "moveAlongRingBack"):
+			#	velocityDir = -1
 			velocity = tp.getLSPB_velocity(self.theta4, self.theta4d, self.t0, self.tf, 0.5)
+			velocityDir = sign(self.theta4d - self.theta4)
 			print("Calculating trajectory for ring with theta4 = ", self.theta4, " | theta4d = ", self.theta4d, " | velocity = ", velocity*velocityDir)
 			[self.A0_ring, self.A1_ring, self.A2_ring, self.tb_ring] = tp.LSPB(velocity*velocityDir, [self.theta4, 0, self.theta4d, 0], [self.t0, self.tf])
 

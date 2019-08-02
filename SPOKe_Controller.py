@@ -94,14 +94,17 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 				if ( not control_instance.getNextTheta4d(state, mode) ):
 					# In case next desired angle is outside working area, breaking the while loop
 					print ("We will break because we received ", control_instance.getNextTheta4d(state, mode))
+					if (mode == "Deploy"):
+						mode = "Detatch"
+					elif (mode == "Detatch"):
+						mode = "Deploy"
 					break
 			continuing = False
 			control_instance.initNewState(t0, tf, state)
 			i = 0 
 			print("ready for while loop. Timeout: ", control_instance.timeout)
 			while ((not control_instance.timeout or (sum(control_instance.absErrorBuffer[RING_ROBOT])/len(control_instance.absErrorBuffer[RING_ROBOT]) > 0.005 or sum(control_instance.absErrorBuffer[GANTRY_ROBOT])/len(control_instance.absErrorBuffer[GANTRY_ROBOT]) > 0.007)) and (stopButtonPressed.value == 0) and (not control_instance.ls_instance.anyActive()) and (not control_instance.isStuck())): 
-#			while ((not control_instance.timeout or (abs(control_instance.theta4_e) > 0.01 or abs(control_instance.r2_e) > 0.007)) and (stopButtonPressed.value == 0) and (not control_instance.ls_instance.anyActive()) and (not control_instance.isStuck())): 
-				# Only continue when the trajectory is still moving, theta4_e < 0.57 deg, r2_e < 7 mm and no stop button or limit switch is hit.
+				# Only continue when the trajectory is still moving, theta4_e < 0.005 rad, r2_e < 7 mm and no stop button or limit switch is hit.
 
 				control_instance.updateTrajectory(state)
 				control_instance.updatePosition()
@@ -110,10 +113,6 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 				control_instance.storeData()
 
 				if (i == 15):
-
-					[direction_ring, PWM_signal_strength_ring] = PID_to_control_input(control_instance.pid_ring.output, 2, control_instance.encoder_instance)
-					print("Motor control signals: DIRECTION = ", direction_ring, " | POWER = ", PWM_signal_strength_ring, " (",control_instance.pid_ring.output, ")" )
-
 					if (graphPipeSize.value == 0):
 						control_instance.eraseBufferData()
 					control_instance.bufferData()

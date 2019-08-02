@@ -98,6 +98,8 @@ def main(graphPipe, graphPipeReceiver, buttonPipe, graphPipeSize, graphLock, sto
 						mode = "Detatch"
 					elif (mode == "Detatch"):
 						mode = "Deploy"
+					buttonPipe.send("Ready to continue")
+					newButtonData.value += 1
 					break
 			continuing = False
 			control_instance.initNewState(t0, tf, state)
